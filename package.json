@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "format": "run-s prettier lint:fix tsc",
+    "prettier": "prettier --write 'src/**/*.{ts,tsx}'",
+    "lint:fix": "next lint -d src --no-cache --fix",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@types/node": "20.4.8",
@@ -18,5 +22,13 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "5.1.6"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.0.1"
   }
 }
