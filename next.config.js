@@ -3,6 +3,9 @@ const nextConfig = {
 	reactStrictMode: true,
 	output: 'standalone',
 	swcMinify: true,
+	env: {
+		APP_ENV: process.env.APP_ENV,
+	},
 	modularizeImports: {
 		'@mui/icons-material': {
 			transform: '@mui/icons-material/{{member}}',

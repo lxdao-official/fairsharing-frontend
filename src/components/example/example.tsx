@@ -1,7 +1,6 @@
 'use client';
 
 import { Box, Button, Container, Typography } from '@mui/material';
-import { useEffect } from 'react';
 
 const Example = () => {
 	const handleClickButton = () => {
@@ -18,7 +17,7 @@ const Example = () => {
 				}}
 			>
 				<Typography variant="body1" gutterBottom>
-					Example Component
+					Environment: {process.env.APP_ENV}
 				</Typography>
 			</Box>
 		</Container>
