@@ -1,0 +1,9 @@
+.projectContainer {
+    flex: 1;
+    display: flex;
+}
+
+.projectNavContainer {
+    width: 240px;
+    border-right: 0.5px solid #CBD5E1;
+}
