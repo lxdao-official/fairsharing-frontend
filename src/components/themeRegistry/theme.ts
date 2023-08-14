@@ -63,6 +63,26 @@ const theme = createTheme({
 				}),
 			},
 		},
+		MuiStepIcon: {
+			styleOverrides: {
+				root: {
+					border: '1px solid #CBD5E1',
+					borderRadius: '100%',
+					color: '#fff',
+					'&.Mui-active': {
+						color: '#0F172A',
+					},
+					'&.Mui-completed': {
+						color: '#0F172A',
+					},
+				},
+				text: {
+					fill: '#CBD5E1',
+					fontSize: '16px',
+					fontWeight: 'bold',
+				},
+			},
+		},
 	},
 });
 
