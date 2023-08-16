@@ -16,6 +16,14 @@ const nextConfig = {
 		config.externals.push('pino-pretty', 'lokijs', 'encoding');
 		return config;
 	},
+	async rewrites() {
+		return [
+			{
+				source: '/fs-api/:path*',
+				destination: `${process.env.NEXT_PUBLIC_API_HOST_PROXY}/:path*`,
+			},
+		]
+	},
 }
 
 module.exports = nextConfig

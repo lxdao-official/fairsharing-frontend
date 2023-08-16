@@ -17,7 +17,7 @@ export interface Project {
  * @param params
  */
 export function createProject(params: CreateProjectParams): Promise<CreateProjectRes> {
-	return request('project/new', 1, params);
+	return request('project/create', 1, params);
 }
 
 export function getProjectList(params: PageListParams): Promise<PageListData<Project>> {

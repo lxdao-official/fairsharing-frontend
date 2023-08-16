@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
+import ProjectDetail from '@/components/project/detail';
+
 const steps = [
 	{
 		label: 'Getting started',
@@ -102,6 +104,7 @@ export default function Page() {
 				<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
 					Create a project
 				</Typography>
+				<ProjectDetail />
 			</Box>
 		</Container>
 	);

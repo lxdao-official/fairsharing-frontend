@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env APP_ENV=Local next dev --turbo",
+    "dev": "cross-env APP_ENV=Local next dev -p 3001",
     "build:dev": "cross-env APP_ENV=DEV next build",
     "vercel-build": "cross-env APP_ENV=Production next build",
     "start": "next start",
