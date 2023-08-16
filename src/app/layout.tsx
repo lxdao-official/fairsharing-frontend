@@ -15,12 +15,14 @@ import { RainbowProvider } from '@/components/rainbow/provider';
 
 import Nav from '@/components/nav/nav';
 
+import SimpleGlobalLoading from '@/components/loading';
+
 import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-	title: 'FS',
+	title: 'FairSharing',
 	description: 'FairSharing Platform ',
 };
 
@@ -62,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							<Nav />
 							{children}
 						</div>
+						<SimpleGlobalLoading />
 					</RainbowProvider>
 				</ThemeRegistry>
 			</body>

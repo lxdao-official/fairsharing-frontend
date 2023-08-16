@@ -1,19 +1,7 @@
 'use client';
 
-import {
-	Box,
-	Button,
-	Container,
-	Paper,
-	Step,
-	StepContent,
-	StepLabel,
-	Stepper,
-	Typography,
-} from '@mui/material';
-import { useState } from 'react';
-
-import ProjectDetail from '@/components/project/detail';
+import { Box, Button, Container, Paper, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { createContext, ReactNode, useContext, useState } from 'react';
 
 const steps = [
 	{
@@ -21,7 +9,6 @@ const steps = [
 	},
 	{
 		label: 'Profile',
-		description: '',
 	},
 	{
 		label: 'Strategy',
@@ -33,17 +20,6 @@ const steps = [
 export default function Page() {
 	const [activeStep, setActiveStep] = useState(0);
 
-	const handleNext = () => {
-		setActiveStep((prevActiveStep) => prevActiveStep + 1);
-	};
-
-	const handleBack = () => {
-		setActiveStep((prevActiveStep) => prevActiveStep - 1);
-	};
-
-	const handleReset = () => {
-		setActiveStep(0);
-	};
 	return (
 		<Container
 			maxWidth={'xl'}
@@ -57,55 +33,46 @@ export default function Page() {
 			<Box sx={{ maxWidth: 200 }}>
 				<Stepper activeStep={activeStep} orientation="vertical">
 					{steps.map((step, index) => (
-						<Step key={step.label}>
-							<StepLabel
-								optional={
-									index === 2 ? (
-										<Typography variant="caption">Last step</Typography>
-									) : null
-								}
-							>
-								{step.label}
-							</StepLabel>
-							<StepContent>
-								<Typography>{step.description}</Typography>
-								<Box sx={{ mb: 2 }}>
-									<div>
-										<Button
-											variant="contained"
-											onClick={handleNext}
-											sx={{ mt: 1, mr: 1 }}
-										>
-											{index === steps.length - 1 ? 'Finish' : 'Continue'}
-										</Button>
-										<Button
-											disabled={index === 0}
-											onClick={handleBack}
-											sx={{ mt: 1, mr: 1 }}
-										>
-											Back
-										</Button>
-									</div>
-								</Box>
-							</StepContent>
+						<Step sx={{ cursor: 'pointer' }} key={step.label}>
+							<StepLabel onClick={() => setActiveStep(index)}>{step.label}</StepLabel>
 						</Step>
 					))}
 				</Stepper>
-				{activeStep === steps.length && (
-					<Paper square elevation={0} sx={{ p: 3 }}>
-						<Typography>All steps completed - you&apos;re finished</Typography>
-						<Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
-							Reset
-						</Button>
-					</Paper>
-				)}
 			</Box>
-			<Box sx={{ flex: 1, maxWidth: '860px' }}>
-				<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
-					Create a project
-				</Typography>
-				<ProjectDetail />
+			<Box sx={{ flex: 1, maxWidth: '860px', marginLeft: '40px' }}>
+				<StepContent step={0} activeStep={activeStep}>
+					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
+						Create a project
+					</Typography>
+				</StepContent>
+				<StepContent step={1} activeStep={activeStep}>
+					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
+						Profile
+					</Typography>
+				</StepContent>
+				<StepContent step={2} activeStep={activeStep}>
+					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
+						Strategy
+					</Typography>
+				</StepContent>
+				<StepContent step={3} activeStep={activeStep}>
+					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
+						Contributors
+					</Typography>
+				</StepContent>
 			</Box>
 		</Container>
 	);
+}
+
+function StepContent({
+	step,
+	children,
+	activeStep,
+}: {
+	step: number;
+	activeStep: number;
+	children: ReactNode;
+}) {
+	return <div style={{ display: activeStep === step ? 'block' : 'none' }}>{children}</div>;
 }
