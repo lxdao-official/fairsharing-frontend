@@ -1,7 +1,26 @@
 'use client';
 
-import { Box, Button, Container, Paper, Step, StepLabel, Stepper, Typography } from '@mui/material';
-import { createContext, ReactNode, useContext, useState } from 'react';
+import {
+	Box,
+	Button,
+	Container,
+	List,
+	ListItem,
+	ListItemIcon,
+	ListItemText,
+	Paper,
+	Step,
+	StepLabel,
+	Stepper,
+	Typography,
+} from '@mui/material';
+import CircleIcon from '@mui/icons-material/Circle';
+import { createContext, ReactNode, useContext, useRef, useState } from 'react';
+
+import StepStart from '@/components/createProject/step/start';
+import StepStrategy from '@/components/createProject/step/strategy';
+import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
+import StepContributor from '@/components/createProject/step/contributor';
 
 const steps = [
 	{
@@ -17,8 +36,15 @@ const steps = [
 		label: 'Contributors',
 	},
 ];
+
 export default function Page() {
 	const [activeStep, setActiveStep] = useState(0);
+
+	const stepProfileRef = useRef<StepProfileRef | null>(null);
+	const handleGetFormData = () => {
+		const formData = stepProfileRef.current?.getFormData();
+		console.log('Form Data:', formData);
+	};
 
 	return (
 		<Container
@@ -39,26 +65,22 @@ export default function Page() {
 					))}
 				</Stepper>
 			</Box>
-			<Box sx={{ flex: 1, maxWidth: '860px', marginLeft: '40px' }}>
+			<Box sx={{ flex: 1, maxWidth: '860px', minWidth: '400px', marginLeft: '40px' }}>
+				<Typography variant={'h2'} style={{ fontWeight: 'bold', marginBottom: '32px' }}>
+					Create a project
+				</Typography>
+				<Button onClick={handleGetFormData}>console form data</Button>
 				<StepContent step={0} activeStep={activeStep}>
-					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
-						Create a project
-					</Typography>
+					<StepStart step={0} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={1} activeStep={activeStep}>
-					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
-						Profile
-					</Typography>
+					<StepProfile ref={stepProfileRef} step={1} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={2} activeStep={activeStep}>
-					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
-						Strategy
-					</Typography>
+					<StepStrategy step={2} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={3} activeStep={activeStep}>
-					<Typography variant={'h2'} style={{ fontWeight: 'bold' }}>
-						Contributors
-					</Typography>
+					<StepContributor step={3} setActiveStep={setActiveStep} />
 				</StepContent>
 			</Box>
 		</Container>

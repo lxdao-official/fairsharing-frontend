@@ -11,7 +11,9 @@ export default function Home() {
 		<main style={{ flex: 1, padding: '24px' }}>
 			<Container maxWidth="lg">
 				<Box>
-					<Card raised sx={{ padding: '20px' }}></Card>
+					<Card raised sx={{ padding: '20px' }}>
+						<Typography variant={'h1'}>All Project List</Typography>
+					</Card>
 				</Box>
 			</Container>
 		</main>

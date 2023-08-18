@@ -13,11 +13,11 @@ export interface Project {
 }
 
 /**
- * create a new project
+ * createProject a new project
  * @param params
  */
 export function createProject(params: CreateProjectParams): Promise<CreateProjectRes> {
-	return request('project/create', 1, params);
+	return request('project/createProject', 1, params);
 }
 
 export function getProjectList(params: PageListParams): Promise<PageListData<Project>> {
