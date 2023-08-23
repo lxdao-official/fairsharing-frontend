@@ -17,24 +17,24 @@ const theme = createTheme({
 		h1: {
 			fontSize: 56,
 			color: '#0F172A',
-			fontWeight: 'bold'
+			fontWeight: 'bold',
 		},
 		h2: {
 			fontSize: 36,
-			fontWeight: 'bold'
+			fontWeight: 'bold',
 		},
 		h3: {
 			fontSize: 28,
-			fontWeight: 'bold'
+			fontWeight: 'bold',
 		},
 		h4: {
 			fontSize: 20,
 			color: '#1E293B',
-			fontWeight: 'bold'
+			fontWeight: 'bold',
 		},
 		h5: {
 			fontSize: 16,
-			fontWeight: 'bold'
+			fontWeight: 'bold',
 		},
 		subtitle1: {
 			fontSize: 20,
@@ -60,18 +60,35 @@ const theme = createTheme({
 	},
 	components: {
 		MuiButton: {
-			styleOverrides: {
-				root: {
-					backgroundColor: '#1DE9B6',
-					color: '#0F172A',
-					fontWeight: 'bold',
-					boxShadow: 'none',
-					'&:hover': {
-						background: 'rgba(29, 233, 182, .8)',
+			// styleOverrides: {
+			// 	root: {
+			// 		minWith: '128px',
+			// 		backgroundColor: '#1DE9B6',
+			// 		color: '#0F172A',
+			// 		fontWeight: 'bold',
+			// 		boxShadow: 'none',
+			// 		'&:hover': {
+			// 			background: 'rgba(29, 233, 182, .8)',
+			// 			boxShadow: 'none',
+			// 		},
+			// 	},
+			// },
+			variants: [
+				{
+					props: { variant: 'contained' },
+					style: {
+						minWith: '128px',
+						backgroundColor: '#1DE9B6',
+						color: '#0F172A',
+						fontWeight: 'bold',
 						boxShadow: 'none',
+						'&:hover': {
+							background: 'rgba(29, 233, 182, .8)',
+							boxShadow: 'none',
+						},
 					},
 				},
-			},
+			],
 		},
 		MuiAlert: {
 			styleOverrides: {

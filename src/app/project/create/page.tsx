@@ -18,7 +18,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import { createContext, ReactNode, useContext, useRef, useState } from 'react';
 
 import StepStart from '@/components/createProject/step/start';
-import StepStrategy from '@/components/createProject/step/strategy';
+import StepStrategy, { StepStrategyRef } from '@/components/createProject/step/strategy';
 import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
 import StepContributor from '@/components/createProject/step/contributor';
 
@@ -41,9 +41,12 @@ export default function Page() {
 	const [activeStep, setActiveStep] = useState(0);
 
 	const stepProfileRef = useRef<StepProfileRef | null>(null);
+	const stepStrategyRef = useRef<StepStrategyRef | null>(null);
 	const handleGetFormData = () => {
-		const formData = stepProfileRef.current?.getFormData();
-		console.log('Form Data:', formData);
+		const profileFormData = stepProfileRef.current?.getFormData();
+		const strategyFormData = stepStrategyRef.current?.getFormData();
+		console.log('profileFormData Form Data:', profileFormData);
+		console.log('strategyFormData Form Data:', strategyFormData);
 	};
 
 	return (
@@ -77,7 +80,7 @@ export default function Page() {
 					<StepProfile ref={stepProfileRef} step={1} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={2} activeStep={activeStep}>
-					<StepStrategy step={2} setActiveStep={setActiveStep} />
+					<StepStrategy ref={stepStrategyRef} step={2} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={3} activeStep={activeStep}>
 					<StepContributor step={3} setActiveStep={setActiveStep} />

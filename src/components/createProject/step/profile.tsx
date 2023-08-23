@@ -15,8 +15,8 @@ export interface StepProfileRef {
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 	(props: IStepProfileProps, ref) => {
 		const { step, setActiveStep } = props;
-		const [name, setName] = useState('');
-		const [intro, setIntro] = useState('');
+		const [name, setName] = useState('Default Name');
+		const [intro, setIntro] = useState('Default Intro');
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
 
