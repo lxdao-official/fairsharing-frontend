@@ -20,7 +20,7 @@ import { createContext, ReactNode, useContext, useRef, useState } from 'react';
 import StepStart from '@/components/createProject/step/start';
 import StepStrategy, { StepStrategyRef } from '@/components/createProject/step/strategy';
 import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
-import StepContributor from '@/components/createProject/step/contributor';
+import StepContributor, { StepContributorRef } from '@/components/createProject/step/contributor';
 
 const steps = [
 	{
@@ -42,11 +42,14 @@ export default function Page() {
 
 	const stepProfileRef = useRef<StepProfileRef | null>(null);
 	const stepStrategyRef = useRef<StepStrategyRef | null>(null);
+	const stepContributorRef = useRef<StepContributorRef | null>(null);
 	const handleGetFormData = () => {
 		const profileFormData = stepProfileRef.current?.getFormData();
 		const strategyFormData = stepStrategyRef.current?.getFormData();
+		const contributorFormData = stepContributorRef.current?.getFormData();
 		console.log('profileFormData Form Data:', profileFormData);
 		console.log('strategyFormData Form Data:', strategyFormData);
+		console.log('contributorFormData Form Data:', contributorFormData);
 	};
 
 	return (
@@ -83,7 +86,11 @@ export default function Page() {
 					<StepStrategy ref={stepStrategyRef} step={2} setActiveStep={setActiveStep} />
 				</StepContent>
 				<StepContent step={3} activeStep={activeStep}>
-					<StepContributor step={3} setActiveStep={setActiveStep} />
+					<StepContributor
+						ref={stepContributorRef}
+						step={3}
+						setActiveStep={setActiveStep}
+					/>
 				</StepContent>
 			</Box>
 		</Container>
