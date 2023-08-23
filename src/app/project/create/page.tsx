@@ -75,7 +75,7 @@ export default function Page() {
 				<Typography variant={'h2'} style={{ fontWeight: 'bold', marginBottom: '32px' }}>
 					Create a project
 				</Typography>
-				<Button onClick={handleGetFormData}>console form data</Button>
+
 				<StepContent step={0} activeStep={activeStep}>
 					<StepStart step={0} setActiveStep={setActiveStep} />
 				</StepContent>
@@ -92,6 +92,13 @@ export default function Page() {
 						setActiveStep={setActiveStep}
 					/>
 				</StepContent>
+				<Button
+					variant={'contained'}
+					onClick={handleGetFormData}
+					sx={{ marginTop: '40px' }}
+				>
+					console form data
+				</Button>
 			</Box>
 		</Container>
 	);
