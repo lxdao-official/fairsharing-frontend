@@ -17,12 +17,12 @@ const nextConfig = {
 		return config;
 	},
 	async rewrites() {
-		return [
+		return process.env.APP_ENV !== 'Production' ? [
 			{
 				source: '/fs-api/:path*',
 				destination: `${process.env.NEXT_PUBLIC_API_HOST_PROXY}/:path*`,
 			},
-		]
+		] : []
 	},
 }
 
