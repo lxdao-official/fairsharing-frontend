@@ -21,7 +21,7 @@ export default function Nav() {
 				<Item
 					href={`/project/${project.id}`}
 					key={project.id}
-					name={`P-${project.id}`}
+					name={project.name}
 					isActive={pathname === `/project/${project.id}`}
 				/>
 			))}

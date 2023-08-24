@@ -1,32 +1,25 @@
 import { request } from '@/common/request';
 import { PageListData, PageListParams } from '@/common/types';
-import { IContributor } from '@/components/createProject/step/contributor';
+import { IContributor, IProject } from '@/services/types';
 
-export interface CreateProjectParams {}
-
-export interface CreateProjectRes {
-	logo: string,
-	name: string,
-	intro: string,
-	symbol: string,
-	network: number,
-	votePeriod: number,
-	contributors: IContributor[]
-}
-
-export interface Project {
-	id: number;
-	[key: string]: any;
+export interface CreateProjectParams {
+	logo: string;
+	name: string;
+	intro: string;
+	symbol: string;
+	network: number;
+	votePeriod: number;
+	contributors: IContributor[];
 }
 
 /**
  * createProject a new project
  * @param params
  */
-export function createProject(params: CreateProjectParams): Promise<CreateProjectRes> {
+export function createProject(params: CreateProjectParams): Promise<IProject> {
 	return request.post('project/create', 1, params);
 }
 
-export function getProjectList(params: PageListParams): Promise<PageListData<Project>> {
+export function getProjectList(params: PageListParams): Promise<PageListData<IProject>> {
 	return request('project/list', 1, params);
 }
