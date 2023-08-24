@@ -6,7 +6,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { AccountCircle } from '@mui/icons-material';
 import { EAS, Offchain, SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
-import { useEthersSigner } from '@/common/ether';
+import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { OFFCHAIN_ATTESTATION_VERSION } from '@ethereum-attestation-service/eas-sdk/src/offchain';
 
 export default function Page({ params }: { params: { id: string } }) {
@@ -24,18 +24,16 @@ export default function Page({ params }: { params: { id: string } }) {
 		setDetail(event.target.value);
 	};
 
-	useEffect(() => {
-		if (!signer) {
-			return;
-		}
-		// @ts-ignore
-		// eas.connect(provider);
-	}, [eas, signer]);
+	// useEffect(() => {
+	// 	// if (!signer) {
+	// 	// 	return;
+	// 	// }
+	// 	// @ts-ignore
+	// 	// eas.connect(provider);
+	// }, [eas, signer]);
 
 	const handlePrepareContribution = async () => {
-		console.log('eas:', eas);
 		const offchain = await eas.getOffchain();
-		console.log(offchain);
 
 		const contributionSchemaUid =
 			'0x446a57b67cc7459c9aa55a372b1395251db4f4732fff04f76c134f57a0409fe4';
