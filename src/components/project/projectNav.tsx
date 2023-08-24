@@ -3,7 +3,7 @@
 import { usePathname, useParams } from 'next/navigation';
 
 import { Typography } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -15,30 +15,42 @@ const ProjectNav = () => {
 	useEffect(() => {
 		console.log('useParams', params);
 	}, [params]);
+
+	const isMatch = (name: string) => {
+		return pathname.indexOf(name) > -1;
+	};
+
 	return (
 		<div className={styles.projectNavContainer}>
-			<Typography variant={'subtitle2'} style={{ fontWeight: 'bold' }}>
+			<Typography
+				variant={'subtitle1'}
+				style={{ borderBottom: '1px solid rgba(15, 23, 42, 0.16)', padding: '8px 16px' }}
+			>
 				Project Name
 			</Typography>
 			<NavItem
 				href={`/project/${params.id}/contribution`}
 				name={'Contributions'}
-				icon={'/images/home.png'}
+				icon={'/images/projectNav/contribution.png'}
+				isActive={isMatch('contribution')}
 			/>
 			<NavItem
 				href={`/project/${params.id}/contributor`}
 				name={'Contributors'}
-				icon={'/images/home.png'}
+				icon={'/images/projectNav/contributor.png'}
+				isActive={isMatch('contributor')}
 			/>
 			<NavItem
 				href={`/project/${params.id}/dashboard`}
 				name={'Dashboard'}
-				icon={'/images/home.png'}
+				icon={'/images/projectNav/dashboard.png'}
+				isActive={isMatch('dashboard')}
 			/>
 			<NavItem
 				href={`/project/${params.id}/setting`}
 				name={'Settings'}
-				icon={'/images/home.png'}
+				icon={'/images/projectNav/setting.png'}
+				isActive={isMatch('setting')}
 			/>
 		</div>
 	);
@@ -58,9 +70,23 @@ const NavItem = ({
 	isActive?: boolean;
 }) => {
 	return (
-		<Link href={href} style={{ display: 'flex' }}>
+		<Link
+			href={href}
+			style={{
+				display: 'flex',
+				justifyContent: 'center',
+				alignItems: 'center',
+				height: '56px',
+				padding: '0 24px',
+			}}
+		>
 			<Image src={icon} width={24} height={24} alt={'icon'} />
-			<Typography variant={'body1'}>{name}</Typography>
+			<Typography
+				sx={{ marginLeft: '24px', flex: '1', fontWeight: isActive ? 'bold' : 'normal' }}
+				variant={'body1'}
+			>
+				{name}
+			</Typography>
 		</Link>
 	);
 };

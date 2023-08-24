@@ -19,10 +19,10 @@ export default function Nav() {
 			<Item href={'/'} image={'/images/home.png'} isActive={pathname === '/'} />
 			{projectList.map((project, idx) => (
 				<Item
-					href={`/project/${project.id}`}
+					href={`/project/${project.id}/contribution`}
 					key={project.id}
 					name={project.name}
-					isActive={pathname === `/project/${project.id}`}
+					isActive={pathname.indexOf(`/project/${project.id}`) > -1}
 				/>
 			))}
 			<Item

@@ -1,6 +1,6 @@
 import { proxy, useSnapshot } from 'valtio';
-import { IProject } from '@/services/types';
 
+import { IProject } from '@/services/types';
 
 export interface StoreTypes {
 	projectList: Partial<IProject>[];
@@ -8,10 +8,14 @@ export interface StoreTypes {
 }
 
 export const ProjectStore = proxy<StoreTypes>({
-	projectList: [{ id: 1, name: "FS" }, { id: 2, name: "Crypto" }, { id: 3, name: "Web3" }],
+	projectList: [
+		{ id: 1, name: 'FS' },
+		{ id: 2, name: 'Crypto' },
+		{ id: 3, name: 'Web3' },
+	],
 	currentProject: {
 		id: 2,
-		name: "Crypto"
+		name: 'Crypto',
 	},
 });
 
