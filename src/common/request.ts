@@ -93,6 +93,15 @@ request.post = function post<T = any>(
 	return request(api, version, data, { method: 'post', ...options });
 };
 
+request.put = function post<T = any>(
+	api: string,
+	version: number | string,
+	data: any,
+	options?: Omit<AxiosRequestConfig, 'put'>,
+): Promise<T> {
+	return request(api, version, data, { method: 'put', ...options });
+};
+
 function removeEmptyParams(data: any) {
 	return Object.entries(data).reduce((data, [key, value]) => {
 		if (typeof value === 'undefined') {

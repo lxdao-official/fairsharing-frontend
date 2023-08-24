@@ -40,7 +40,7 @@ export enum PermissionEnum {
 	Contributor = 'Contributor',
 }
 
-interface Row {
+export interface IContributor {
 	name: string;
 	walletAddress: string;
 	permission: PermissionEnum;
@@ -49,9 +49,8 @@ interface Row {
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
 	const { step, setActiveStep } = props;
-	// const [contributors, setContributors] = useState([]);
 
-	const [contributors, setContributors] = useState<Row[]>([
+	const [contributors, setContributors] = useState<IContributor[]>([
 		{
 			name: '',
 			walletAddress: '',
@@ -106,6 +105,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const handleCreateProject = () => {
 		console.log('handleCreateProject');
+		// TODO 校验
 	};
 
 	return (
@@ -181,7 +181,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					</TableBody>
 				</Table>
 				{/*<Button variant="outlined" onClick={handleAddRow}>*/}
-				{/*	Add Row*/}
+				{/*	Add IContributor*/}
 				{/*</Button>*/}
 				<StyledFlexBox
 					sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
