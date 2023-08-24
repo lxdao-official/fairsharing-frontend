@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 import {
 	Button,
@@ -20,8 +20,21 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
-import { IStepBaseProps } from '@/components/createProject/step/start';
+import { useContractRead } from 'wagmi';
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+
+import { ethers } from 'ethers';
+
+import { TransactionResponse } from '@ethersproject/abstract-provider';
+
+import { useEthersSigner } from '@/common/ether';
 import { StyledFlexBox } from '@/components/styledComponents';
+import { IStepBaseProps } from '@/components/createProject/step/start';
+
+// @ts-ignore
+import project_register_abi = require('../../../../abi/project_register_abi.json');
 
 export interface IStepContributorProps extends IStepBaseProps {}
 
@@ -58,6 +71,33 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			permission: PermissionEnum.Contributor,
 		},
 	]);
+
+	const signer = useEthersSigner();
+
+	// todo: test
+	useContractRead({
+		address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
+		abi: project_register_abi,
+		functionName: 'owner',
+		onSuccess(data) {
+			console.log('get project register owner:', data);
+		},
+	});
+
+	// const {
+	// 	data: registerResult,
+	// 	isLoading,
+	// 	isSuccess,
+	// 	write,
+	// } = useContractWrite({
+	// 	address: '0x9B2A807084B7a6ECD646a1dFc217dfAaDBEFEF10',
+	// 	abi: project_register_abi,
+	// 	functionName: 'register',
+	// });
+	//
+	// const waitForTransaction = useWaitForTransaction({
+	// 	hash: registerResult?.hash,
+	// });
 
 	const handleNameChange = (index: number, value: string) => {
 		const newData = [...contributors];
@@ -103,9 +143,43 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		[contributors],
 	);
 
-	const handleCreateProject = () => {
-		console.log('handleCreateProject');
-		// TODO 校验
+	const handleCreateProject = async () => {
+		console.log('handleCreateProject', contributors);
+		// TODO 合约调用生成 project -> 后端生成
+		// 需要考虑 合约调用成功, 但后端调用失败的问题, 需要做好数据同步.
+		const owner = '0x9324AD72F155974dfB412aB6078e1801C79A8b78';
+		const members = [
+			'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
+			'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
+		];
+		const symbol = 'tokenSymbol';
+
+		const contract = new ethers.Contract(
+			'0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
+			project_register_abi,
+			signer,
+		);
+
+		const tx: TransactionResponse = await contract.register(owner, members, symbol);
+		const response = await tx.wait(1);
+		if (response.status === 1) {
+			const result = await contract.callStatic.register(owner, members, symbol);
+			const projectContract = result[0];
+			const pid = result[1];
+			console.log('callStatic projectContract:', projectContract, 'pid:', pid);
+		}
+
+		// sync to backend
+		// const params: CreateProjectParams = {
+		// 	logo: '',
+		// 	name: '',
+		// 	intro: '',
+		// 	symbol: '',
+		// 	network: 1,
+		// 	votePeriod: 1,
+		// 	contributors: [],
+		// };
+		// const result = await createProject(params);
 	};
 
 	return (
