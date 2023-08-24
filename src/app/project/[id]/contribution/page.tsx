@@ -7,16 +7,18 @@ import React, { useEffect, useState } from 'react';
 import { AccountCircle } from '@mui/icons-material';
 import { EAS, Offchain, SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 import { useEthersSigner } from '@/common/ether';
-import { useProvider } from '@/common/eas-wagmi-utils';
-import { ethers } from 'ethers';
-import { bigint } from 'zod';
+import { OFFCHAIN_ATTESTATION_VERSION } from '@ethereum-attestation-service/eas-sdk/src/offchain';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [detail, setDetail] = useState('');
 
 	const EASContractAddress = '0x4200000000000000000000000000000000000021';
-	const eas = new EAS(EASContractAddress);
+
 	const signer = useEthersSigner();
+
+	const eas = new EAS(EASContractAddress, { signerOrProvider: signer });
+
+	let contributionUID: string;
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -27,44 +29,120 @@ export default function Page({ params }: { params: { id: string } }) {
 			return;
 		}
 		// @ts-ignore
-		eas.connect(signer);
-		console.log('connect', signer);
-	}, [signer]);
+		// eas.connect(provider);
+	}, [eas, signer]);
 
 	const handlePrepareContribution = async () => {
-		// const contributionUid =
-		// 	'0x446a57b67cc7459c9aa55a372b1395251db4f4732fff04f76c134f57a0409fe4';
-		// const offchain = await eas.getOffchain();
-		// // Initialize SchemaEncoder with the schema string
-		// const schemaEncoder = new SchemaEncoder(
-		// 	'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
-		// );
-		// const encodedData = schemaEncoder.encodeData([
-		// 	{ name: 'pid', value: 1, type: 'uint256' },
-		// 	{ name: 'cid', value: 1, type: 'uint64' },
-		// 	{ name: 'title', value: 'first contribution title', type: 'string' },
-		// 	{ name: 'detail', value: 'first contribution detail', type: 'string' },
-		// 	{ name: 'poc', value: 'the poc', type: 'string' },
-		// 	{ name: 'token', value: 2000, type: 'uint64' },
-		// ]);
-		//
-		// const now = new Date();
-		//
-		// const offchainAttestation = await offchain.signOffchainAttestation(
-		// 	{
-		// 		recipient: '0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-		// 		expirationTime: 0,
-		// 		time: now.getTime(),
-		// 		revocable: true,
-		// 		version: 1,
-		// 		nonce: 0,
-		// 		schema: contributionUid,
-		// 		refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-		// 		data: encodedData,
-		// 	},
-		// 	signer,
-		// );
-		// console.log('offchainAttestation:', offchainAttestation);
+		console.log('eas:', eas);
+		const offchain = await eas.getOffchain();
+		console.log(offchain);
+
+		const contributionSchemaUid =
+			'0x446a57b67cc7459c9aa55a372b1395251db4f4732fff04f76c134f57a0409fe4';
+
+		// Initialize SchemaEncoder with the schema string
+		const schemaEncoder = new SchemaEncoder(
+			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
+		);
+		const encodedData = schemaEncoder.encodeData([
+			{ name: 'pid', value: 1, type: 'uint256' },
+			{ name: 'cid', value: 1, type: 'uint64' },
+			{ name: 'title', value: 'first contribution title', type: 'string' },
+			{ name: 'detail', value: 'first contribution detail', type: 'string' },
+			{ name: 'poc', value: 'the poc', type: 'string' },
+			{ name: 'token', value: 2000, type: 'uint64' },
+		]);
+
+		const now = new Date();
+
+		const offchainAttestation = await offchain.signOffchainAttestation(
+			{
+				recipient: '0x9324AD72F155974dfB412aB6078e1801C79A8b78',
+				expirationTime: 0,
+				time: now.getTime(),
+				revocable: true,
+				version: 1,
+				nonce: 0,
+				schema: contributionSchemaUid,
+				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+				data: encodedData,
+			},
+			signer,
+		);
+		contributionUID = offchainAttestation.uid;
+		console.log('offchainAttestation:', offchainAttestation);
+	};
+
+	const handleVote = async (index) => {
+		const values = [1, 2];
+
+		const offchain = await eas.getOffchain();
+
+		const voteSchemaUid = '0x82280290eeca50f5d7bf7b75bdf1241c8dbd8ae41dda1dde5d32159c00003c12';
+
+		// Initialize SchemaEncoder with the schema string
+		const schemaEncoder = new SchemaEncoder(
+			'uint256 pid, uint64 cid , uint8 value, string reason',
+		);
+		const encodedData = schemaEncoder.encodeData([
+			{ name: 'pid', value: 1, type: 'uint256' },
+			{ name: 'cid', value: 1, type: 'uint64' },
+			{ name: 'uint8', value: values[index], type: 'uint8' },
+			{ name: 'reason', value: 'good contribution', type: 'string' },
+		]);
+
+		const now = new Date();
+
+		const offchainAttestation = await offchain.signOffchainAttestation(
+			{
+				recipient: '0x0',
+				expirationTime: 0,
+				time: now.getTime(),
+				revocable: true,
+				version: 1,
+				nonce: 0,
+				schema: voteSchemaUid,
+				refUID: contributionUID,
+				data: encodedData,
+			},
+			signer,
+		);
+		console.log('offchainAttestation:', offchainAttestation);
+	};
+
+	const handleClaim = async () => {
+		const claimSchemaUid = '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986';
+
+		// todo
+		const signature = '';
+
+		// Initialize SchemaEncoder with the schema string
+		const schemaEncoder = new SchemaEncoder(
+			'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
+		);
+		const encodedData = schemaEncoder.encodeData([
+			{ name: 'pid', value: 1, type: 'uint256' },
+			{ name: 'cid', value: 1, type: 'uint64' },
+			{
+				name: 'voters',
+				value: [
+					'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
+					'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
+				],
+				type: 'address[]',
+			},
+			{ name: 'values', value: [1, 2], type: 'uint8[]' },
+			{ name: 'token', value: 2000, type: 'uint64' },
+			{ name: 'signature', value: signature, type: 'bytes' },
+		]);
+
+		const now = new Date();
+
+		const attestation = await eas.attest({
+			schema: claimSchemaUid,
+			data: { recipient: '0x0', expirationTime: 0, revocable: false, data: encodedData },
+		});
+		console.log('onchainAttestation:', attestation);
 	};
 
 	return (
@@ -132,11 +210,42 @@ export default function Page({ params }: { params: { id: string } }) {
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button
 					variant={'contained'}
-					onClick={() => {
-						handlePrepareContribution();
+					onClick={async () => {
+						await handlePrepareContribution();
 					}}
 				>
 					Test Prepare contribution
+				</Button>
+			</StyledFlexBox>
+
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<Button
+					variant={'contained'}
+					onClick={async () => {
+						await handleVote(0);
+					}}
+				>
+					Test Vote 1
+				</Button>
+
+				<Button
+					variant={'contained'}
+					onClick={async () => {
+						await handleVote(1);
+					}}
+				>
+					Test Vote 2
+				</Button>
+			</StyledFlexBox>
+
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<Button
+					variant={'contained'}
+					onClick={async () => {
+						await handleClaim();
+					}}
+				>
+					Test claim
 				</Button>
 			</StyledFlexBox>
 		</div>
