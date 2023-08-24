@@ -18,10 +18,10 @@ import {
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
-
 
 export interface IStepContributorProps extends IStepBaseProps {}
 
@@ -35,43 +35,65 @@ export interface StepContributorRef {
 
 const roles: string[] = ['Admin', 'User', 'Guest'];
 
+export enum PermissionEnum {
+	Admin = 'Admin',
+	Contributor = 'Contributor',
+}
+
 interface Row {
 	name: string;
 	walletAddress: string;
+	permission: PermissionEnum;
 	role: string;
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
 	const { step, setActiveStep } = props;
-	const [contributors, setContributors] = useState([]);
+	// const [contributors, setContributors] = useState([]);
 
-	const [data, setData] = useState<Row[]>([{ name: '', walletAddress: '', role: roles[0] }]);
+	const [contributors, setContributors] = useState<Row[]>([
+		{
+			name: '',
+			walletAddress: '',
+			role: '',
+			permission: PermissionEnum.Contributor,
+		},
+	]);
 
 	const handleNameChange = (index: number, value: string) => {
-		const newData = [...data];
+		const newData = [...contributors];
 		newData[index].name = value;
-		setData(newData);
+		setContributors(newData);
 	};
 
 	const handleWalletAddressChange = (index: number, value: string) => {
-		const newData = [...data];
+		const newData = [...contributors];
 		newData[index].walletAddress = value;
-		setData(newData);
+		setContributors(newData);
 	};
 
 	const handleRoleChange = (index: number, value: string) => {
-		const newData = [...data];
+		const newData = [...contributors];
 		newData[index].role = value;
-		setData(newData);
+		setContributors(newData);
+	};
+
+	const handlePermissionChange = (index: number, value: PermissionEnum) => {
+		const newData = [...contributors];
+		newData[index].permission = value;
+		setContributors(newData);
 	};
 
 	const handleAddRow = () => {
-		setData([...data, { name: '', walletAddress: '', role: roles[0] }]);
+		setContributors([
+			...contributors,
+			{ name: '', walletAddress: '', role: '', permission: PermissionEnum.Contributor },
+		]);
 	};
 
 	const handleDeleteRow = (index: number) => {
-		const newData = data.filter((_, i) => i !== index);
-		setData(newData);
+		const newData = contributors.filter((_, i) => i !== index);
+		setContributors(newData);
 	};
 
 	useImperativeHandle(
@@ -89,29 +111,34 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	return (
 		<>
 			<Typography variant={'h4'}>Who can post contribution and vote?</Typography>
-			<Typography variant={'h4'}>Contributors</Typography>
+			<Typography variant={'h4'} sx={{ marginTop: '16px' }}>
+				Contributors
+			</Typography>
 
-			<TableContainer component={Paper}>
+			<TableContainer component={Paper} sx={{ marginTop: '8px' }}>
 				<Table>
-					<TableHead>
+					<TableHead sx={{ height: '40px', backgroundColor: '#F1F5F9' }}>
 						<TableRow>
-							<TableCell>Name</TableCell>
-							<TableCell>Wallet Address</TableCell>
-							<TableCell>Role</TableCell>
+							<TableCell width={140}>NickName*</TableCell>
+							<TableCell width={300}>Wallet Address*</TableCell>
+							<TableCell width={160}>Permission</TableCell>
+							<TableCell width={230}>Role</TableCell>
 							<TableCell>Action</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{data.map((row, index) => (
+						{contributors.map((row, index) => (
 							<TableRow key={index}>
 								<TableCell>
 									<TextField
+										size="small"
 										value={row.name}
 										onChange={(e) => handleNameChange(index, e.target.value)}
 									/>
 								</TableCell>
 								<TableCell>
 									<TextField
+										size="small"
 										value={row.walletAddress}
 										onChange={(e) =>
 											handleWalletAddressChange(index, e.target.value)
@@ -121,18 +148,28 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 								<TableCell>
 									<FormControl>
 										<Select
-											value={row.role}
+											size="small"
+											value={row.permission}
 											onChange={(e) =>
-												handleRoleChange(index, e.target.value)
+												handlePermissionChange(
+													index,
+													e.target.value as PermissionEnum,
+												)
 											}
 										>
-											{roles.map((role, idx) => (
-												<MenuItem key={idx} value={role}>
-													{role}
-												</MenuItem>
-											))}
+											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
+											<MenuItem value={PermissionEnum.Contributor}>
+												Contributor
+											</MenuItem>
 										</Select>
 									</FormControl>
+								</TableCell>
+								<TableCell>
+									<TextField
+										size="small"
+										value={row.role}
+										onChange={(e) => handleRoleChange(index, e.target.value)}
+									/>
 								</TableCell>
 								<TableCell>
 									<IconButton onClick={() => handleDeleteRow(index)}>
@@ -143,9 +180,18 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 						))}
 					</TableBody>
 				</Table>
-				<Button variant="outlined" onClick={handleAddRow}>
-					Add Row
-				</Button>
+				{/*<Button variant="outlined" onClick={handleAddRow}>*/}
+				{/*	Add Row*/}
+				{/*</Button>*/}
+				<StyledFlexBox
+					sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
+					onClick={handleAddRow}
+				>
+					<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
+					<Typography variant={'body2'} color={'#475569'}>
+						Add
+					</Typography>
+				</StyledFlexBox>
 			</TableContainer>
 
 			<StyledFlexBox sx={{ marginTop: '40px' }}>

@@ -79,7 +79,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				value={token}
 				placeholder={'Pizza slice token *'}
 				onChange={handleTokenInputChange}
-				sx={{ display: 'block', width: '100%' }}
+				sx={{ display: 'block', minWidth: '' }}
 				error={tokenError}
 				// helperText={'Token is required'}
 			/>
@@ -92,7 +92,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				label="Network"
 				onChange={handleNetworkChange}
 				placeholder={'Select network'}
-				sx={{ width: '230px', marginTop: '32px' }}
+				sx={{ width: '320px', marginTop: '32px' }}
 			>
 				<MenuItem value={'1'}>Georily</MenuItem>
 				<MenuItem value={'5'}>MainNet</MenuItem>
