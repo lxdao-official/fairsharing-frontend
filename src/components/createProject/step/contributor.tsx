@@ -20,7 +20,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
-import { useContractRead } from 'wagmi';
+import { useAccount, useContractRead } from 'wagmi';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -35,6 +35,7 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 
 // @ts-ignore
 import project_register_abi = require('../../../../abi/project_register_abi.json');
+import process from 'process';
 
 export interface IStepContributorProps extends IStepBaseProps {}
 
@@ -73,6 +74,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	]);
 
 	const signer = useEthersSigner();
+	const { address: myAddress } = useAccount();
 
 	// todo: test
 	useContractRead({
@@ -147,15 +149,16 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		console.log('handleCreateProject', contributors);
 		// TODO 合约调用生成 project -> 后端生成
 		// 需要考虑 合约调用成功, 但后端调用失败的问题, 需要做好数据同步.
-		const owner = '0x9324AD72F155974dfB412aB6078e1801C79A8b78';
+		const owner = myAddress;
 		const members = [
 			'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
 			'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
+			'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
 		];
 		const symbol = 'tokenSymbol';
 
 		const contract = new ethers.Contract(
-			'0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
+			`${process.env.NEXT_PUBLIC_CONTRACT}`,
 			project_register_abi,
 			signer,
 		);

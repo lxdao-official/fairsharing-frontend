@@ -18,6 +18,7 @@ import { TransactionResponse } from '@ethersproject/abstract-provider';
 
 // @ts-ignore
 import eas_abi = require('../../../../../abi/eas_abi.json');
+import process from 'process';
 
 type EASChainConfig = {
 	chainId: number;
@@ -90,17 +91,18 @@ export default function Page({ params }: { params: { id: string } }) {
 	const provider = useEthersProvider();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
-
-	const eas = new EAS(EASContractAddress);
+	const eas = new EAS(EASContractAddress, { signerOrProvider: signer });
 
 	let contributionUID: string;
+	const pid = 0;
+	const cid = 1;
 
-	useEffect(() => {
-		console.log('signer:', signer);
-		if (signer) {
-			eas.connect(signer);
-		}
-	}, [signer]);
+	// useEffect(() => {
+	// 	console.log('signer:', signer);
+	// 	if (signer) {
+	// 		eas.connect(signer);
+	// 	}
+	// }, [signer]);
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -146,53 +148,37 @@ export default function Page({ params }: { params: { id: string } }) {
 			{ name: 'token', value: 2000, type: 'uint64' },
 		]);
 
-		{
-			// test onchain
-			const attestation = await eas.attest({
+		const block = await provider.getBlock('latest');
+		const offchainAttestation = await offchain.signOffchainAttestation(
+			{
+				recipient: '0x0000000000000000000000000000000000000000',
+				expirationTime: 0,
+				time: BigInt(block.timestamp),
+				revocable: true,
+				version: 1,
+				nonce: 0,
 				schema: contributionSchemaUid,
-				data: {
-					recipient: '0x0000000000000000000000000000000000000000',
-					expirationTime: 0,
-					revocable: true,
-					refUID: '',
-					data: encodedData,
-					value: 0,
-				},
-			});
-			console.log('onchainAttestation:', attestation);
-		}
+				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+				data: encodedData,
+			},
+			signer,
+		);
 
-		// const block = await provider.getBlock('latest');
-		// const offchainAttestation = await offchain.signOffchainAttestation(
-		// 	{
-		// 		recipient: '0x0000000000000000000000000000000000000000',
-		// 		expirationTime: 0,
-		// 		time: BigInt(block.timestamp),
-		// 		revocable: true,
-		// 		version: 1,
-		// 		nonce: 0,
-		// 		schema: contributionSchemaUid,
-		// 		refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-		// 		data: encodedData,
-		// 	},
-		// 	signer,
-		// );
-		//
-		// contributionUID = offchainAttestation.uid;
-		//
-		// const res = await submitSignedAttestation({
-		// 	signer: myAddress,
-		// 	sig: offchainAttestation,
-		// });
-		// if (!res.data.error) {
-		// 	try {
-		// 		const baseURL = getBASEURL();
-		// 		// Update ENS names
-		// 		await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-		// 	} catch (e) {
-		// 		console.error('ens error:', e);
-		// 	}
-		// }
+		contributionUID = offchainAttestation.uid;
+
+		const res = await submitSignedAttestation({
+			signer: myAddress,
+			sig: offchainAttestation,
+		});
+		if (!res.data.error) {
+			try {
+				const baseURL = getBASEURL();
+				// Update ENS names
+				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+			} catch (e) {
+				console.error('ens error:', e);
+			}
+		}
 	};
 
 	const handleVote = async (value) => {
@@ -205,7 +191,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			'uint256 pid, uint64 cid, uint8 value, string reason',
 		);
 		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: 1, type: 'uint256' },
+			{ name: 'pid', value: 8, type: 'uint256' },
 			{ name: 'cid', value: 1, type: 'uint64' },
 			{ name: 'value', value: value, type: 'uint8' },
 			{ name: 'reason', value: 'good contribution', type: 'string' },
@@ -251,53 +237,35 @@ export default function Page({ params }: { params: { id: string } }) {
 
 		const hash = ethers.keccak256(
 			ethers.AbiCoder.defaultAbiCoder().encode(
-				['string', 'uint256', 'uint64', 'address[]', 'uint8[]', 'uint64'],
+				['address', 'uint256', 'uint64', 'bytes32'],
 				[
-					salt,
-					1,
-					1,
-					[
-						'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-						'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
-					],
-					[1, 1],
-					2000,
+					myAddress,
+					pid,
+					cid,
+					'0xd02a33409f94aa154e1a1c957d4dad9f1a2f6bf6729dc8a8758b39aada406cbc',
 				],
 			),
 		);
 
 		console.log('hash', hash);
 
-		const signature = await signer?.signMessage(ethers.toBeArray(hash));
+		const signerWallet = new ethers.Wallet(`${process.env.NEXT_PUBLIC__KEY}`);
+		const signature = await signerWallet.signMessage(ethers.getBytes(hash));
 
-		// 0xda4f6497b7f4c8bb2cca0920bbed77e93e83a7c12cfc3406e76ade19065704961cb1f6711f6d979efac695e211070764d4a84c5ec98ea96d051c00f23a1c2d6b1b
 		console.log('signature', signature);
 	};
 
 	const handleClaim = async () => {
-		const att = await eas.getAttestation(
-			'0x96ff08919e3a38f2a37d642c8074daedca4ac2c279564930d9dbea710e0aa5e2',
-		);
-		console.log('attestation', att);
-
 		const claimSchemaUid = '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986';
 
-		const signature = ethers.hexlify(
-			ethers.toUtf8Bytes(
-				'0xda4f6497b7f4c8bb2cca0920bbed77e93e83a7c12cfc3406e76ade19065704961cb1f6711f6d979efac695e211070764d4a84c5ec98ea96d051c00f23a1c2d6b1b',
-			),
-		);
+		const signature =
+			'0x9810c8c0596d9bb350b3788101c50f7054268e82f5f6468187160bc8e48570d518987b0c2588ff86fd2137235e9c261421fc7c212944c184ad2ee5da5d2feaa11b';
 
 		// Initialize SchemaEncoder with the schema string
 		const schemaEncoder = new SchemaEncoder(
 			'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 		);
 
-		const pid = 1;
-		const cid = 1;
-		const voteValue1 = 1;
-		const voteValue2 = 1;
-		const token = 2000;
 		const encodedData = schemaEncoder.encodeData([
 			{ name: 'pid', value: pid, type: 'uint256' },
 			{ name: 'cid', value: cid, type: 'uint64' },
@@ -306,53 +274,30 @@ export default function Page({ params }: { params: { id: string } }) {
 				value: [
 					'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
 					'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
+					'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
 				],
 				type: 'address[]',
 			},
-			{ name: 'values', value: [voteValue1, voteValue2], type: 'uint8[]' },
-			{ name: 'token', value: token, type: 'uint64' },
-			{ name: 'signature', value: signature, type: 'bytes' },
+			{ name: 'values', value: [1, 1, 1], type: 'uint8[]' },
+			{ name: 'token', value: 2000, type: 'uint64' },
+			{
+				name: 'signature',
+				value: signature,
+				type: 'bytes',
+			},
 		]);
 
-		// const contract = new ethers.Contract(
-		// 	'0x4200000000000000000000000000000000000021',
-		// 	eas_abi,
-		// 	signer,
-		// );
-		//
-		// console.log('contract', contract);
-		//
-		// const tx: TransactionResponse = await contract.attest(claimSchemaUid, {
-		// 	recipient: myAddress,
-		// 	expirationTime: 0,
-		// 	revocable: false,
-		// 	refUID: '',
-		// 	data: encodedData,
-		// });
-		// console.log('tx:', tx);
-		// const response = await tx.wait(1);
-		// console.log('response:', response);
-
-		// const attestation = await eas.attest({
-		// 	schema: claimSchemaUid,
-		// 	data: {
-		// 		recipient: myAddress,
-		// 		expirationTime: 0,
-		// 		revocable: false,
-		// 		refUID: '',
-		// 		data: encodedData,
-		// 	},
-		// });
-		// console.log('onchainAttestation:', attestation);
+		console.log('encodedData:', encodedData);
 
 		const attestation = await eas.attest({
 			schema: claimSchemaUid,
 			data: {
-				recipient: myAddress,
+				recipient: '0x9324AD72F155974dfB412aB6078e1801C79A8b78',
 				expirationTime: 0,
 				revocable: false,
-				refUID: '',
+				refUID: '0xd02a33409f94aa154e1a1c957d4dad9f1a2f6bf6729dc8a8758b39aada406cbc',
 				data: encodedData,
+				value: 0,
 			},
 		});
 		console.log('onchainAttestation:', attestation);
