@@ -90,7 +90,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	// 	isSuccess,
 	// 	write,
 	// } = useContractWrite({
-	// 	address: '0x9B2A807084B7a6ECD646a1dFc217dfAaDBEFEF10',
+	// 	address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
 	// 	abi: project_register_abi,
 	// 	functionName: 'register',
 	// });
@@ -163,7 +163,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		const tx: TransactionResponse = await contract.register(owner, members, symbol);
 		const response = await tx.wait(1);
 		if (response.status === 1) {
-			const result = await contract.callStatic.register(owner, members, symbol);
+			const result = await contract.register.staticCallResult(owner, members, symbol);
 			const projectContract = result[0];
 			const pid = result[1];
 			console.log('callStatic projectContract:', projectContract, 'pid:', pid);

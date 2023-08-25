@@ -9,9 +9,13 @@ import {
 	EAS,
 	SchemaEncoder,
 } from '@ethereum-attestation-service/eas-sdk';
-import { useEthersSigner } from '@/common/ether';
+import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import axios from 'axios';
 import { useAccount, useNetwork } from 'wagmi';
+import { ethers } from 'ethers';
+
+// @ts-ignore
+import contributor_resolver_abi = require('../../../../../abi/contributor_resolver_abi.json');
 
 type EASChainConfig = {
 	chainId: number;
@@ -66,7 +70,12 @@ type StoreIPFSActionReturn = {
 	offchainAttestationId: string | null;
 };
 
-(BigInt.prototype as any).toJSON = function () {
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+interface BigInt {
+	/** Convert to BigInt to string form in JSON.stringify */
+	toJSON: () => string;
+}
+BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
@@ -76,6 +85,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const EASContractAddress = '0x4200000000000000000000000000000000000021';
 
 	const signer = useEthersSigner();
+	const provider = useEthersProvider();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
 
@@ -96,16 +106,12 @@ export default function Page({ params }: { params: { id: string } }) {
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
-			(config) => config.chainId === network.chain?.id,
-		);
-
 		const baseURL = getBASEURL();
 
 		console.log('baseURL:', baseURL);
 
 		const data: StoreAttestationRequest = {
-			filename: `eas.txt`,
+			filename: `${new Date().getTime()}_eas.txt`,
 			textJson: JSON.stringify(pkg),
 		};
 
@@ -123,7 +129,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
 		);
 		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: 1, type: 'uint256' },
+			{ name: 'pid', value: 8, type: 'uint256' },
 			{ name: 'cid', value: 1, type: 'uint64' },
 			{ name: 'title', value: 'first contribution title', type: 'string' },
 			{ name: 'detail', value: 'first contribution detail', type: 'string' },
@@ -131,13 +137,13 @@ export default function Page({ params }: { params: { id: string } }) {
 			{ name: 'token', value: 2000, type: 'uint64' },
 		]);
 
-		const now = new Date();
+		const block = await provider.getBlock('latest');
 
 		const offchainAttestation = await offchain.signOffchainAttestation(
 			{
-				recipient: myAddress,
+				recipient: '0x0000000000000000000000000000000000000000',
 				expirationTime: 0,
-				time: now.getTime(),
+				time: BigInt(block.timestamp),
 				revocable: true,
 				version: 1,
 				nonce: 0,
@@ -147,22 +153,18 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 			signer,
 		);
-		contributionUID = offchainAttestation.uid;
-		console.log('offchainAttestation:', offchainAttestation);
 
-		const baseURL = getBASEURL();
+		contributionUID = offchainAttestation.uid;
 
 		const pkg: AttestationShareablePackageObject = {
 			signer: myAddress,
 			sig: offchainAttestation,
 		};
 
-		console.log('pkg:', pkg);
-
 		const res = await submitSignedAttestation(pkg);
-
 		if (!res.data.error) {
 			try {
+				const baseURL = getBASEURL();
 				// Update ENS names
 				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 			} catch (e) {
