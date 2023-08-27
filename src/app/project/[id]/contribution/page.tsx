@@ -19,6 +19,7 @@ import { TransactionResponse } from '@ethersproject/abstract-provider';
 // @ts-ignore
 import eas_abi = require('../../../../../abi/eas_abi.json');
 import process from 'process';
+import { hexlify } from 'ethers/src.ts/utils/data';
 
 type EASChainConfig = {
 	chainId: number;
@@ -93,8 +94,9 @@ export default function Page({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const eas = new EAS(EASContractAddress, { signerOrProvider: signer });
 
-	let contributionUID: string;
-	const pid = 0;
+	let contributionUID: string =
+		'0x0000000000000000000000000000000000000000000000000000000000000000';
+	const pid = 1;
 	const cid = 1;
 
 	// useEffect(() => {
@@ -140,8 +142,8 @@ export default function Page({ params }: { params: { id: string } }) {
 			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
 		);
 		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: 8, type: 'uint256' },
-			{ name: 'cid', value: 1, type: 'uint64' },
+			{ name: 'pid', value: pid, type: 'uint256' },
+			{ name: 'cid', value: cid, type: 'uint64' },
 			{ name: 'title', value: 'first contribution title', type: 'string' },
 			{ name: 'detail', value: 'first contribution detail', type: 'string' },
 			{ name: 'poc', value: 'the poc', type: 'string' },
@@ -191,8 +193,8 @@ export default function Page({ params }: { params: { id: string } }) {
 			'uint256 pid, uint64 cid, uint8 value, string reason',
 		);
 		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: 8, type: 'uint256' },
-			{ name: 'cid', value: 1, type: 'uint64' },
+			{ name: 'pid', value: pid, type: 'uint256' },
+			{ name: 'cid', value: cid, type: 'uint64' },
 			{ name: 'value', value: value, type: 'uint8' },
 			{ name: 'reason', value: 'good contribution', type: 'string' },
 		]);
@@ -229,21 +231,16 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 	};
 
-	const handleSignMsg = async () => {
+	const getSignMsg = async (_attester, _pid, _cid) => {
 		console.log(ethers);
-		const salt = ethers.randomBytes(16).toString();
+		const salt = ethers.hexlify(ethers.randomBytes(32));
 
 		console.log(ethers.AbiCoder.defaultAbiCoder);
 
 		const hash = ethers.keccak256(
 			ethers.AbiCoder.defaultAbiCoder().encode(
-				['address', 'uint256', 'uint64', 'bytes32'],
-				[
-					myAddress,
-					pid,
-					cid,
-					'0xd02a33409f94aa154e1a1c957d4dad9f1a2f6bf6729dc8a8758b39aada406cbc',
-				],
+				['address', 'uint256', 'uint64'],
+				[_attester, _pid, _cid],
 			),
 		);
 
@@ -253,13 +250,14 @@ export default function Page({ params }: { params: { id: string } }) {
 		const signature = await signerWallet.signMessage(ethers.getBytes(hash));
 
 		console.log('signature', signature);
+
+		return { signature };
 	};
 
 	const handleClaim = async () => {
 		const claimSchemaUid = '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986';
 
-		const signature =
-			'0x9810c8c0596d9bb350b3788101c50f7054268e82f5f6468187160bc8e48570d518987b0c2588ff86fd2137235e9c261421fc7c212944c184ad2ee5da5d2feaa11b';
+		const { signature } = await getSignMsg(myAddress, pid, cid);
 
 		// Initialize SchemaEncoder with the schema string
 		const schemaEncoder = new SchemaEncoder(
@@ -275,10 +273,11 @@ export default function Page({ params }: { params: { id: string } }) {
 					'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
 					'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
 					'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
+					'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
 				],
 				type: 'address[]',
 			},
-			{ name: 'values', value: [1, 1, 1], type: 'uint8[]' },
+			{ name: 'values', value: [1, 1, 1, 2], type: 'uint8[]' },
 			{ name: 'token', value: 2000, type: 'uint64' },
 			{
 				name: 'signature',
@@ -287,15 +286,13 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 		]);
 
-		console.log('encodedData:', encodedData);
-
 		const attestation = await eas.attest({
 			schema: claimSchemaUid,
 			data: {
-				recipient: '0x9324AD72F155974dfB412aB6078e1801C79A8b78',
+				recipient: myAddress,
 				expirationTime: 0,
 				revocable: false,
-				refUID: '0xd02a33409f94aa154e1a1c957d4dad9f1a2f6bf6729dc8a8758b39aada406cbc',
+				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
 				data: encodedData,
 				value: 0,
 			},
@@ -393,17 +390,6 @@ export default function Page({ params }: { params: { id: string } }) {
 					}}
 				>
 					Test Vote 2
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleSignMsg();
-					}}
-				>
-					Test sign msg
 				</Button>
 			</StyledFlexBox>
 

@@ -154,6 +154,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
 			'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
 			'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
+			'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
 		];
 		const symbol = 'tokenSymbol';
 
@@ -163,10 +164,10 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			signer,
 		);
 
-		const tx: TransactionResponse = await contract.register(owner, members, symbol);
+		const tx: TransactionResponse = await contract.create(owner, members, symbol);
 		const response = await tx.wait(1);
 		if (response.status === 1) {
-			const result = await contract.register.staticCallResult(owner, members, symbol);
+			const result = await contract.create.staticCallResult(owner, members, symbol);
 			const projectContract = result[0];
 			const pid = result[1];
 			console.log('callStatic projectContract:', projectContract, 'pid:', pid);
