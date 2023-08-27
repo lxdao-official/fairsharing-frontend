@@ -30,6 +30,7 @@ import { TransactionResponse } from '@ethersproject/abstract-provider';
 // @ts-ignore
 import eas_abi = require('../../../../../abi/eas_abi.json');
 import process from 'process';
+import ContributionList from '@/components/project/contribution/contributionList';
 
 type EASChainConfig = {
 	chainId: number;
@@ -409,9 +410,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				</PostButton>
 			</PostContainer>
 
-			<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
-				contributions: {params.id}
-			</Typography>
+
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button
@@ -467,6 +466,8 @@ export default function Page({ params }: { params: { id: string } }) {
 					Test claim
 				</Button>
 			</StyledFlexBox>
+
+			<ContributionList projectId={params.id} />
 		</div>
 	);
 }
