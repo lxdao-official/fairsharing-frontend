@@ -1,25 +1,26 @@
 'use client';
 
+import process from 'process';
+
 import { Button, styled, TextField, Typography } from '@mui/material';
-import { StyledFlexBox } from '@/components/styledComponents';
-import Image from 'next/image';
+import { ethers } from 'ethers';
+import { useAccount, useNetwork } from 'wagmi';
+
 import React, { useEffect, useState } from 'react';
+
+import Image from 'next/image';
+
+import axios from 'axios';
+
 import {
 	AttestationShareablePackageObject,
 	EAS,
 	SchemaEncoder,
 } from '@ethereum-attestation-service/eas-sdk';
+
+import { StyledFlexBox } from '@/components/styledComponents';
+
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
-import axios from 'axios';
-import { useAccount, useNetwork } from 'wagmi';
-import { ethers } from 'ethers';
-
-import { TransactionResponse } from '@ethersproject/abstract-provider';
-
-// @ts-ignore
-import eas_abi = require('../../../../../abi/eas_abi.json');
-import process from 'process';
-import { hexlify } from 'ethers/src.ts/utils/data';
 
 type EASChainConfig = {
 	chainId: number;
@@ -79,6 +80,7 @@ interface BigInt {
 	/** Convert to BigInt to string form in JSON.stringify */
 	toJSON: () => string;
 }
+// @ts-ignore
 BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
@@ -151,14 +153,17 @@ export default function Page({ params }: { params: { id: string } }) {
 		]);
 
 		const block = await provider.getBlock('latest');
+		if (!signer) {
+			return;
+		}
 		const offchainAttestation = await offchain.signOffchainAttestation(
 			{
 				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: 0,
-				time: BigInt(block.timestamp),
+				expirationTime: BigInt(0),
+				time: BigInt(block ? block.timestamp : 0),
 				revocable: true,
 				version: 1,
-				nonce: 0,
+				nonce: BigInt(0),
 				schema: contributionSchemaUid,
 				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
 				data: encodedData,
@@ -169,7 +174,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		contributionUID = offchainAttestation.uid;
 
 		const res = await submitSignedAttestation({
-			signer: myAddress,
+			signer: myAddress as string,
 			sig: offchainAttestation,
 		});
 		if (!res.data.error) {
@@ -183,7 +188,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 	};
 
-	const handleVote = async (value) => {
+	const handleVote = async (value: any) => {
 		const offchain = await eas.getOffchain();
 
 		const voteSchemaUid = '0x82280290eeca50f5d7bf7b75bdf1241c8dbd8ae41dda1dde5d32159c00003c12';
@@ -201,14 +206,17 @@ export default function Page({ params }: { params: { id: string } }) {
 
 		const block = await provider.getBlock('latest');
 
+		if (!signer) {
+			return;
+		}
 		const offchainAttestation = await offchain.signOffchainAttestation(
 			{
 				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: 0,
-				time: BigInt(block.timestamp),
+				expirationTime: BigInt(0),
+				time: BigInt(block ? block.timestamp : 0),
 				revocable: true,
 				version: 1,
-				nonce: 0,
+				nonce: BigInt(0),
 				schema: voteSchemaUid,
 				refUID: contributionUID,
 				data: encodedData,
@@ -217,7 +225,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		);
 
 		const res = await submitSignedAttestation({
-			signer: myAddress,
+			signer: myAddress as string,
 			sig: offchainAttestation,
 		});
 		if (!res.data.error) {
@@ -231,7 +239,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 	};
 
-	const getSignMsg = async (_attester, _pid, _cid) => {
+	const getSignMsg = async (_attester: string, _pid: any, _cid: any) => {
 		console.log(ethers);
 		const salt = ethers.hexlify(ethers.randomBytes(32));
 
@@ -257,7 +265,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const handleClaim = async () => {
 		const claimSchemaUid = '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986';
 
-		const { signature } = await getSignMsg(myAddress, pid, cid);
+		const { signature } = await getSignMsg(myAddress as string, pid, cid);
 
 		// Initialize SchemaEncoder with the schema string
 		const schemaEncoder = new SchemaEncoder(
@@ -289,12 +297,12 @@ export default function Page({ params }: { params: { id: string } }) {
 		const attestation = await eas.attest({
 			schema: claimSchemaUid,
 			data: {
-				recipient: myAddress,
-				expirationTime: 0,
+				recipient: myAddress as string,
+				expirationTime: BigInt(0),
 				revocable: false,
 				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
 				data: encodedData,
-				value: 0,
+				value: BigInt(0),
 			},
 		});
 		console.log('onchainAttestation:', attestation);
@@ -381,15 +389,6 @@ export default function Page({ params }: { params: { id: string } }) {
 					}}
 				>
 					Test Vote 1
-				</Button>
-
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleVote(2);
-					}}
-				>
-					Test Vote 2
 				</Button>
 			</StyledFlexBox>
 
