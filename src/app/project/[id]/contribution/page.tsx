@@ -188,6 +188,11 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 	};
 
+	const handleRevokeContribution = async () => {
+		const uid = '0x720eea3a0fb22ca36637e8faa2b66c649cf734402902cb587d9f9f5bc405e4cf';
+		await eas.revokeOffchain(uid);
+	};
+
 	const handleVote = async (value: any) => {
 		const offchain = await eas.getOffchain();
 
@@ -237,6 +242,11 @@ export default function Page({ params }: { params: { id: string } }) {
 				console.error('ens error:', e);
 			}
 		}
+	};
+
+	const handleRevokeVote = async () => {
+		const uid = '0x6b26a1c579ebbe33a3e4c46756b6fee48855f11513b384c973e8c3fdbf313d6d';
+		await eas.revokeOffchain(uid);
 	};
 
 	const getSignMsg = async (_attester: string, _pid: any, _cid: any) => {
@@ -385,10 +395,32 @@ export default function Page({ params }: { params: { id: string } }) {
 				<Button
 					variant={'contained'}
 					onClick={async () => {
+						await handleRevokeContribution();
+					}}
+				>
+					Test Revoke contribution
+				</Button>
+			</StyledFlexBox>
+
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<Button
+					variant={'contained'}
+					onClick={async () => {
 						await handleVote(1);
 					}}
 				>
-					Test Vote 1
+					Test Vote
+				</Button>
+			</StyledFlexBox>
+
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<Button
+					variant={'contained'}
+					onClick={async () => {
+						await handleRevokeVote();
+					}}
+				>
+					Test Revoke Vote
 				</Button>
 			</StyledFlexBox>
 
