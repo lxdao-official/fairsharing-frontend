@@ -9,7 +9,21 @@ yarn
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+
+
+## Proxy to Backend API
+```shell
+touch .env.local
+```
+set the following config in `.env.local`
+```yaml
+NEXT_PUBLIC_API_HOST_TEST=http://localhost:3001
+NEXT_PUBLIC_API_HOST_PROXY=http://127.0.0.1:3000
+NEXT_PUBLIC_API_BASE_URL=/fs-api
+```
+
+start the backend server by run `docker-compose up`
 
 
 ## Deploy on Vercel

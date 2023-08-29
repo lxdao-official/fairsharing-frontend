@@ -2,8 +2,6 @@ import * as process from 'process';
 
 import * as https from 'https';
 
-import { nanoid } from 'nanoid';
-
 import axios, { AxiosRequestConfig } from 'axios';
 
 import { isServer } from '@tanstack/query-core';
@@ -12,7 +10,7 @@ import { isProd } from '@/constant/env';
 
 export const client = axios.create({
 	baseURL: getHost(),
-	timeout: isServer ? 1000 : 5000,
+	timeout: 5000,
 	withCredentials: true,
 	httpsAgent: new https.Agent({
 		rejectUnauthorized: false,
@@ -35,7 +33,7 @@ client.interceptors.response.use(
 	(response) => {
 		const { data, status } = response ?? {};
 
-		if (data?.success) {
+		if (data?.code === 0) {
 			return data?.data;
 		}
 
@@ -95,6 +93,15 @@ request.post = function post<T = any>(
 	return request(api, version, data, { method: 'post', ...options });
 };
 
+request.put = function post<T = any>(
+	api: string,
+	version: number | string,
+	data: any,
+	options?: Omit<AxiosRequestConfig, 'put'>,
+): Promise<T> {
+	return request(api, version, data, { method: 'put', ...options });
+};
+
 function removeEmptyParams(data: any) {
 	return Object.entries(data).reduce((data, [key, value]) => {
 		if (typeof value === 'undefined') {
@@ -117,13 +124,11 @@ function removeEmptyParams(data: any) {
 }
 
 function getHost() {
-	return isProd
-		? process.env.NEXT_PUBLIC_EPICOLL_API_HOST_PROD
-		: process.env.NEXT_PUBLIC_EPICOLL_API_HOST_TEST;
+	return isProd ? process.env.NEXT_PUBLIC_API_HOST_PROD : process.env.NEXT_PUBLIC_API_HOST_TEST;
 }
 
 export function getRequestUrl(api: string, version: number | string = 1): string {
-	return `${process.env.NEXT_PUBLIC_EPICOLL_API_BASE_URL}/v${version}/${api}`;
+	return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${api}`;
 }
 
 export function getAPIUrl(api: string, version: number | string = 1): string {

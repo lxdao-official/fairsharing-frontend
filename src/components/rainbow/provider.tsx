@@ -10,19 +10,20 @@ import {
 import { argentWallet, trustWallet, ledgerWallet } from '@rainbow-me/rainbowkit/wallets';
 
 import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { mainnet, polygon, optimism, arbitrum, zora, goerli } from 'wagmi/chains';
+import { mainnet, polygon, optimism, arbitrum, zora, goerli, optimismGoerli } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 
 import { isProd } from '@/constant/env';
 
 // TODO Determine the configuration in different environments
-const Chains = isProd ? [mainnet] : [mainnet, goerli];
+const Chains = isProd ? [mainnet, optimism] : [mainnet, goerli, optimismGoerli];
 const AlchemyApiKey = isProd
 	? process.env.NEXT_PUBLIC_ALCHEMY_ID_PROD
 	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
 const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string;
 
+// @ts-ignore
 const { chains, publicClient, webSocketPublicClient } = configureChains(Chains, [
 	alchemyProvider({ apiKey: AlchemyApiKey as string }),
 	publicProvider(),

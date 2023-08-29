@@ -3,17 +3,26 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
 
-import { AppBar, Toolbar, Typography } from '@mui/material';
-import { Dashboard as DashboardIcon } from '@mui/icons-material';
+import { AppBar, Button, styled, Toolbar, Typography } from '@mui/material';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+
+import Image from 'next/image';
+
+import Link from 'next/link';
 
 import ThemeRegistry from '@/components/themeRegistry/themeRegistry';
 import { RainbowProvider } from '@/components/rainbow/provider';
 
+import Nav from '@/components/nav/nav';
+
+import SimpleGlobalLoading from '@/components/loading';
+
+import styles from '../styles/layout.module.css';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-	title: 'FS',
+	title: 'FairSharing',
 	description: 'FairSharing Platform ',
 };
 
@@ -23,18 +32,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body className={inter.className}>
 				<ThemeRegistry>
 					<RainbowProvider>
-						<AppBar position="fixed" sx={{ zIndex: 2000 }}>
-							<Toolbar sx={{ backgroundColor: 'background.paper' }}>
-								<DashboardIcon
-									sx={{ color: '#444', mr: 2, transform: 'translateY(-2px)' }}
-								/>
-								<Typography variant="h6" noWrap component="div" color="black">
-									LXDAO FairSharing
+						<AppBar
+							position="fixed"
+							sx={{
+								backgroundColor: 'white',
+								height: '64px',
+								borderBottom: '0.5px solid #CBD5E1',
+								boxShadow: 'none',
+							}}
+							enableColorOnDark={true}
+						>
+							<Toolbar>
+								<Link href={'/'}>
+									<Image
+										src={'/images/FS_logo.png'}
+										width={28}
+										height={28}
+										alt={'FS'}
+									/>
+								</Link>
+								<Typography
+									variant="h4"
+									sx={{ flexGrow: 1, fontWeight: 'bold', marginLeft: '8px' }}
+								>
+									FairSharing
 								</Typography>
 								<ConnectButton />
 							</Toolbar>
 						</AppBar>
-						{children}
+						<div className={styles.main}>
+							<Nav />
+							{children}
+						</div>
+						<SimpleGlobalLoading />
 					</RainbowProvider>
 				</ThemeRegistry>
 			</body>
