@@ -11,24 +11,27 @@ import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import { IContribution } from '@/services/types';
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
+import ContributionItem from '@/components/project/contribution/contributionItem';
 
 export interface IContributionListProps {
 	projectId: string;
 }
 
-const FakeContributionList = [
+const FakeContributionList: IContribution[] = [
 	{
 		id: '1',
 		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
 		proof: 'https://github.com',
 		credit: 120,
 		toIds: ['123', '234'],
-		status: 1,
+		status: 0,
 		agree: 2,
 		disagree: 1,
 		ownerId: '123',
 		projectId: '1',
 		MintRecord: [],
+		deleted: false,
+		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
 	},
 	{
 		id: '2',
@@ -42,6 +45,23 @@ const FakeContributionList = [
 		ownerId: '123',
 		projectId: '1',
 		MintRecord: [],
+		deleted: false,
+		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+	},
+	{
+		id: '3',
+		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
+		proof: 'https://github.com',
+		credit: 120,
+		toIds: ['123', '234'],
+		status: 2,
+		agree: 2,
+		disagree: 1,
+		ownerId: '123',
+		projectId: '1',
+		MintRecord: [],
+		deleted: false,
+		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
 	},
 ];
 
@@ -54,7 +74,7 @@ const ContributionList = (props: IContributionListProps) => {
 	const [voteStatus, setVoteStatus] = useState('1');
 	const [contributor, setContributor] = useState('1');
 
-	const [selected, setSelected] = useState<number[]>([]);
+	const [selected, setSelected] = useState<Array<string>>([]);
 	const [list, setList] = useState<IContribution[]>(FakeContributionList);
 
 	const getClaim = () => {
@@ -82,10 +102,14 @@ const ContributionList = (props: IContributionListProps) => {
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
 		console.log('type', type);
 		if (type === 'All') {
-			setSelected(list.map((item, idx) => idx));
+			setSelected(list.map((item, idx) => String(item.id)));
 		} else {
 			setSelected([]);
 		}
+	};
+
+	const onSelect = (idList: string[]) => {
+		setSelected(idList);
 	};
 
 	return (
@@ -161,8 +185,15 @@ const ContributionList = (props: IContributionListProps) => {
 			) : null}
 
 			{showSelect ? (
-				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
+				<StyledFlexBox
+					sx={{
+						marginTop: '16px',
+						marginBottom: '16px',
+						justifyContent: 'space-between',
+					}}
+				>
 					<StyledFlexBox>
+						{/* TODO use native checkbox */}
 						<Checkbox
 							total={list.length}
 							selected={selected.length}
@@ -209,6 +240,16 @@ const ContributionList = (props: IContributionListProps) => {
 					</StyledFlexBox>
 				</StyledFlexBox>
 			) : null}
+
+			{list.map((contribution, idx) => (
+				<ContributionItem
+					key={contribution.id}
+					contribution={contribution}
+					showSelect={showSelect}
+					selected={selected}
+					onSelect={onSelect}
+				/>
+			))}
 		</>
 	);
 };

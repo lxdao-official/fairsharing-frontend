@@ -30,7 +30,7 @@ export default function UploadImage() {
 				}}
 				onComplete={(file) => {
 					setFile(file);
-					console.log('onComplete file', file)
+					console.log('onComplete file', file);
 				}}
 				onCropCancel={(file) => {
 					setFile(null);

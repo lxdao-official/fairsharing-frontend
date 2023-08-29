@@ -1,6 +1,6 @@
 .main {
     height: calc(100vh);
     padding-top: 64px;
-    overflow: hidden;
     display: flex;
+    overflow: hidden;
 }

@@ -19,20 +19,21 @@ export interface IContribution {
 	proof: string;
 	credit: number;
 	toIds: string[];
-	status: ContributionStatus;
+	status: Status;
 	agree: number;
 	disagree: number;
 	ownerId: string;
 	projectId: string;
+	deleted: boolean;
 	MintRecord: IMintRecord[];
+
+	[key: string]: any;
 }
 
-export enum ContributionStatus {
+export enum Status {
 	UNREADY,
 	READY,
 	CLAIM,
-	SUCCESS,
-	FAIL,
 }
 
 export interface IContributor {
