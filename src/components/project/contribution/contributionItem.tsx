@@ -13,7 +13,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -22,20 +22,22 @@ import StatusText from '@/components/project/contribution/statusText';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
 import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
-import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
+import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
+import PostContribution from '@/components/project/contribution/postContribution';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
 	showSelect: boolean;
 	selected: string[];
 	onSelect: (idList: string[]) => void;
+	showDeleteDialog: () => void
 }
 
 // TODO contribution的头像是owner头像？
 // TODO 标题是project owner name?
 // TODO time
 const ContributionItem = (props: IContributionItemProps) => {
-	const { contribution, selected, onSelect, showSelect } = props;
+	const { contribution, selected, onSelect, showSelect, showDeleteDialog } = props;
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -50,6 +52,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openMore, setOpenMore] = useState(false);
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
+
+	const [showEdit, setShowEdit] = useState(false);
+
 	const handleOpenMorePopover = (event: React.MouseEvent<HTMLButtonElement>) => {
 		setAnchorEl(event.currentTarget);
 		setOpenMore(true);
@@ -73,167 +78,192 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const onEdit = () => {
 		console.log('onEdit');
+		setShowEdit(true);
+		handleClosePopover();
 	};
 
 	const onDelete = () => {
 		console.log('onDelete');
+		handleClosePopover();
 	};
 
+	const onCancel = useCallback(() => {
+		setShowEdit(false)
+	}, [])
+
+	const onPost = useCallback(() => {
+		console.log('re-post')
+	}, [])
+
 	return (
-		<StyledFlexBox sx={{ alignItems: 'flex-start', paddingTop: '16px' }}>
-			<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
-				{showSelect ? (
-					<Checkbox
-						checked={selected.includes(contribution.id)}
-						onChange={handleCheckboxChange}
+		<>
+			<StyledFlexBox sx={{ alignItems: 'flex-start', paddingTop: '16px' }}>
+				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
+					{showSelect ? (
+						<Checkbox
+							checked={selected.includes(contribution.id)}
+							onChange={handleCheckboxChange}
+						/>
+					) : null}
+					<Img3
+						src={contribution.avatar}
+						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
 					/>
-				) : null}
-				<Img3
-					src={contribution.avatar}
-					style={{ width: '48px', height: '48px', borderRadius: '48px' }}
-				/>
-			</StyledFlexBox>
-			<div style={{ flex: 1 }}>
-				<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
-					<StyledFlexBox>
-						<Typography variant={'subtitle1'}>Project owner name ?</Typography>
-						<Typography sx={{ marginLeft: '12px' }}>2 hour ago</Typography>
-					</StyledFlexBox>
-					<StyledFlexBox>
-						<StatusText contribution={contribution} />
-						<Tooltip title="View on chain" placement="top">
-							<Image
-								src={'/images/eas_logo.png'}
-								width={52}
-								height={24}
-								alt={'eas'}
-								style={{ cursor: 'pointer', margin: '0 24px' }}
-							/>
-						</Tooltip>
-
-						<div>
-							<IconButton size="small" onClick={handleOpenMorePopover}>
-								<MoreHorizIcon />
-							</IconButton>
-							<Popover
-								id={'simple-popover-more'}
-								open={openMore}
-								anchorEl={anchorEl}
-								onClose={handleClosePopover}
-								anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-								transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-							>
-								<Paper>
-									<List>
-										<ListItem disablePadding>
-											<ListItemButton onClick={onEdit}>Edit</ListItemButton>
-										</ListItem>
-										<ListItem disablePadding>
-											<ListItemButton onClick={onDelete}>
-												Delete
-											</ListItemButton>
-										</ListItem>
-									</List>
-								</Paper>
-							</Popover>
-						</div>
-					</StyledFlexBox>
 				</StyledFlexBox>
-				<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>
-				<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
-					<StyledFlexBox>
-						{/*pizza status*/}
-
-						<Pizza credit={contribution.credit} status={contribution.status} />
-
-						{/*proof*/}
-
-						<>
-							<BorderOutline
-								sx={{ cursor: 'pointer', margin: '0 8px' }}
-								onClick={handleOpenProofPopover}
-							>
-								<InsertDriveFileOutlinedIcon
-									fontSize={'small'}
-									sx={{ color: '#677389' }}
+				<div style={{ flex: 1 }}>
+					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
+						<StyledFlexBox>
+							<Typography variant={'subtitle1'}>Project owner name ?</Typography>
+							<Typography sx={{ marginLeft: '12px' }}>2 hour ago</Typography>
+						</StyledFlexBox>
+						<StyledFlexBox>
+							<StatusText contribution={contribution} />
+							<Tooltip title="View on chain" placement="top">
+								<Image
+									src={'/images/eas_logo.png'}
+									width={52}
+									height={24}
+									alt={'eas'}
+									style={{ cursor: 'pointer', margin: '0 24px' }}
 								/>
-								<Typography
-									variant={'body2'}
-									sx={{ fontWeight: 'bold', color: '#475569' }}
+							</Tooltip>
+
+							<div>
+								<IconButton size="small" onClick={handleOpenMorePopover}>
+									<MoreHorizIcon />
+								</IconButton>
+								<Popover
+									id={'simple-popover-more'}
+									open={openMore}
+									anchorEl={anchorEl}
+									onClose={handleClosePopover}
+									anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+									transformOrigin={{ vertical: 'top', horizontal: 'right' }}
 								>
-									Proof
-								</Typography>
-							</BorderOutline>
-							<Popover
-								id={'simple-popover-proof'}
-								open={openProof}
-								anchorEl={anchorEl}
-								onClose={handleClosePopover}
-								anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-								transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-								disableRestoreFocus
-							>
-								<Paper sx={{ padding: '12px' }}>
-									<Link href={contribution.proof} target={'_blank'}>
-										<InsertLinkOutlinedIcon sx={{ color: '#437EF7' }} />
-										<Button variant={'text'} sx={{ textTransform: 'none' }}>
-											{contribution.proof}
-										</Button>
-									</Link>
-								</Paper>
-							</Popover>
-						</>
+									<Paper>
+										<List>
+											<ListItem disablePadding>
+												<ListItemButton onClick={onEdit}>Edit</ListItemButton>
+											</ListItem>
+											<ListItem disablePadding>
+												<ListItemButton onClick={showDeleteDialog}>
+													Delete
+												</ListItemButton>
+											</ListItem>
+										</List>
+									</Paper>
+								</Popover>
+							</div>
+						</StyledFlexBox>
+					</StyledFlexBox>
+					<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>
+					<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
+						<StyledFlexBox>
+							{/*pizza status*/}
 
-						{/*contributors*/}
+							<Pizza credit={contribution.credit} status={contribution.status} />
 
-						<>
-							{/*TODO API contributors */}
-							<BorderOutline
-								sx={{ cursor: 'pointer', margin: '0 8px' }}
-								onClick={handleOpenContributorPopover}
-							>
-								<Typography
-									variant={'body2'}
-									sx={{ fontWeight: 'bold', color: '#475569' }}
+							{/*proof*/}
+
+							<>
+								<BorderOutline
+									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									onClick={handleOpenProofPopover}
 								>
-									@ Mike,Bruce, +8
-								</Typography>
-							</BorderOutline>
-							<Popover
-								id={'simple-popover-contributor'}
-								open={openContributor}
-								anchorEl={anchorEl}
-								onClose={handleClosePopover}
-								anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-								transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-								disableRestoreFocus
-							>
-								<Paper sx={{ padding: '12px' }}>Contributor list</Paper>
-							</Popover>
-						</>
-					</StyledFlexBox>
+									<InsertDriveFileOutlinedIcon
+										fontSize={'small'}
+										sx={{ color: '#677389' }}
+									/>
+									<Typography
+										variant={'body2'}
+										sx={{ fontWeight: 'bold', color: '#475569' }}
+									>
+										Proof
+									</Typography>
+								</BorderOutline>
+								<Popover
+									id={'simple-popover-proof'}
+									open={openProof}
+									anchorEl={anchorEl}
+									onClose={handleClosePopover}
+									anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+									transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+									disableRestoreFocus
+								>
+									<Paper sx={{ padding: '12px' }}>
+										<Link href={contribution.proof} target={'_blank'}>
+											<InsertLinkOutlinedIcon sx={{ color: '#437EF7' }} />
+											<Button variant={'text'} sx={{ textTransform: 'none' }}>
+												{contribution.proof}
+											</Button>
+										</Link>
+									</Paper>
+								</Popover>
+							</>
 
-					<StyledFlexBox>
-						<VoteAction
-							type={VoteTypeEnum.FOR}
-							contribution={contribution}
-							onConfirm={() => {}}
-						/>
-						<VoteAction
-							type={VoteTypeEnum.AGAINST}
-							contribution={contribution}
-							onConfirm={() => {}}
-						/>
-						<VoteAction
-							type={VoteTypeEnum.ABSTAIN}
-							contribution={contribution}
-							onConfirm={() => {}}
-						/>
+							{/*contributors*/}
+
+							<>
+								{/*TODO API contributors */}
+								<BorderOutline
+									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									onClick={handleOpenContributorPopover}
+								>
+									<Typography
+										variant={'body2'}
+										sx={{ fontWeight: 'bold', color: '#475569' }}
+									>
+										@ Mike,Bruce, +8
+									</Typography>
+								</BorderOutline>
+								<Popover
+									id={'simple-popover-contributor'}
+									open={openContributor}
+									anchorEl={anchorEl}
+									onClose={handleClosePopover}
+									anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+									transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+									disableRestoreFocus
+								>
+									<Paper sx={{ padding: '12px' }}>Contributor list</Paper>
+								</Popover>
+							</>
+						</StyledFlexBox>
+
+						<StyledFlexBox>
+							<VoteAction
+								type={VoteTypeEnum.FOR}
+								status={VoteStatus.DONE}
+								count={98}
+								contribution={contribution}
+								onConfirm={() => {
+								}}
+							/>
+							<VoteAction
+								type={VoteTypeEnum.AGAINST}
+								status={VoteStatus.NORMAL}
+								count={14}
+								contribution={contribution}
+								onConfirm={() => {
+								}}
+							/>
+							<VoteAction
+								type={VoteTypeEnum.ABSTAIN}
+								status={VoteStatus.DISABLED}
+								count={4}
+								contribution={contribution}
+								onConfirm={() => {
+								}}
+							/>
+						</StyledFlexBox>
 					</StyledFlexBox>
-				</StyledFlexBox>
-				<Divider sx={{ marginTop: '26px' }} />
-			</div>
-		</StyledFlexBox>
+					{!showEdit ? <Divider sx={{ marginTop: '26px' }} /> : null}
+
+				</div>
+			</StyledFlexBox>
+
+			{showEdit ? <PostContribution contribution={contribution} onCancel={onCancel} onPost={onPost} /> : null}
+		</>
 	);
 };
 

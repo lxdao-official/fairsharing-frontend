@@ -1,5 +1,14 @@
 'use client';
-import { Button, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
+import {
+	Button,
+	Dialog, DialogActions,
+	DialogContent, DialogContentText,
+	DialogTitle,
+	MenuItem,
+	Select,
+	SelectChangeEvent,
+	Typography,
+} from '@mui/material';
 import React, { useState } from 'react';
 
 import Image from 'next/image';
@@ -77,9 +86,15 @@ const ContributionList = (props: IContributionListProps) => {
 	const [selected, setSelected] = useState<Array<string>>([]);
 	const [list, setList] = useState<IContribution[]>(FakeContributionList);
 
+	const [showDialog, setShowDialog] = useState(false)
+
 	const getClaim = () => {
 		// 	TODO: get cliam after login
 	};
+
+	const handleHideSelect = () => {
+		setShowSelect(false)
+	}
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
 		setPeriod(event.target.value);
@@ -92,6 +107,9 @@ const ContributionList = (props: IContributionListProps) => {
 	};
 
 	const onClickFilterBtn = () => {
+		if (showFilter) {
+			setShowSelect(false)
+		}
 		setShowFilter((pre) => !pre);
 	};
 
@@ -112,13 +130,20 @@ const ContributionList = (props: IContributionListProps) => {
 		setSelected(idList);
 	};
 
+	const onCloseDialog = () => {
+		setShowDialog(false)
+	}
+	const showDeleteDialog = () => {
+		setShowDialog(true)
+	}
+
 	return (
 		<>
 			<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
 				<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
 					Contributions
 				</Typography>
-				<StyledFlexBox>
+				<StyledFlexBox sx={{cursor: 'pointer'}}>
 					<Image
 						src={'/images/claim.png'}
 						width={24}
@@ -234,6 +259,7 @@ const ContributionList = (props: IContributionListProps) => {
 							size={'large'}
 							color={'info'}
 							sx={{ width: '112px', marginLeft: '12px' }}
+							onClick={handleHideSelect}
 						>
 							Cancel
 						</Button>
@@ -248,8 +274,32 @@ const ContributionList = (props: IContributionListProps) => {
 					showSelect={showSelect}
 					selected={selected}
 					onSelect={onSelect}
+					showDeleteDialog={showDeleteDialog}
 				/>
 			))}
+
+			{/*TODO 确认是revok还是delete*/}
+			<Dialog
+				open={showDialog}
+				onClose={onCloseDialog}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				{/*<DialogTitle id="alert-dialog-title">*/}
+				{/*	{"Use Google's location service?"}*/}
+				{/*</DialogTitle>*/}
+				<DialogContent>
+					<DialogContentText id="alert-dialog-description">
+						Are you sure to delete this contribution?
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={onCloseDialog}>Cancel</Button>
+					<Button onClick={onCloseDialog} autoFocus>
+						Delete
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</>
 	);
 };
