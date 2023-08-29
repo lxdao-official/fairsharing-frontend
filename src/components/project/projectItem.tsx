@@ -1,31 +1,39 @@
 'use client';
 
 import { Box, styled, Typography } from '@mui/material';
-import { IProject } from '@/services/types';
+
 import { Img3 } from '@lxdao/img3';
 import React from 'react';
 import Link from 'next/link';
 
+import { IProject } from '@/services/types';
+
 export interface IProjectItemProps {
 	project: Partial<IProject> & {
-		[key: string]: any
+		[key: string]: any;
 	};
 }
 
 const ProjectItem = (props: IProjectItemProps) => {
 	const { project } = props;
 
-	return <Link href={`/project/${project.id}/contribution`}>
-		<Container>
-			<Img3
-				src={project.logo as string}
-				style={{ width: '88px', height: '88px', borderRadius: '88px' }}
-			/>
-			<Typography variant={'h5'} sx={{ marginTop: '16px' }}>{project.name}</Typography>
-			<Typography variant={'body1'} sx={{ marginTop: '8px' }}>{project.contributionCount}k
-				contributions</Typography>
-		</Container>;
-	</Link>;
+	return (
+		<Link href={`/project/${project.id}/contribution`}>
+			<Container>
+				<Img3
+					src={project.logo as string}
+					style={{ width: '88px', height: '88px', borderRadius: '88px' }}
+				/>
+				<Typography variant={'h5'} sx={{ marginTop: '16px' }}>
+					{project.name}
+				</Typography>
+				<Typography variant={'body1'} sx={{ marginTop: '8px' }}>
+					{project.contributionCount}k contributions
+				</Typography>
+			</Container>
+			;
+		</Link>
+	);
 };
 
 export default ProjectItem;

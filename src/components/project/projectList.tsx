@@ -1,11 +1,9 @@
 import { Box, styled } from '@mui/material';
 
-export interface IProjectListProps {
-
-}
+export interface IProjectListProps {}
 
 const ProjectList = (props: IProjectListProps) => {
-	return <Container>ProjectList</Container>
+	return <Container>ProjectList</Container>;
 };
 
 export default ProjectList;
@@ -20,4 +18,4 @@ const Container = styled(Box)({
 		backgroundColor: 'primary.main',
 		opacity: [0.9, 0.8, 0.7],
 	},
-})
+});

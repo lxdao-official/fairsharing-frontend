@@ -4,8 +4,9 @@ import { Icon } from '@iconify/react';
 
 import { createConnector } from '@lxdao/uploader3-connector';
 
-import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 import { Typography } from '@mui/material';
+
+import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 
 export default function UploadImage() {
 	const [file, setFile] = useState<SelectedFile | UploadFile | UploadResult | CroppedFile | null>(

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import Image from 'next/image';
 import { Button, styled, TextField, Typography } from '@mui/material';
+
+import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution } from '@/services/types';
 
 export interface IPostContributionProps {
 	contribution: IContribution;
-	onPost: () => void
-	onCancel: () => void
+	onPost: () => void;
+	onCancel: () => void;
 }
-const PostContribution = ({contribution, onPost, onCancel}: IPostContributionProps) => {
-
+const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution.detail);
 	const [proof, setProof] = useState(contribution.proof);
 	const [contributors, setContributors] = useState([]);
@@ -71,7 +72,7 @@ const PostContribution = ({contribution, onPost, onCancel}: IPostContributionPro
 			<CreditContainer>
 				<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
 				<StyledInput
-					sx={{marginLeft: '4px'}}
+					sx={{ marginLeft: '4px' }}
 					variant={'standard'}
 					InputProps={{ disableUnderline: true }}
 					required
@@ -83,14 +84,23 @@ const PostContribution = ({contribution, onPost, onCancel}: IPostContributionPro
 			</CreditContainer>
 
 			<PostButton>
-				<Button variant={'contained'} color={'info'} sx={{marginRight: '24px'}} onClick={onCancel}>Cancel</Button>
-				<Button variant={'contained'} onClick={onPost}>Re-Post</Button>
+				<Button
+					variant={'contained'}
+					color={'info'}
+					sx={{ marginRight: '24px' }}
+					onClick={onCancel}
+				>
+					Cancel
+				</Button>
+				<Button variant={'contained'} onClick={onPost}>
+					Re-Post
+				</Button>
 			</PostButton>
 		</PostContainer>
-	)
-}
+	);
+};
 
-export default PostContribution
+export default PostContribution;
 
 const PostContainer = styled('div')({
 	minHeight: '90px',
@@ -123,5 +133,5 @@ const CreditContainer = styled(StyledFlexBox)({
 	height: '30px',
 	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
-	padding: '3px 8px'
+	padding: '3px 8px',
 });

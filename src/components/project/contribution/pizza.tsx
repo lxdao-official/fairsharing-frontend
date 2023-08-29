@@ -1,8 +1,10 @@
-import { Status } from '@/services/types';
 import { styled, Typography } from '@mui/material';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import { useMemo } from 'react';
 import Image from 'next/image';
+
+import { StyledFlexBox } from '@/components/styledComponents';
+import { Status } from '@/services/types';
 
 export interface IPizzaProps {
 	credit: number;

@@ -1,5 +1,3 @@
-import { IContribution } from '@/services/types';
-import { StyledFlexBox } from '@/components/styledComponents';
 import {
 	Button,
 	Checkbox,
@@ -17,11 +15,15 @@ import React, { useCallback, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
-import StatusText from '@/components/project/contribution/statusText';
+
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
 import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
+
+import StatusText from '@/components/project/contribution/statusText';
+import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
+import { StyledFlexBox } from '@/components/styledComponents';
+import { IContribution } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 
@@ -30,7 +32,7 @@ export interface IContributionItemProps {
 	showSelect: boolean;
 	selected: string[];
 	onSelect: (idList: string[]) => void;
-	showDeleteDialog: () => void
+	showDeleteDialog: () => void;
 }
 
 // TODO contribution的头像是owner头像？
@@ -88,12 +90,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onCancel = useCallback(() => {
-		setShowEdit(false)
-	}, [])
+		setShowEdit(false);
+	}, []);
 
 	const onPost = useCallback(() => {
-		console.log('re-post')
-	}, [])
+		console.log('re-post');
+	}, []);
 
 	return (
 		<>
@@ -143,7 +145,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 									<Paper>
 										<List>
 											<ListItem disablePadding>
-												<ListItemButton onClick={onEdit}>Edit</ListItemButton>
+												<ListItemButton onClick={onEdit}>
+													Edit
+												</ListItemButton>
 											</ListItem>
 											<ListItem disablePadding>
 												<ListItemButton onClick={showDeleteDialog}>
@@ -236,33 +240,31 @@ const ContributionItem = (props: IContributionItemProps) => {
 								status={VoteStatus.DONE}
 								count={98}
 								contribution={contribution}
-								onConfirm={() => {
-								}}
+								onConfirm={() => {}}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
 								status={VoteStatus.NORMAL}
 								count={14}
 								contribution={contribution}
-								onConfirm={() => {
-								}}
+								onConfirm={() => {}}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
 								status={VoteStatus.DISABLED}
 								count={4}
 								contribution={contribution}
-								onConfirm={() => {
-								}}
+								onConfirm={() => {}}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>
 					{!showEdit ? <Divider sx={{ marginTop: '26px' }} /> : null}
-
 				</div>
 			</StyledFlexBox>
 
-			{showEdit ? <PostContribution contribution={contribution} onCancel={onCancel} onPost={onPost} /> : null}
+			{showEdit ? (
+				<PostContribution contribution={contribution} onCancel={onCancel} onPost={onPost} />
+			) : null}
 		</>
 	);
 };

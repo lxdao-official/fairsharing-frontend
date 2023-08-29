@@ -37,7 +37,9 @@ export default function Home() {
 			<Container maxWidth="lg">
 				<Typography variant={'h4'}>All Project List</Typography>
 				<StyledFlexBox sx={{ flexWrap: 'wrap', marginTop: '24px' }}>
-					{FakeProjectList.map((project, idx) => <ProjectItem key={idx} project={project} />)}
+					{FakeProjectList.map((project, idx) => (
+						<ProjectItem key={idx} project={project} />
+					))}
 				</StyledFlexBox>
 			</Container>
 		</main>

@@ -1,8 +1,10 @@
 'use client';
 import {
 	Button,
-	Dialog, DialogActions,
-	DialogContent, DialogContentText,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
 	DialogTitle,
 	MenuItem,
 	Select,
@@ -86,15 +88,15 @@ const ContributionList = (props: IContributionListProps) => {
 	const [selected, setSelected] = useState<Array<string>>([]);
 	const [list, setList] = useState<IContribution[]>(FakeContributionList);
 
-	const [showDialog, setShowDialog] = useState(false)
+	const [showDialog, setShowDialog] = useState(false);
 
 	const getClaim = () => {
 		// 	TODO: get cliam after login
 	};
 
 	const handleHideSelect = () => {
-		setShowSelect(false)
-	}
+		setShowSelect(false);
+	};
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
 		setPeriod(event.target.value);
@@ -108,7 +110,7 @@ const ContributionList = (props: IContributionListProps) => {
 
 	const onClickFilterBtn = () => {
 		if (showFilter) {
-			setShowSelect(false)
+			setShowSelect(false);
 		}
 		setShowFilter((pre) => !pre);
 	};
@@ -131,11 +133,11 @@ const ContributionList = (props: IContributionListProps) => {
 	};
 
 	const onCloseDialog = () => {
-		setShowDialog(false)
-	}
+		setShowDialog(false);
+	};
 	const showDeleteDialog = () => {
-		setShowDialog(true)
-	}
+		setShowDialog(true);
+	};
 
 	return (
 		<>
@@ -143,7 +145,7 @@ const ContributionList = (props: IContributionListProps) => {
 				<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
 					Contributions
 				</Typography>
-				<StyledFlexBox sx={{cursor: 'pointer'}}>
+				<StyledFlexBox sx={{ cursor: 'pointer' }}>
 					<Image
 						src={'/images/claim.png'}
 						width={24}

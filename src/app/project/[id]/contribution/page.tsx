@@ -21,15 +21,8 @@ import {
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
-import axios from 'axios';
-import { useAccount, useNetwork } from 'wagmi';
-import { ethers } from 'ethers';
-
-import { TransactionResponse } from '@ethersproject/abstract-provider';
 
 // @ts-ignore
-import eas_abi = require('../../../../../abi/eas_abi.json');
-import process from 'process';
 import ContributionList from '@/components/project/contribution/contributionList';
 
 type EASChainConfig = {
@@ -394,7 +387,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				<CreditContainer>
 					<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
 					<StyledInput
-						sx={{marginLeft: '4px'}}
+						sx={{ marginLeft: '4px' }}
 						variant={'standard'}
 						InputProps={{ disableUnderline: true }}
 						required
@@ -409,8 +402,6 @@ export default function Page({ params }: { params: { id: string } }) {
 					<Button variant={'contained'}>Post</Button>
 				</PostButton>
 			</PostContainer>
-
-
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button
@@ -502,5 +493,5 @@ const CreditContainer = styled(StyledFlexBox)({
 	height: '30px',
 	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
-	padding: '3px 8px'
+	padding: '3px 8px',
 });

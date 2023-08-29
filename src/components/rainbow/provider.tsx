@@ -23,6 +23,7 @@ const AlchemyApiKey = isProd
 	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
 const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string;
 
+// @ts-ignore
 const { chains, publicClient, webSocketPublicClient } = configureChains(Chains, [
 	alchemyProvider({ apiKey: AlchemyApiKey as string }),
 	publicProvider(),

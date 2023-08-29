@@ -1,6 +1,7 @@
-import { IContribution, Status } from '@/services/types';
 import { Typography } from '@mui/material';
 import { useMemo } from 'react';
+
+import { IContribution, Status } from '@/services/types';
 
 export interface IStatusTextProps {
 	contribution: IContribution;
