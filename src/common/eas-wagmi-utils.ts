@@ -1,4 +1,5 @@
 import { type PublicClient, type WalletClient } from '@wagmi/core';
+// @ts-ignore
 import { providers } from 'ethers';
 import { type HttpTransport } from 'viem';
 import { useEffect, useState } from 'react';

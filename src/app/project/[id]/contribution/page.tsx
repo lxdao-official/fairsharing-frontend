@@ -22,6 +22,9 @@ import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
+// @ts-ignore
+import ContributionList from '@/components/project/contribution/contributionList';
+
 type EASChainConfig = {
 	chainId: number;
 	chainName: string;
@@ -87,6 +90,9 @@ BigInt.prototype.toJSON = function () {
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [detail, setDetail] = useState('');
+	const [proof, setProof] = useState('');
+	const [contributors, setContributors] = useState([]);
+	const [credit, setCredit] = useState('');
 
 	const EASContractAddress = '0x4200000000000000000000000000000000000021';
 
@@ -110,6 +116,13 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
+	};
+
+	const handleProofInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setProof(event.target.value);
+	};
+	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setCredit(event.target.value);
 	};
 
 	const getBASEURL = () => {
@@ -351,9 +364,9 @@ export default function Page({ params }: { params: { id: string } }) {
 						variant={'standard'}
 						InputProps={{ disableUnderline: true }}
 						required
-						value={detail}
+						value={proof}
 						size={'small'}
-						onChange={handleDetailInputChange}
+						onChange={handleProofInputChange}
 						placeholder={'https: //notion.so/1234'}
 					/>
 				</StyledFlexBox>
@@ -364,21 +377,31 @@ export default function Page({ params }: { params: { id: string } }) {
 						variant={'standard'}
 						InputProps={{ disableUnderline: true }}
 						required
-						value={detail}
+						value={contributors}
 						size={'small'}
 						onChange={handleDetailInputChange}
 						placeholder={'Type @ to select contributor'}
 					/>
 				</StyledFlexBox>
 
+				<CreditContainer>
+					<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
+					<StyledInput
+						sx={{ marginLeft: '4px' }}
+						variant={'standard'}
+						InputProps={{ disableUnderline: true }}
+						required
+						value={credit}
+						size={'small'}
+						onChange={handleCreditInputChange}
+						placeholder={'Pizza slices, e.g. 120'}
+					/>
+				</CreditContainer>
+
 				<PostButton>
 					<Button variant={'contained'}>Post</Button>
 				</PostButton>
 			</PostContainer>
-
-			<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
-				contributions: {params.id}
-			</Typography>
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button
@@ -434,6 +457,8 @@ export default function Page({ params }: { params: { id: string } }) {
 					Test claim
 				</Button>
 			</StyledFlexBox>
+
+			<ContributionList projectId={params.id} />
 		</div>
 	);
 }
@@ -460,4 +485,13 @@ const TagLabel = styled(Typography)({
 const StyledInput = styled(TextField)({
 	flex: '1',
 	border: 'none',
+});
+
+const CreditContainer = styled(StyledFlexBox)({
+	marginTop: '8px',
+	width: '200px',
+	height: '30px',
+	border: '1px solid rgba(15, 23, 42, 0.16)',
+	borderRadius: '5px',
+	padding: '3px 8px',
 });

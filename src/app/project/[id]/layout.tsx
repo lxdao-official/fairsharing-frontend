@@ -7,9 +7,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
 	return (
 		<div className={styles.projectContainer}>
 			<ProjectNav />
-			<div className={styles.content}>
-				{children}
-			</div>
+			<div className={styles.content}>{children}</div>
 		</div>
 	);
 }

@@ -1,3 +1,5 @@
+import process from 'process';
+
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 import {
@@ -35,7 +37,6 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 
 // @ts-ignore
 import project_register_abi = require('../../../../abi/project_register_abi.json');
-import process from 'process';
 
 export interface IStepContributorProps extends IStepBaseProps {}
 

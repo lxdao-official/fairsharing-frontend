@@ -3,6 +3,8 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { IStepBaseProps, IStepStartProps } from '@/components/createProject/step/start';
 
+import UploadImage from '@/components/uploadImage/uploadImage';
+
 export interface IStepProfileProps extends IStepBaseProps {}
 
 export interface StepProfileRef {
@@ -20,7 +22,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
 
-		// 通过 useImperativeHandle 定义父组件可以调用的方法
 		useImperativeHandle(
 			ref,
 			() => ({
@@ -55,9 +56,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 
 		return (
 			<>
-				{/*TODO avatar */}
-
-				<Typography>TODO: avatar</Typography>
+				<UploadImage />
 
 				<TextField
 					required
