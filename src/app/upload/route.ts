@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createConnector, type Uploader3Connector } from '@lxdao/uploader3-connector';
 
 const connector = createConnector('NFT.storage', {
-	token: process.env.NFT_STORAGE_TOKEN as string,
+	token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN as string,
 });
 
 export default async function POST(req: NextApiRequest, res: NextApiResponse) {

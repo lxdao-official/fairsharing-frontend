@@ -48,6 +48,8 @@ export const PreviewWrapper = styled('div')({
 	justifyContent: 'center',
 	alignItems: 'center',
 	border: '2px solid #fff',
+	borderRadius: 200,
+	overflow: 'hidden',
 	position: 'relative',
 	marginRight: 10,
 	marginBottom: 10,

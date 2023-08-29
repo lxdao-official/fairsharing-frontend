@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react';
 import { createConnector } from '@lxdao/uploader3-connector';
 
 import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
+import { Typography } from '@mui/material';
 
 export default function UploadImage() {
 	const [file, setFile] = useState<SelectedFile | UploadFile | UploadResult | CroppedFile | null>(
@@ -12,16 +13,15 @@ export default function UploadImage() {
 	);
 
 	const connector = createConnector('NFT.storage', {
-		token: process.env.NFT_STORAGE_TOKEN as string,
+		token: process.env.NEXT_PUBLIC_NFT_STORAGE_TOKEN as string,
 	});
 
 	return (
 		<div style={{ padding: 10 }}>
+			<Typography>Avatar</Typography>
 			<Uploader3
 				connector={connector}
-				// api={'/api/upload/file?name=your-name'}
 				multiple={false}
-				// crop={true} // use default crop options
 				onChange={(files) => {
 					setFile(files[0]);
 				}}
