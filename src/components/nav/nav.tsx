@@ -29,6 +29,7 @@ export default function Nav() {
 				href={'/project/create'}
 				image={'/images/new.png'}
 				isActive={pathname === '/project/create'}
+				prefetch={true}
 			/>
 		</NavContainer>
 	);
@@ -39,14 +40,16 @@ const Item = ({
 	image,
 	name,
 	isActive,
+	prefetch
 }: {
 	href: string;
 	image?: string;
 	isActive?: boolean;
 	name?: string;
+	prefetch?: boolean
 }) => {
 	return (
-		<Link href={href}>
+		<Link href={href} prefetch={!!prefetch}>
 			<NavItem active={!!isActive}>
 				{image ? (
 					<Image src={image} width={56} height={56} alt={'new'} />
