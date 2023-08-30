@@ -18,7 +18,7 @@ const ProjectItem = (props: IProjectItemProps) => {
 	const { project } = props;
 
 	return (
-		<Link href={`/project/${project.id}/contribution`}>
+		<Link href={`/project/${project.id}/contribution`} prefetch={true}>
 			<Container>
 				<Img3
 					src={project.logo as string}
