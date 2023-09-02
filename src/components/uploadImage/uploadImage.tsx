@@ -3,12 +3,17 @@ import { CroppedFile, SelectedFile, Uploader3, UploadFile, UploadResult } from '
 import { Icon } from '@iconify/react';
 
 import { createConnector } from '@lxdao/uploader3-connector';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import { Typography } from '@mui/material';
 
 import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 
-export default function UploadImage() {
+export interface IUploadImageProps {
+	uploadSuccess?: (url: string) => void;
+}
+
+export default function UploadImage(props: IUploadImageProps) {
 	const [file, setFile] = useState<SelectedFile | UploadFile | UploadResult | CroppedFile | null>(
 		null,
 	);
@@ -32,6 +37,9 @@ export default function UploadImage() {
 				onComplete={(file) => {
 					setFile(file);
 					console.log('onComplete file', file);
+					if (file.status === 'done' && props.uploadSuccess) {
+						props.uploadSuccess(file.url);
+					}
 				}}
 				onCropCancel={(file) => {
 					setFile(null);
@@ -45,11 +53,7 @@ export default function UploadImage() {
 						<PreviewFile file={file} />
 					) : (
 						<span>
-							<Icon
-								icon={'material-symbols:cloud-upload'}
-								color={'#65a2fa'}
-								fontSize={60}
-							/>
+							<AccountCircleIcon sx={{ color: '#94a3b8', fontSize: 200 }} />
 						</span>
 					)}
 				</PreviewWrapper>
