@@ -22,9 +22,17 @@ const ProjectItem = (props: IProjectItemProps) => {
 			<Container>
 				<Img3
 					src={project.logo as string}
-					style={{ width: '88px', height: '88px', borderRadius: '88px', border: '0.5px solid #CBD5E1' }}
+					style={{
+						width: '88px',
+						height: '88px',
+						borderRadius: '88px',
+						border: '0.5px solid #CBD5E1',
+					}}
 				/>
-				<Typography variant={'h3'} sx={{ marginTop: '16px', fontSize: '24px', color: '#0F172A' }}>
+				<Typography
+					variant={'h3'}
+					sx={{ marginTop: '16px', fontSize: '24px', color: '#0F172A' }}
+				>
 					{project.name}
 				</Typography>
 				<Typography variant={'body1'} sx={{ marginTop: '8px', color: '#64748B' }}>

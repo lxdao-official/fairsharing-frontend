@@ -10,6 +10,7 @@ const StartTip = [
 export interface IStepBaseProps {
 	step: number;
 	setActiveStep: (step: number) => void;
+	onCreateProject?: () => void;
 }
 
 export interface IStepStartProps extends IStepBaseProps {}

@@ -3,13 +3,37 @@ import { PageListData, PageListParams } from '@/common/types';
 import { IContributor, IProject } from '@/services/types';
 
 export interface CreateProjectParams {
-	logo: string;
 	name: string;
-	intro: string;
+	/**
+	 * project 合约地址
+	 */
+	address: string;
+	// TODO symbol含义？
 	symbol: string;
+	// TODO 确认是token
+	pointConsensus: string;
+	logo: string;
+	intro: string;
 	network: number;
-	votePeriod: number;
-	contributors: IContributor[];
+	/**
+	 * 改为截止日期
+	 */
+	votePeriod: string;
+	contributors: Contributor[];
+}
+
+export interface Contributor {
+	nickName: string;
+	wallet: string;
+	permission: PermissionEnum;
+	role: string;
+	id?: string;
+}
+
+export enum PermissionEnum {
+	Owner = 1,
+	Admin,
+	Contributor,
 }
 
 /**

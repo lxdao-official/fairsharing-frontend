@@ -1,4 +1,4 @@
-import { PermissionEnum } from '@/components/createProject/step/contributor';
+import { PermissionEnum } from '@/services/project';
 
 export interface IProject {
 	id: number;

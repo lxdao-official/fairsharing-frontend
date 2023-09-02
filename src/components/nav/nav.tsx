@@ -40,13 +40,13 @@ const Item = ({
 	image,
 	name,
 	isActive,
-	prefetch
+	prefetch,
 }: {
 	href: string;
 	image?: string;
 	isActive?: boolean;
 	name?: string;
-	prefetch?: boolean
+	prefetch?: boolean;
 }) => {
 	return (
 		<Link href={href} prefetch={!!prefetch}>

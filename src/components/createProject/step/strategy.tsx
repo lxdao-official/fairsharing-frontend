@@ -19,6 +19,7 @@ export interface IStepStrategyProps extends IStepBaseProps {}
 
 export interface StepStrategyRef {
 	getFormData: () => {
+		symbol: string;
 		token: string;
 		network: number;
 		period: string;
@@ -27,12 +28,19 @@ export interface StepStrategyRef {
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep } = props;
-	const [token, setToken] = useState('default token');
+	const [symbol, setSymbol] = useState('Token Symbol');
+	const [token, setToken] = useState('1200');
 	const [network, setNetwork] = useState(1);
 	const [period, setPeriod] = useState('365');
 
+	const [symbolError, setSymbolError] = useState(false);
 	const [tokenError, setTokenError] = useState(false);
 	const [periodError, setPeriodError] = useState(false);
+
+	const handleSymbolInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setSymbol(event.target.value);
+		setSymbolError(false);
+	};
 
 	const handleTokenInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setToken(event.target.value);
@@ -51,9 +59,9 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	useImperativeHandle(
 		ref,
 		() => ({
-			getFormData: () => ({ token, network, period }),
+			getFormData: () => ({ token, network, period, symbol }),
 		}),
-		[token, network, period],
+		[token, network, period, symbol],
 	);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
@@ -75,11 +83,22 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		<>
 			<TextField
 				required
+				label="Symbol"
+				value={symbol}
+				placeholder={'Token Symbol *'}
+				onChange={handleSymbolInputChange}
+				sx={{ display: 'block', minWidth: '' }}
+				error={symbolError}
+				// helperText={'Token is required'}
+			/>
+
+			<TextField
+				required
 				label="Token"
 				value={token}
 				placeholder={'Pizza slice token *'}
 				onChange={handleTokenInputChange}
-				sx={{ display: 'block', minWidth: '' }}
+				sx={{ display: 'block', minWidth: '', marginTop: '32px' }}
 				error={tokenError}
 				// helperText={'Token is required'}
 			/>
@@ -96,6 +115,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			>
 				<MenuItem value={'1'}>Georily</MenuItem>
 				<MenuItem value={'5'}>MainNet</MenuItem>
+				<MenuItem value={'420'}>optimismGoerli</MenuItem>
 			</Select>
 
 			<div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>
