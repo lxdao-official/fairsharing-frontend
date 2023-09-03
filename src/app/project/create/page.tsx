@@ -119,6 +119,7 @@ export default function Page() {
 		);
 		let contractRes;
 		try {
+			console.log('create project params', owner, members, symbol);
 			const tx: TransactionResponse = await contract.create(owner, members, symbol);
 			const response = await tx.wait(1);
 			if (response.status === 1) {
