@@ -9,9 +9,7 @@ import Link from 'next/link';
 import { IProject } from '@/services/types';
 
 export interface IProjectItemProps {
-	project: Partial<IProject> & {
-		[key: string]: any;
-	};
+	project: IProject;
 }
 
 const ProjectItem = (props: IProjectItemProps) => {
@@ -36,7 +34,7 @@ const ProjectItem = (props: IProjectItemProps) => {
 					{project.name}
 				</Typography>
 				<Typography variant={'body1'} sx={{ marginTop: '8px', color: '#64748B' }}>
-					{project.contributionCount}k contributions
+					{project.contributions?.length} contributions
 				</Typography>
 			</Container>
 		</Link>

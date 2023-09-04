@@ -2,22 +2,8 @@
 
 import process from 'process';
 
-import {
-	Box,
-	Button,
-	Container,
-	List,
-	ListItem,
-	ListItemIcon,
-	ListItemText,
-	Paper,
-	Step,
-	StepLabel,
-	Stepper,
-	Typography,
-} from '@mui/material';
-import CircleIcon from '@mui/icons-material/Circle';
-import { createContext, ReactNode, useContext, useRef, useState } from 'react';
+import { Box, Button, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { ReactNode, useRef, useState } from 'react';
 
 import { Img3Provider } from '@lxdao/img3';
 
@@ -26,6 +12,8 @@ import { ethers } from 'ethers';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 
 import { useAccount, useContractRead } from 'wagmi';
+
+import { useRouter } from 'next/navigation';
 
 import StepStart from '@/components/createProject/step/start';
 import StepStrategy, { StepStrategyRef } from '@/components/createProject/step/strategy';
@@ -58,6 +46,7 @@ const steps = [
 ];
 
 export default function Page() {
+	const router = useRouter();
 	const signer = useEthersSigner();
 	const { address: myAddress } = useAccount();
 
@@ -136,7 +125,7 @@ export default function Page() {
 		const params: CreateProjectParams = {
 			logo: avatar,
 			address: contractRes?.projectContract,
-			pointConsensus: '',
+			pointConsensus: token,
 			name: name,
 			intro: intro,
 			symbol: symbol,
@@ -145,8 +134,11 @@ export default function Page() {
 			contributors: contributors,
 		};
 		try {
+			console.log('CreateProjectParams', params);
 			const result = await createProject(params);
 			console.log('createProject res', result);
+			const { id } = result;
+			router.push(`/project/${id}/contribution`);
 		} catch (e) {
 			console.error('createProject error', e);
 		} finally {

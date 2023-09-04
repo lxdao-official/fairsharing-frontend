@@ -44,6 +44,12 @@ export function createProject(params: CreateProjectParams): Promise<IProject> {
 	return request.post('project/create', 1, params);
 }
 
-export function getProjectList(params: PageListParams): Promise<PageListData<IProject>> {
+export function getProjectList(
+	params: PageListParams & { userId?: string },
+): Promise<{ data: PageListData<IProject> }> {
 	return request('project/list', 1, params);
+}
+
+export function getProjectDetail(projectId: string): Promise<IProject> {
+	return request(`project/${projectId}`, 1);
 }

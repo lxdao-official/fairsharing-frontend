@@ -24,6 +24,8 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import ContributionList from '@/components/project/contribution/contributionList';
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
+import { IProject } from '@/services/types';
+import { getProjectDetail } from '@/services/project';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -60,6 +62,17 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [params]);
 
 	const [cid, setCid] = useState(1);
+
+	const [projectDetail, setProjectDetail] = useState<IProject>();
+
+	useEffect(() => {
+		const fetchProjectDetail = async () => {
+			const res = await getProjectDetail(params.id);
+			console.log('fetchProjectDetail', res);
+			setProjectDetail(res);
+		};
+		fetchProjectDetail();
+	}, []);
 
 	const eas = useMemo(() => {
 		const activeChainConfig =

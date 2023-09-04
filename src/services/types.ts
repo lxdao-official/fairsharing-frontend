@@ -1,16 +1,16 @@
 import { PermissionEnum } from '@/services/project';
 
 export interface IProject {
-	id: number;
+	id: string;
 	name: string;
 	intro: string;
 	logo: string;
 	network: number;
-	votePeriod: number;
+	votePeriod: string;
 	symbol: string;
 	pointConsensus: string;
-	contributions: IContribution[];
-	contributors: IContributor[];
+	contributions?: IContribution[];
+	contributors?: IContributor[];
 }
 
 export interface IContribution {
@@ -20,14 +20,12 @@ export interface IContribution {
 	credit: number;
 	toIds: string[];
 	status: Status;
-	agree: number;
-	disagree: number;
+	uId?: string;
 	ownerId: string;
+	owner: IUser;
 	projectId: string;
+	project: IProject;
 	deleted: boolean;
-	MintRecord: IMintRecord[];
-
-	[key: string]: any;
 }
 
 export enum Status {
@@ -40,32 +38,21 @@ export interface IContributor {
 	id: string;
 	nickname: string;
 	wallet: string;
+	user: IUser;
 	userId: string;
 	projectId: string;
+	project: IProject;
 	permission: PermissionEnum;
 	role: string;
+	deleted: boolean;
 }
 
 export interface IUser {
 	id: string;
+	name: string;
 	avatar: string;
 	bio: string;
 	wallet: string;
-	contributions: IContribution[];
-	contributors: IContributor[];
-	MintRecord: IMintRecord[];
-}
-
-export interface IMintRecord {
-	id: string;
-	userId: string;
-	credit: number;
-	contribution: IContribution;
-	contributionId: string;
-	status: MintStatus;
-}
-
-export enum MintStatus {
-	UNMINT,
-	MINTED,
+	contributions?: IContribution[];
+	contributors?: IContributor[];
 }

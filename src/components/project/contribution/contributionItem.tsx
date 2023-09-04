@@ -108,7 +108,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 						/>
 					) : null}
 					<Img3
-						src={contribution.avatar}
+						src={contribution.project.logo}
 						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
 					/>
 				</StyledFlexBox>

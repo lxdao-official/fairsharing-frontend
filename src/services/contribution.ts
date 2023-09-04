@@ -22,7 +22,10 @@ export const createContribution = (params: ICreateContributionParams) => {
 	return request.post<IContribution>('contribution/create', 1, params);
 };
 
-export const editContribution = (cid: string, params: Omit<ICreateContributionParams, 'projectId'>) => {
+export const editContribution = (
+	cid: string,
+	params: Omit<ICreateContributionParams, 'projectId'>,
+) => {
 	return request.put<IContribution>(`contribution/${cid}/edit`, 1, params);
 };
 

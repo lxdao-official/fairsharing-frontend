@@ -3,17 +3,59 @@
 import { styled, Typography } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { useProjectStore } from '@/store/project';
+import { useAccount } from 'wagmi';
+
+import { setAllProjectList, setCurrentProjectId, useProjectStore } from '@/store/project';
+import { getUserInfo } from '@/services/user';
+import { setUser } from '@/store/user';
+import { getProjectList } from '@/services/project';
 
 export default function Nav() {
-	const { currentProject, projectList } = useProjectStore();
+	const { currentProjectId, projectList } = useProjectStore();
 	const pathname = usePathname();
+	const queryParams = useParams();
+	const { address: myAddress } = useAccount();
+
 	useEffect(() => {
-		console.log('pathname', pathname);
-	}, [pathname]);
+		if (pathname.indexOf('create')) {
+			setCurrentProjectId('');
+		}
+		if (pathname.indexOf('project') < 0) {
+			setCurrentProjectId('');
+		}
+		if (pathname.indexOf('project') > -1 && queryParams.id) {
+			setCurrentProjectId(queryParams.id as string);
+		}
+	}, [pathname, queryParams]);
+
+	useEffect(() => {
+		getUserProjectList();
+	}, []);
+
+	useEffect(() => {
+		getUserProjectList(myAddress);
+	}, [myAddress]);
+
+	const getUserProjectList = async (userWallet?: string) => {
+		const params = {
+			currentPage: 1,
+			pageSize: 50,
+		};
+		if (userWallet) {
+			// also create user
+			const myInfo = await getUserInfo(userWallet);
+			setUser(myInfo);
+			console.log('myInfo', myInfo);
+			Object.assign(params, { userId: myInfo.id });
+		}
+		const { data } = await getProjectList(params);
+		console.log('getProjectList', data?.list);
+		setAllProjectList(data.list);
+	};
+
 	return (
 		<NavContainer>
 			<Item href={'/'} image={'/images/home.png'} isActive={pathname === '/'} />
@@ -22,7 +64,7 @@ export default function Nav() {
 					href={`/project/${project.id}/contribution`}
 					key={project.id}
 					name={project.name}
-					isActive={pathname.indexOf(`/project/${project.id}`) > -1}
+					isActive={currentProjectId === project.id}
 				/>
 			))}
 			<Item

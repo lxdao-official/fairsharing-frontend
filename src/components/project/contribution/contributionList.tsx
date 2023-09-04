@@ -19,7 +19,7 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { IContribution } from '@/services/types';
+import { IContribution, IContributor } from '@/services/types';
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
@@ -36,13 +36,28 @@ const FakeContributionList: IContribution[] = [
 		credit: 120,
 		toIds: ['123', '234'],
 		status: 0,
-		agree: 2,
-		disagree: 1,
 		ownerId: '123',
 		projectId: '1',
-		MintRecord: [],
 		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+		project: {
+			id: '',
+			name: '',
+			intro: '',
+			logo: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+			network: 5,
+			votePeriod: '',
+			symbol: '',
+			pointConsensus: '',
+			contributions: [],
+			contributors: [],
+		},
+		owner: {
+			id: '',
+			name: '',
+			bio: '',
+			avatar: '',
+			wallet: '',
+		},
 	},
 	{
 		id: '2',
@@ -51,13 +66,28 @@ const FakeContributionList: IContribution[] = [
 		credit: 120,
 		toIds: ['123', '234'],
 		status: 1,
-		agree: 2,
-		disagree: 1,
 		ownerId: '123',
 		projectId: '1',
-		MintRecord: [],
 		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+		project: {
+			id: '',
+			name: '',
+			intro: '',
+			logo: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+			network: 5,
+			votePeriod: '',
+			symbol: '',
+			pointConsensus: '',
+			contributions: [],
+			contributors: [],
+		},
+		owner: {
+			id: '',
+			name: '',
+			bio: '',
+			avatar: '',
+			wallet: '',
+		},
 	},
 	{
 		id: '3',
@@ -66,13 +96,28 @@ const FakeContributionList: IContribution[] = [
 		credit: 120,
 		toIds: ['123', '234'],
 		status: 2,
-		agree: 2,
-		disagree: 1,
 		ownerId: '123',
 		projectId: '1',
-		MintRecord: [],
 		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+		project: {
+			id: '',
+			name: '',
+			intro: '',
+			logo: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
+			network: 5,
+			votePeriod: '',
+			symbol: '',
+			pointConsensus: '',
+			contributions: [],
+			contributors: [],
+		},
+		owner: {
+			id: '',
+			name: '',
+			bio: '',
+			avatar: '',
+			wallet: '',
+		},
 	},
 ];
 
@@ -86,6 +131,7 @@ const ContributionList = (props: IContributionListProps) => {
 	const [contributor, setContributor] = useState('1');
 
 	const [selected, setSelected] = useState<Array<string>>([]);
+	// @ts-ignore
 	const [list, setList] = useState<IContribution[]>(FakeContributionList);
 
 	const [showDialog, setShowDialog] = useState(false);
