@@ -18,6 +18,8 @@ import {
 	SchemaEncoder,
 } from '@ethereum-attestation-service/eas-sdk';
 
+import { useParams } from 'next/navigation';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
@@ -26,6 +28,7 @@ import ContributionList from '@/components/project/contribution/contributionList
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
 import { IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
+import { setCurrentProjectId } from '@/store/project';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -47,15 +50,16 @@ BigInt.prototype.toJSON = function () {
 };
 
 export default function Page({ params }: { params: { id: string } }) {
-	const [detail, setDetail] = useState('');
-	const [proof, setProof] = useState('');
+	const [detail, setDetail] = useState('this is detail');
+	const [proof, setProof] = useState('https://github.com');
 	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState('');
+	const [credit, setCredit] = useState('1200');
 
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
+	const queryParams = useParams();
 
 	const pid = useMemo(() => {
 		return params.id;
@@ -72,6 +76,10 @@ export default function Page({ params }: { params: { id: string } }) {
 			setProjectDetail(res);
 		};
 		fetchProjectDetail();
+	}, []);
+
+	useEffect(() => {
+		setCurrentProjectId(queryParams.id as string);
 	}, []);
 
 	const eas = useMemo(() => {

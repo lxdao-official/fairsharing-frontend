@@ -1,4 +1,5 @@
 'use client';
+
 import {
 	Button,
 	Dialog,
@@ -131,8 +132,7 @@ const ContributionList = (props: IContributionListProps) => {
 	const [contributor, setContributor] = useState('1');
 
 	const [selected, setSelected] = useState<Array<string>>([]);
-	// @ts-ignore
-	const [list, setList] = useState<IContribution[]>(FakeContributionList);
+	const [list, setList] = useState<IContribution[]>(() => FakeContributionList);
 
 	const [showDialog, setShowDialog] = useState(false);
 

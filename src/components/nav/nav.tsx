@@ -20,23 +20,22 @@ export default function Nav() {
 	const { address: myAddress } = useAccount();
 
 	useEffect(() => {
-		if (pathname.indexOf('create')) {
-			setCurrentProjectId('');
-		}
 		if (pathname.indexOf('project') < 0) {
 			setCurrentProjectId('');
 		}
-		if (pathname.indexOf('project') > -1 && queryParams.id) {
-			setCurrentProjectId(queryParams.id as string);
+		if (pathname.indexOf('create')) {
+			setCurrentProjectId('');
 		}
-	}, [pathname, queryParams]);
+	}, [pathname]);
 
 	useEffect(() => {
 		getUserProjectList();
 	}, []);
 
 	useEffect(() => {
-		getUserProjectList(myAddress);
+		if (myAddress) {
+			getUserProjectList(myAddress);
+		}
 	}, [myAddress]);
 
 	const getUserProjectList = async (userWallet?: string) => {
@@ -53,7 +52,9 @@ export default function Nav() {
 		}
 		const { data } = await getProjectList(params);
 		console.log('getProjectList', data?.list);
-		setAllProjectList(data.list);
+		if (data?.list) {
+			setAllProjectList(data?.list || []);
+		}
 	};
 
 	return (
