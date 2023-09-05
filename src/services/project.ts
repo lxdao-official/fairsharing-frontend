@@ -46,7 +46,7 @@ export function createProject(params: CreateProjectParams): Promise<IProject> {
 
 export function getProjectList(
 	params: PageListParams & { userId?: string },
-): Promise<{ data: PageListData<IProject> }> {
+): Promise<PageListData<IProject>> {
 	return request('project/list', 1, params);
 }
 

@@ -50,10 +50,9 @@ export default function Nav() {
 			console.log('myInfo', myInfo);
 			Object.assign(params, { userId: myInfo.id });
 		}
-		const { data } = await getProjectList(params);
-		console.log('getProjectList', data?.list);
-		if (data?.list) {
-			setAllProjectList(data?.list || []);
+		const { list } = await getProjectList(params);
+		if (list && !userWallet) {
+			setAllProjectList(list || []);
 		}
 	};
 
