@@ -63,11 +63,10 @@ export default function Page({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const queryParams = useParams();
 
-	const pid = useMemo(() => {
+	const [cid, setCid] = useState('1')
+ 	const pid = useMemo(() => {
 		return params.id;
 	}, [params]);
-
-	const [cid, setCid] = useState(1);
 
 	const [projectDetail, setProjectDetail] = useState<IProject>();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
@@ -80,6 +79,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		};
 		const fetchContributorList = async () => {
 			const list = await getContributorList(params.id);
+			console.log('fetchContributorList list', list)
 			setContributorList(list);
 		};
 		fetchProjectDetail();
@@ -133,25 +133,39 @@ export default function Page({ params }: { params: { id: string } }) {
 				console.log('connect wallet and login');
 				return false;
 			}
-			const operatorId = contributorList.find(
+			const operatorId = contributorList.filter(
 				(contributor) => contributor.userId === myInfo.id,
-			)?.id;
+			)[0]?.id
 			const res = await createContribution({
 				projectId: pid,
 				operatorId: operatorId as string,
-				// TODO eas
-				// uId: generateUUID(),
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
 			});
 			console.log('createContribution res', res);
+			try {
+				await handlePrepareContribution({
+					// TODO  use res.id
+					cid: '12345',
+					detail: postData.detail,
+					poc: postData.proof,
+					token: Number(postData.credit),
+				});
+			} catch (e) {
+				console.error(e);
+			}
 		},
 		[myInfo, pid],
 	);
 
-	const handlePrepareContribution = async () => {
-		// TODO 调用后端创建接口，获取cid
+	const handlePrepareContribution = async ({ cid, title, detail, poc, token }: {
+		cid: string
+		title?: string
+		detail: string
+		poc: string
+		token: number
+	}) => {
 		const offchain = await eas.getOffchain();
 
 		const contributionSchemaUid = EasSchemaUidMap.contribution;
@@ -159,15 +173,13 @@ export default function Page({ params }: { params: { id: string } }) {
 		const schemaEncoder = new SchemaEncoder(
 			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
 		);
-		// TODO pid：从params获取
-		// TODO cid: 从后端创建后获取
 		const encodedData = schemaEncoder.encodeData([
 			{ name: 'pid', value: pid, type: 'uint256' },
 			{ name: 'cid', value: cid, type: 'uint64' },
 			{ name: 'title', value: 'first contribution title', type: 'string' },
-			{ name: 'detail', value: 'first contribution detail', type: 'string' },
-			{ name: 'poc', value: 'the poc', type: 'string' },
-			{ name: 'token', value: 2000, type: 'uint64' },
+			{ name: 'detail', value: detail, type: 'string' },
+			{ name: 'poc', value: poc, type: 'string' },
+			{ name: 'token', value: token, type: 'uint64' },
 		]);
 
 		const block = await provider.getBlock('latest');
@@ -348,17 +360,6 @@ export default function Page({ params }: { params: { id: string } }) {
 			</StyledFlexBox>
 
 			<PostContribution onPost={onPostContribution} confirmText={'Post'} />
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handlePrepareContribution();
-					}}
-				>
-					Test Prepare contribution
-				</Button>
-			</StyledFlexBox>
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button
