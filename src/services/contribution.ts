@@ -18,15 +18,17 @@ export interface ICreateContributionParams extends IAuthBody {
 }
 
 export interface IUpdateContributionParams {
-	signature: string;
-	operatorId: string;
-	type: 'claim';
+	type: 'claim' | 'ready';
+	uId?: string
 }
 
 export const createContribution = (params: ICreateContributionParams) => {
 	return request.post<IContribution>('contribution/create', 1, params);
 };
 
+/**
+ * @deprecated 暂无法编辑
+ */
 export const editContribution = (
 	cid: string,
 	params: Omit<ICreateContributionParams, 'projectId'>,

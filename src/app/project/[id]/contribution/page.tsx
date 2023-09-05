@@ -26,14 +26,14 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import ContributionList from '@/components/project/contribution/contributionList';
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
-import { IContributor, IProject } from '@/services/types';
+import { IContribution, IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
-import { createContribution, ICreateContributionParams } from '@/services/contribution';
+import { createContribution, getContributionList, ICreateContributionParams } from '@/services/contribution';
 import { useUserStore } from '@/store/user';
-import { generateUUID } from '@/utils/uuid';
 import { getContributorList } from '@/services/contributor';
+import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -70,6 +70,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const [projectDetail, setProjectDetail] = useState<IProject>();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
+	const [contributionList, setContributionList] = useState<IContribution[]>([])
 
 	useEffect(() => {
 		const fetchProjectDetail = async () => {
@@ -82,8 +83,18 @@ export default function Page({ params }: { params: { id: string } }) {
 			console.log('fetchContributorList list', list)
 			setContributorList(list);
 		};
+		const fetchContributionList = async () => {
+			const list = await getContributionList({
+				pageSize: 50,
+				currentPage: 1,
+				projectId: params.id
+			})
+			console.log('fetchContributionList list', list)
+			setContributionList(list)
+		}
 		fetchProjectDetail();
 		fetchContributorList();
+		fetchContributionList()
 	}, []);
 
 	useEffect(() => {
@@ -152,6 +163,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					poc: postData.proof,
 					token: Number(postData.credit),
 				});
+				// TODO updateContributionState -> 传eas返回的uid, 更新status为claim
 			} catch (e) {
 				console.error(e);
 			}
@@ -260,7 +272,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 			signer,
 		);
-
+		openGlobalLoading()
 		const res = await submitSignedAttestation({
 			signer: myAddress as string,
 			sig: offchainAttestation,
@@ -272,6 +284,8 @@ export default function Page({ params }: { params: { id: string } }) {
 				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 			} catch (e) {
 				console.error('ens error:', e);
+			} finally {
+				closeGlobalLoading()
 			}
 		}
 	};
