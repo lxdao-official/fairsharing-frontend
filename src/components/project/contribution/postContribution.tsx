@@ -7,15 +7,29 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution } from '@/services/types';
 
 export interface IPostContributionProps {
-	contribution: IContribution;
-	onPost: () => void;
-	onCancel: () => void;
+	onPost: (data: PostData) => void;
+	contribution?: IContribution;
+	onCancel?: () => void;
+	confirmText?: string;
 }
-const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionProps) => {
-	const [detail, setDetail] = useState(contribution.detail);
-	const [proof, setProof] = useState(contribution.proof);
+
+export interface PostData {
+	detail: string;
+	proof: string;
+	contributors: string[];
+	credit: string;
+}
+
+const PostContribution = ({
+	contribution,
+	onPost,
+	onCancel,
+	confirmText,
+}: IPostContributionProps) => {
+	const [detail, setDetail] = useState(contribution?.detail || 'test detail');
+	const [proof, setProof] = useState(contribution?.proof || 'https://proof.com');
 	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState(String(contribution.credit));
+	const [credit, setCredit] = useState(String(contribution?.credit || '119'));
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -26,6 +40,11 @@ const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionP
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
+	};
+
+	const onSubmit = () => {
+		const params: PostData = { detail, proof, contributors, credit };
+		onPost(params);
 	};
 
 	return (
@@ -84,16 +103,19 @@ const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionP
 			</CreditContainer>
 
 			<PostButton>
-				<Button
-					variant={'contained'}
-					color={'info'}
-					sx={{ marginRight: '24px' }}
-					onClick={onCancel}
-				>
-					Cancel
-				</Button>
-				<Button variant={'contained'} onClick={onPost}>
-					Re-Post
+				{onCancel ? (
+					<Button
+						variant={'contained'}
+						color={'info'}
+						sx={{ marginRight: '24px' }}
+						onClick={onCancel}
+					>
+						Cancel
+					</Button>
+				) : null}
+
+				<Button variant={'contained'} onClick={onSubmit}>
+					{confirmText || 'Re-Post'}
 				</Button>
 			</PostButton>
 		</PostContainer>

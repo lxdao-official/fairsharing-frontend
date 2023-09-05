@@ -4,14 +4,15 @@ import { styled, Typography } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 
 import { setAllProjectList, setCurrentProjectId, useProjectStore } from '@/store/project';
-import { getUserInfo } from '@/services/user';
+import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectList } from '@/services/project';
+import { getContributorList } from '@/services/contributor';
 
 export default function Nav() {
 	const { currentProjectId, projectList } = useProjectStore();
@@ -44,8 +45,11 @@ export default function Nav() {
 			pageSize: 50,
 		};
 		if (userWallet) {
-			// also create user
-			const myInfo = await getUserInfo(userWallet);
+			let myInfo = await getUserInfo(userWallet);
+			// const myInfo = await signup(userWallet);
+			if (!myInfo) {
+				myInfo = await signup(userWallet);
+			}
 			setUser(myInfo);
 			console.log('myInfo', myInfo);
 			Object.assign(params, { userId: myInfo.id });

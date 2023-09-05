@@ -6,7 +6,7 @@ import { Button, styled, TextField, Typography } from '@mui/material';
 import { ethers } from 'ethers';
 import { useAccount, useNetwork } from 'wagmi';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -26,9 +26,14 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import ContributionList from '@/components/project/contribution/contributionList';
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
-import { IProject } from '@/services/types';
+import { IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
+import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
+import { createContribution, ICreateContributionParams } from '@/services/contribution';
+import { useUserStore } from '@/store/user';
+import { generateUUID } from '@/utils/uuid';
+import { getContributorList } from '@/services/contributor';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -50,10 +55,7 @@ BigInt.prototype.toJSON = function () {
 };
 
 export default function Page({ params }: { params: { id: string } }) {
-	const [detail, setDetail] = useState('this is detail');
-	const [proof, setProof] = useState('https://github.com');
-	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState('1200');
+	const { myInfo } = useUserStore();
 
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
@@ -68,6 +70,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [cid, setCid] = useState(1);
 
 	const [projectDetail, setProjectDetail] = useState<IProject>();
+	const [contributorList, setContributorList] = useState<IContributor[]>([]);
 
 	useEffect(() => {
 		const fetchProjectDetail = async () => {
@@ -75,7 +78,12 @@ export default function Page({ params }: { params: { id: string } }) {
 			console.log('fetchProjectDetail', res);
 			setProjectDetail(res);
 		};
+		const fetchContributorList = async () => {
+			const list = await getContributorList(params.id);
+			setContributorList(list);
+		};
 		fetchProjectDetail();
+		fetchContributorList();
 	}, []);
 
 	useEffect(() => {
@@ -97,17 +105,6 @@ export default function Page({ params }: { params: { id: string } }) {
 	let contributionUID: string =
 		'0x0000000000000000000000000000000000000000000000000000000000000000';
 
-	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setDetail(event.target.value);
-	};
-
-	const handleProofInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setProof(event.target.value);
-	};
-	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setCredit(event.target.value);
-	};
-
 	const getBASEURL = () => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
 			(config) => config.chainId === network.chain?.id,
@@ -128,6 +125,30 @@ export default function Page({ params }: { params: { id: string } }) {
 
 		return await axios.post<StoreIPFSActionReturn>(`${baseURL}/offchain/store`, data);
 	};
+
+	const onPostContribution = useCallback(
+		async (postData: PostData) => {
+			console.log('onPostContribution', postData);
+			if (!myInfo) {
+				console.log('connect wallet and login');
+				return false;
+			}
+			const operatorId = contributorList.find(
+				(contributor) => contributor.userId === myInfo.id,
+			)?.id;
+			const res = await createContribution({
+				projectId: pid,
+				operatorId: operatorId as string,
+				// TODO eas
+				// uId: generateUUID(),
+				...postData,
+				credit: Number(postData.credit),
+				toIds: postData.contributors,
+			});
+			console.log('createContribution res', res);
+		},
+		[myInfo, pid],
+	);
 
 	const handlePrepareContribution = async () => {
 		// TODO 调用后端创建接口，获取cid
@@ -326,64 +347,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				/>
 			</StyledFlexBox>
 
-			<PostContainer>
-				<StyledFlexBox>
-					<TagLabel>#detail</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={detail}
-						size={'small'}
-						onChange={handleDetailInputChange}
-						placeholder={'I developed sign in with wallet feature'}
-					/>
-				</StyledFlexBox>
-
-				<StyledFlexBox sx={{ marginTop: '8px' }}>
-					<TagLabel>#proof</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={proof}
-						size={'small'}
-						onChange={handleProofInputChange}
-						placeholder={'https: //notion.so/1234'}
-					/>
-				</StyledFlexBox>
-
-				<StyledFlexBox sx={{ marginTop: '8px' }}>
-					<TagLabel>#to</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={contributors}
-						size={'small'}
-						onChange={handleDetailInputChange}
-						placeholder={'Type @ to select contributor'}
-					/>
-				</StyledFlexBox>
-
-				<CreditContainer>
-					<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
-					<StyledInput
-						sx={{ marginLeft: '4px' }}
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={credit}
-						size={'small'}
-						onChange={handleCreditInputChange}
-						placeholder={'Pizza slices, e.g. 120'}
-					/>
-				</CreditContainer>
-
-				<PostButton>
-					<Button variant={'contained'}>Post</Button>
-				</PostButton>
-			</PostContainer>
+			<PostContribution onPost={onPostContribution} confirmText={'Post'} />
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<Button

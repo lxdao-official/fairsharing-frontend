@@ -2,14 +2,19 @@ import { request } from '@/common/request';
 import { IContribution } from '@/services/types';
 import { PageListParams } from '@/common/types';
 
-export interface ICreateContributionParams {
-	signature: string;
+export interface IAuthBody {
+	signature?: string;
+	operatorId?: string;
+}
+
+export interface ICreateContributionParams extends IAuthBody {
 	operatorId: string;
 	detail: string;
 	proof: string;
+	projectId: string;
 	credit: number;
 	toIds: string[];
-	projectId: string;
+	uId?: string;
 }
 
 export interface IUpdateContributionParams {
