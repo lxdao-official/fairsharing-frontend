@@ -15,6 +15,7 @@ import React, { useCallback, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { format } from 'date-fns';
 
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
@@ -139,8 +140,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							<Typography variant={'subtitle1'}>Project owner name ?</Typography>
-							<Typography sx={{ marginLeft: '12px' }}>2 hour ago</Typography>
+							<Typography variant={'subtitle1'}>{projectDetail.name}</Typography>
+							<Typography sx={{ marginLeft: '12px' }}>
+								{format(new Date(contribution.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+							</Typography>
 						</StyledFlexBox>
 						<StyledFlexBox>
 							<StatusText contribution={contribution} onClaim={handleClaim} />

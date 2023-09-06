@@ -26,6 +26,8 @@ export interface IContribution {
 	projectId: string;
 	project: IProject;
 	deleted: boolean;
+	updatedAt: string;
+	createAt: string;
 }
 
 export enum Status {
