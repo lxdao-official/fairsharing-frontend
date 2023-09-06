@@ -248,9 +248,12 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const onVote = useCallback(
 		async ({ contributionId, value, uId }: IVoteParams) => {
-			openGlobalLoading();
 			console.log('vote params', contributionId, value, uId);
-
+			if (!uId) {
+				console.error('uId not exist')
+				return;
+			}
+			openGlobalLoading();
 			const offchain = await eas.getOffchain();
 			const voteSchemaUid = EasSchemaUidMap.vote;
 
@@ -337,14 +340,10 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const handleClaim = async () => {
 		const claimSchemaUid = EasSchemaUidMap.claim;
-
 		const { signature } = await getSignMsg(myAddress as string, pid, cid);
-
-		// Initialize SchemaEncoder with the schema string
 		const schemaEncoder = new SchemaEncoder(
 			'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 		);
-
 		const encodedData = schemaEncoder.encodeData([
 			{ name: 'pid', value: pid, type: 'uint256' },
 			{ name: 'cid', value: cid, type: 'uint64' },
