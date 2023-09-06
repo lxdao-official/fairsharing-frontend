@@ -30,8 +30,8 @@ import PostContribution from '@/components/project/contribution/postContribution
 export interface IContributionItemProps {
 	contribution: IContribution;
 	showSelect: boolean;
-	selected: string[];
-	onSelect: (idList: string[]) => void;
+	selected: number[];
+	onSelect: (idList: number[]) => void;
 	showDeleteDialog: () => void;
 }
 
@@ -46,7 +46,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const checked = event.target.checked;
 		const newList = checked
 			? [...selected, contribution.id]
-			: selected.filter((id) => id !== contribution.id);
+			: selected.filter((id) => Number(id) !== Number(contribution.id));
 		onSelect(newList);
 	};
 
@@ -103,7 +103,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
 					{showSelect ? (
 						<Checkbox
-							checked={selected.includes(contribution.id)}
+							checked={selected.includes(Number(contribution.id))}
 							onChange={handleCheckboxChange}
 						/>
 					) : null}

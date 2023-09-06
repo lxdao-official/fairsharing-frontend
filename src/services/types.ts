@@ -14,7 +14,7 @@ export interface IProject {
 }
 
 export interface IContribution {
-	id: string;
+	id: number;
 	detail: string;
 	proof: string;
 	credit: number;

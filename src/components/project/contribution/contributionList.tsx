@@ -31,7 +31,7 @@ export interface IContributionListProps {
 
 const FakeContributionList: IContribution[] = [
 	{
-		id: '1',
+		id: 1,
 		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
 		proof: 'https://github.com',
 		credit: 120,
@@ -61,7 +61,7 @@ const FakeContributionList: IContribution[] = [
 		},
 	},
 	{
-		id: '2',
+		id: 2,
 		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
 		proof: 'https://github.com',
 		credit: 120,
@@ -91,7 +91,7 @@ const FakeContributionList: IContribution[] = [
 		},
 	},
 	{
-		id: '3',
+		id: 3,
 		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
 		proof: 'https://github.com',
 		credit: 120,
@@ -131,7 +131,7 @@ const ContributionList = (props: IContributionListProps) => {
 	const [voteStatus, setVoteStatus] = useState('1');
 	const [contributor, setContributor] = useState('1');
 
-	const [selected, setSelected] = useState<Array<string>>([]);
+	const [selected, setSelected] = useState<Array<number>>([]);
 	const [list, setList] = useState<IContribution[]>(() => FakeContributionList);
 
 	const [showDialog, setShowDialog] = useState(false);
@@ -168,13 +168,13 @@ const ContributionList = (props: IContributionListProps) => {
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
 		console.log('type', type);
 		if (type === 'All') {
-			setSelected(list.map((item, idx) => String(item.id)));
+			setSelected(list.map((item, idx) => item.id));
 		} else {
 			setSelected([]);
 		}
 	};
 
-	const onSelect = (idList: string[]) => {
+	const onSelect = (idList: number[]) => {
 		setSelected(idList);
 	};
 

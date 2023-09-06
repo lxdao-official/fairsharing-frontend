@@ -30,7 +30,11 @@ import { IContribution, IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
-import { createContribution, getContributionList, ICreateContributionParams } from '@/services/contribution';
+import {
+	createContribution,
+	getContributionList,
+	ICreateContributionParams,
+} from '@/services/contribution';
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
 import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
@@ -63,14 +67,14 @@ export default function Page({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const queryParams = useParams();
 
-	const [cid, setCid] = useState('1')
- 	const pid = useMemo(() => {
+	const [cid, setCid] = useState('1');
+	const pid = useMemo(() => {
 		return params.id;
 	}, [params]);
 
 	const [projectDetail, setProjectDetail] = useState<IProject>();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
-	const [contributionList, setContributionList] = useState<IContribution[]>([])
+	const [contributionList, setContributionList] = useState<IContribution[]>([]);
 
 	useEffect(() => {
 		const fetchProjectDetail = async () => {
@@ -80,26 +84,33 @@ export default function Page({ params }: { params: { id: string } }) {
 		};
 		const fetchContributorList = async () => {
 			const list = await getContributorList(params.id);
-			console.log('fetchContributorList list', list)
+			console.log('fetchContributorList list', list);
 			setContributorList(list);
 		};
 		const fetchContributionList = async () => {
 			const list = await getContributionList({
 				pageSize: 50,
 				currentPage: 1,
-				projectId: params.id
-			})
-			console.log('fetchContributionList list', list)
-			setContributionList(list)
-		}
+				projectId: params.id,
+			});
+			console.log('fetchContributionList list', list);
+			setContributionList(list);
+		};
 		fetchProjectDetail();
 		fetchContributorList();
-		fetchContributionList()
+		fetchContributionList();
 	}, []);
 
 	useEffect(() => {
 		setCurrentProjectId(queryParams.id as string);
 	}, []);
+
+	const operatorId = useMemo(() => {
+		if (contributorList.length === 0 || !myInfo) {
+			return '';
+		}
+		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorList, myInfo]);
 
 	const eas = useMemo(() => {
 		const activeChainConfig =
@@ -139,98 +150,79 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const onPostContribution = useCallback(
 		async (postData: PostData) => {
-			console.log('onPostContribution', postData);
 			if (!myInfo) {
-				console.log('connect wallet and login');
+				console.error('connect wallet and login');
 				return false;
 			}
-			const operatorId = contributorList.filter(
-				(contributor) => contributor.userId === myInfo.id,
-			)[0]?.id
-			const res = await createContribution({
+			if (!operatorId) {
+				console.error('operatorId not exist');
+				return false;
+			}
+			const contribution = await createContribution({
 				projectId: pid,
 				operatorId: operatorId as string,
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
 			});
-			console.log('createContribution res', res);
-			try {
-				await handlePrepareContribution({
-					// TODO  use res.id
-					cid: '12345',
-					detail: postData.detail,
-					poc: postData.proof,
-					token: Number(postData.credit),
-				});
-				// TODO updateContributionState -> 传eas返回的uid, 更新status为claim
-			} catch (e) {
-				console.error(e);
+			console.log('createContribution res', contribution);
+
+			const offchain = await eas.getOffchain();
+
+			const contributionSchemaUid = EasSchemaUidMap.contribution;
+			// Initialize SchemaEncoder with the schema string
+			const schemaEncoder = new SchemaEncoder(
+				'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
+			);
+			const encodedData = schemaEncoder.encodeData([
+				{ name: 'pid', value: pid, type: 'uint256' },
+				{ name: 'cid', value: contribution.id, type: 'uint64' },
+				{ name: 'title', value: 'first contribution title', type: 'string' },
+				{ name: 'detail', value: postData.detail, type: 'string' },
+				{ name: 'poc', value: postData.proof, type: 'string' },
+				{ name: 'token', value: Number(postData.credit), type: 'uint64' },
+			]);
+
+			const block = await provider.getBlock('latest');
+			if (!signer) {
+				return;
+			}
+			const offchainAttestation = await offchain.signOffchainAttestation(
+				{
+					recipient: '0x0000000000000000000000000000000000000000',
+					expirationTime: BigInt(0),
+					time: BigInt(block ? block.timestamp : 0),
+					revocable: true,
+					version: 1,
+					nonce: BigInt(0),
+					schema: contributionSchemaUid,
+					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+					data: encodedData,
+				},
+				signer,
+			);
+
+			contributionUID = offchainAttestation.uid;
+
+			const res = await submitSignedAttestation({
+				signer: myAddress as string,
+				sig: offchainAttestation,
+			});
+			console.log('submitSignedAttestation res', res);
+			// TODO updateContributionState -> 传eas返回的uid, 更新status为claim
+			if (!res.data.error) {
+				try {
+					const baseURL = getBASEURL();
+					// Update ENS names
+					const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+					console.log('getENSRes', getENSRes);
+				} catch (e) {
+					console.error('ens error:', e);
+				}
 			}
 		},
-		[myInfo, pid],
+		[myInfo, pid, operatorId, signer, provider],
 	);
-
-	const handlePrepareContribution = async ({ cid, title, detail, poc, token }: {
-		cid: string
-		title?: string
-		detail: string
-		poc: string
-		token: number
-	}) => {
-		const offchain = await eas.getOffchain();
-
-		const contributionSchemaUid = EasSchemaUidMap.contribution;
-		// Initialize SchemaEncoder with the schema string
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
-		);
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{ name: 'title', value: 'first contribution title', type: 'string' },
-			{ name: 'detail', value: detail, type: 'string' },
-			{ name: 'poc', value: poc, type: 'string' },
-			{ name: 'token', value: token, type: 'uint64' },
-		]);
-
-		const block = await provider.getBlock('latest');
-		if (!signer) {
-			return;
-		}
-		const offchainAttestation = await offchain.signOffchainAttestation(
-			{
-				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: BigInt(0),
-				time: BigInt(block ? block.timestamp : 0),
-				revocable: true,
-				version: 1,
-				nonce: BigInt(0),
-				schema: contributionSchemaUid,
-				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-				data: encodedData,
-			},
-			signer,
-		);
-
-		contributionUID = offchainAttestation.uid;
-
-		const res = await submitSignedAttestation({
-			signer: myAddress as string,
-			sig: offchainAttestation,
-		});
-		console.log('submitSignedAttestation res', res);
-		if (!res.data.error) {
-			try {
-				const baseURL = getBASEURL();
-				// Update ENS names
-				const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-				console.log('getENSRes', getENSRes);
-			} catch (e) {
-				console.error('ens error:', e);
-			}
-		}
-	};
 
 	const handleRevokeContribution = async () => {
 		const uid = '0x720eea3a0fb22ca36637e8faa2b66c649cf734402902cb587d9f9f5bc405e4cf';
@@ -272,7 +264,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 			signer,
 		);
-		openGlobalLoading()
+		openGlobalLoading();
 		const res = await submitSignedAttestation({
 			signer: myAddress as string,
 			sig: offchainAttestation,
@@ -285,7 +277,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			} catch (e) {
 				console.error('ens error:', e);
 			} finally {
-				closeGlobalLoading()
+				closeGlobalLoading();
 			}
 		}
 	};
@@ -423,36 +415,3 @@ export default function Page({ params }: { params: { id: string } }) {
 		</div>
 	);
 }
-
-const PostContainer = styled('div')({
-	minHeight: '90px',
-	backgroundColor: 'white',
-	marginTop: '16px',
-	padding: '12px 16px',
-	border: '0.5px solid rgba(15, 23, 42, 0.16)',
-	borderRadius: '4px',
-	position: 'relative',
-});
-const PostButton = styled('div')({
-	position: 'absolute',
-	right: '16px',
-	bottom: '12px',
-});
-const TagLabel = styled(Typography)({
-	color: '#437EF7',
-	width: '60px',
-});
-
-const StyledInput = styled(TextField)({
-	flex: '1',
-	border: 'none',
-});
-
-const CreditContainer = styled(StyledFlexBox)({
-	marginTop: '8px',
-	width: '200px',
-	height: '30px',
-	border: '1px solid rgba(15, 23, 42, 0.16)',
-	borderRadius: '5px',
-	padding: '3px 8px',
-});
