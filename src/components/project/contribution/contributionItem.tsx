@@ -26,6 +26,7 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
+import { IVoteParams, IVoteValueEnum } from '@/components/project/contribution/contributionList';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -34,6 +35,7 @@ export interface IContributionItemProps {
 	selected: number[];
 	onSelect: (idList: number[]) => void;
 	showDeleteDialog: () => void;
+	onVote: (params: IVoteParams) => void;
 }
 
 // TODO contribution的头像是owner头像？
@@ -57,6 +59,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openContributor, setOpenContributor] = useState(false);
 
 	const [showEdit, setShowEdit] = useState(false);
+
+	const handleVote = (voteValue: IVoteValueEnum) => {
+		props.onVote({
+			contributionId: contribution.id,
+			uId: contribution.uId as string,
+			value: voteValue,
+		});
+	};
 
 	const handleOpenMorePopover = (event: React.MouseEvent<HTMLButtonElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -241,21 +251,21 @@ const ContributionItem = (props: IContributionItemProps) => {
 								status={VoteStatus.DONE}
 								count={98}
 								contribution={contribution}
-								onConfirm={() => {}}
+								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
 								status={VoteStatus.NORMAL}
 								count={14}
 								contribution={contribution}
-								onConfirm={() => {}}
+								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
 								status={VoteStatus.DISABLED}
 								count={4}
 								contribution={contribution}
-								onConfirm={() => {}}
+								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>

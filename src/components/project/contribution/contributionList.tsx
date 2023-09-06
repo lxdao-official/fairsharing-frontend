@@ -25,10 +25,22 @@ import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
 
+export enum IVoteValueEnum {
+	FOR = 1,
+	AGAINST = 2,
+	ABSTAIN = 3,
+}
+export interface IVoteParams {
+	contributionId: number;
+	value: IVoteValueEnum;
+	uId: string;
+}
+
 export interface IContributionListProps {
 	projectId: string;
 	contributionList: IContribution[];
 	projectDetail: IProject;
+	onVote: (params: IVoteParams) => void;
 }
 
 const FakeContributionList: IContribution[] = [
@@ -128,10 +140,11 @@ const ContributionList = ({
 	contributionList,
 	projectId,
 	projectDetail,
+	onVote,
 }: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
-	const [showFilter, setShowFilter] = useState(true);
-	const [showSelect, setShowSelect] = useState(true);
+	const [showFilter, setShowFilter] = useState(false);
+	const [showSelect, setShowSelect] = useState(false);
 
 	const [period, setPeriod] = useState('1');
 	const [voteStatus, setVoteStatus] = useState('1');
@@ -329,6 +342,7 @@ const ContributionList = ({
 					onSelect={onSelect}
 					showDeleteDialog={showDeleteDialog}
 					projectDetail={projectDetail}
+					onVote={onVote}
 				/>
 			))}
 

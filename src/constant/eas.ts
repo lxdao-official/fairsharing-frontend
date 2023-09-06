@@ -8,6 +8,7 @@ export interface EASChainConfig {
 	/** Must contain a trailing dot (unless mainnet). */
 	subdomain: string;
 	rpcProvider: string;
+	graphQLEndpoint: string;
 }
 export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	{
@@ -19,6 +20,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 		schemaRegistryAddress: '0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0',
 		etherscanURL: 'https://sepolia.etherscan.io',
 		rpcProvider: `https://sepolia.infura.io/v3/`,
+		graphQLEndpoint: 'https://sepolia.easscan.org/graphql',
 	},
 	{
 		chainId: 1,
@@ -29,6 +31,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 		schemaRegistryAddress: '0xA7b39296258348C78294F95B872b282326A97BDF',
 		etherscanURL: 'https://etherscan.io',
 		rpcProvider: `https://mainnet.infura.io/v3/`,
+		graphQLEndpoint: 'https://easscan.org/graphql',
 	},
 	{
 		chainId: 420,
@@ -39,6 +42,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 		schemaRegistryAddress: '0x4200000000000000000000000000000000000020',
 		etherscanURL: 'https://optimism-goerli-bedrock.easscan.org',
 		rpcProvider: `https://mainnet.infura.io/v3/`,
+		graphQLEndpoint: 'https://optimism-goerli-bedrock.easscan.org/graphql',
 	},
 ];
 

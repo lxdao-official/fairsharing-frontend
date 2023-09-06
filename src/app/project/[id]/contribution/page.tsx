@@ -24,7 +24,7 @@ import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
-import ContributionList from '@/components/project/contribution/contributionList';
+import ContributionList, { IVoteParams } from '@/components/project/contribution/contributionList';
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
 import { IContribution, IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
@@ -34,6 +34,7 @@ import {
 	createContribution,
 	getContributionList,
 	ICreateContributionParams,
+	updateContributionStatus,
 } from '@/services/contribution';
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
@@ -67,6 +68,13 @@ export default function Page({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const queryParams = useParams();
 
+	const graphqlEndpoint = useMemo(() => {
+		const activeChainConfig =
+			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
+			EAS_CHAIN_CONFIGS[3];
+		return activeChainConfig.graphQLEndpoint;
+	}, [network]);
+
 	const [cid, setCid] = useState('1');
 	const pid = useMemo(() => {
 		return params.id;
@@ -83,6 +91,11 @@ export default function Page({ params }: { params: { id: string } }) {
 		fetchContributionList();
 	}, []);
 
+	const fetchContributionListFromEAS = async () => {
+		const res = axios.post(graphqlEndpoint, {
+			// 	TODO
+		});
+	};
 	const fetchProjectDetail = async () => {
 		const res = await getProjectDetail(params.id);
 		console.log('fetchProjectDetail', res);
@@ -207,13 +220,19 @@ export default function Page({ params }: { params: { id: string } }) {
 				sig: offchainAttestation,
 			});
 			console.log('submitSignedAttestation res', res);
-			// TODO updateContributionState -> 传eas返回的uid, 更新status为claim
 			if (!res.data.error) {
 				try {
 					const baseURL = getBASEURL();
 					// Update ENS names
 					const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 					console.log('getENSRes', getENSRes);
+					// 传eas返回的uid, 更新status为claim
+					const updateStatus = await updateContributionStatus(contribution.id, {
+						type: 'claim',
+						uId: res.data.offchainAttestationId as string,
+					});
+					console.log('updateStatus', updateStatus);
+					fetchContributionList();
 				} catch (e) {
 					console.error('ens error:', e);
 				}
@@ -227,58 +246,66 @@ export default function Page({ params }: { params: { id: string } }) {
 		await eas.revokeOffchain(uid);
 	};
 
-	const handleVote = async (value: any) => {
-		const offchain = await eas.getOffchain();
+	const onVote = useCallback(
+		async ({ contributionId, value, uId }: IVoteParams) => {
+			openGlobalLoading();
+			console.log('vote params', contributionId, value, uId);
 
-		const voteSchemaUid = EasSchemaUidMap.vote;
+			const offchain = await eas.getOffchain();
+			const voteSchemaUid = EasSchemaUidMap.vote;
 
-		// Initialize SchemaEncoder with the schema string
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, uint8 value, string reason',
-		);
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{ name: 'value', value: value, type: 'uint8' },
-			{ name: 'reason', value: 'good contribution', type: 'string' },
-		]);
-
-		const block = await provider.getBlock('latest');
-
-		if (!signer) {
-			return;
-		}
-		const offchainAttestation = await offchain.signOffchainAttestation(
-			{
-				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: BigInt(0),
-				time: BigInt(block ? block.timestamp : 0),
-				revocable: true,
-				version: 1,
-				nonce: BigInt(0),
-				schema: voteSchemaUid,
-				refUID: contributionUID,
-				data: encodedData,
-			},
-			signer,
-		);
-		openGlobalLoading();
-		const res = await submitSignedAttestation({
-			signer: myAddress as string,
-			sig: offchainAttestation,
-		});
-		if (!res.data.error) {
+			const schemaEncoder = new SchemaEncoder(
+				'uint256 pid, uint64 cid, uint8 value, string reason',
+			);
+			const encodedData = schemaEncoder.encodeData([
+				{ name: 'pid', value: pid, type: 'uint256' },
+				{ name: 'cid', value: contributionId, type: 'uint64' },
+				{ name: 'value', value: value, type: 'uint8' },
+				{ name: 'reason', value: 'good contribution', type: 'string' },
+			]);
+			const block = await provider.getBlock('latest');
+			if (!signer) {
+				return;
+			}
 			try {
-				const baseURL = getBASEURL();
-				// Update ENS names
-				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+				const offchainAttestation = await offchain.signOffchainAttestation(
+					{
+						recipient: '0x0000000000000000000000000000000000000000',
+						expirationTime: BigInt(0),
+						time: BigInt(block ? block.timestamp : 0),
+						revocable: true,
+						version: 1,
+						nonce: BigInt(0),
+						schema: voteSchemaUid,
+						refUID: uId,
+						data: encodedData,
+					},
+					signer,
+				);
+
+				const res = await submitSignedAttestation({
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				});
+				if (!res.data.error) {
+					try {
+						const baseURL = getBASEURL();
+						// Update ENS names
+						await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+						// TODO graphql获取投票数据
+					} catch (e) {
+						console.error('ens error:', e);
+					} finally {
+						closeGlobalLoading();
+					}
+				}
 			} catch (e) {
-				console.error('ens error:', e);
-			} finally {
+				console.error('onVote error', e);
 				closeGlobalLoading();
 			}
-		}
-	};
+		},
+		[pid, signer, myAddress],
+	);
 
 	const handleRevokeVote = async () => {
 		const uid = '0x6b26a1c579ebbe33a3e4c46756b6fee48855f11513b384c973e8c3fdbf313d6d';
@@ -369,39 +396,6 @@ export default function Page({ params }: { params: { id: string } }) {
 				<Button
 					variant={'contained'}
 					onClick={async () => {
-						await handleRevokeContribution();
-					}}
-				>
-					Test Revoke contribution
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleVote(1);
-					}}
-				>
-					Test Vote
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleRevokeVote();
-					}}
-				>
-					Test Revoke Vote
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
 						await handleClaim();
 					}}
 				>
@@ -414,6 +408,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					projectId={params.id}
 					contributionList={contributionList || []}
 					projectDetail={projectDetail}
+					onVote={onVote}
 				/>
 			) : null}
 		</div>

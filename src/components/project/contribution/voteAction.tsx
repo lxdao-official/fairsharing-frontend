@@ -58,6 +58,7 @@ const VoteAction = ({ type, status, count, onConfirm }: IVoteActionProps) => {
 				cursor: 'pointer',
 				opacity: status === VoteStatus.DISABLED ? '0.5' : '1',
 			}}
+			onClick={onConfirm}
 		>
 			<Image src={VoteActionIcon[type][status]} width={20} height={20} alt={''} />
 			<Typography
