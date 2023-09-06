@@ -36,11 +36,18 @@ export interface IVoteParams {
 	uId: string;
 }
 
+export interface IClaimParams {
+	contributionId: number;
+	uId: string;
+	token: number;
+}
+
 export interface IContributionListProps {
 	projectId: string;
 	contributionList: IContribution[];
 	projectDetail: IProject;
 	onVote: (params: IVoteParams) => void;
+	onClaim: (params: IClaimParams) => void;
 }
 
 const FakeContributionList: IContribution[] = [
@@ -138,9 +145,9 @@ const FakeContributionList: IContribution[] = [
 
 const ContributionList = ({
 	contributionList,
-	projectId,
 	projectDetail,
 	onVote,
+	onClaim,
 }: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
@@ -343,6 +350,7 @@ const ContributionList = ({
 					showDeleteDialog={showDeleteDialog}
 					projectDetail={projectDetail}
 					onVote={onVote}
+					onClaim={onClaim}
 				/>
 			))}
 

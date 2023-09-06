@@ -24,7 +24,10 @@ import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
-import ContributionList, { IVoteParams } from '@/components/project/contribution/contributionList';
+import ContributionList, {
+	IClaimParams,
+	IVoteParams,
+} from '@/components/project/contribution/contributionList';
 import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
 import { IContribution, IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
@@ -39,6 +42,7 @@ import {
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
 import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
+import { getEasSignature } from '@/services/eas';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -91,10 +95,32 @@ export default function Page({ params }: { params: { id: string } }) {
 		fetchContributionList();
 	}, []);
 
-	const fetchContributionListFromEAS = async () => {
+	const fetchContributionListFromEAS = async (id: string) => {
+		const queryString = `
+			query Attestation {
+			  attestation(
+			  	take: 5,
+			  	where: {
+			  		id_in: [
+			  			"${id}"
+					]
+			  	}
+			  ) {
+				id
+				attester
+				recipient
+				refUID
+				revocable
+				revocationTime
+				expirationTime
+				data
+			  }
+			}
+		`;
 		const res = axios.post(graphqlEndpoint, {
-			// 	TODO
+			query: queryString,
 		});
+		console.log('graphql res', res);
 	};
 	const fetchProjectDetail = async () => {
 		const res = await getProjectDetail(params.id);
@@ -134,9 +160,6 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 		return new EAS(EASContractAddress, { signerOrProvider: signer });
 	}, [network, signer]);
-
-	let contributionUID: string =
-		'0x0000000000000000000000000000000000000000000000000000000000000000';
 
 	const getBASEURL = () => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
@@ -213,8 +236,6 @@ export default function Page({ params }: { params: { id: string } }) {
 				signer,
 			);
 
-			contributionUID = offchainAttestation.uid;
-
 			const res = await submitSignedAttestation({
 				signer: myAddress as string,
 				sig: offchainAttestation,
@@ -228,7 +249,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					console.log('getENSRes', getENSRes);
 					// 传eas返回的uid, 更新status为claim
 					const updateStatus = await updateContributionStatus(contribution.id, {
-						type: 'claim',
+						type: 'ready',
 						uId: res.data.offchainAttestationId as string,
 					});
 					console.log('updateStatus', updateStatus);
@@ -238,19 +259,14 @@ export default function Page({ params }: { params: { id: string } }) {
 				}
 			}
 		},
-		[myInfo, pid, operatorId, signer, provider],
+		[myInfo, pid, operatorId, signer, provider, eas],
 	);
-
-	const handleRevokeContribution = async () => {
-		const uid = '0x720eea3a0fb22ca36637e8faa2b66c649cf734402902cb587d9f9f5bc405e4cf';
-		await eas.revokeOffchain(uid);
-	};
 
 	const onVote = useCallback(
 		async ({ contributionId, value, uId }: IVoteParams) => {
 			console.log('vote params', contributionId, value, uId);
 			if (!uId) {
-				console.error('uId not exist')
+				console.error('uId not exist');
 				return;
 			}
 			openGlobalLoading();
@@ -307,74 +323,70 @@ export default function Page({ params }: { params: { id: string } }) {
 				closeGlobalLoading();
 			}
 		},
-		[pid, signer, myAddress],
+		[pid, signer, myAddress, eas],
 	);
 
-	const handleRevokeVote = async () => {
-		const uid = '0x6b26a1c579ebbe33a3e4c46756b6fee48855f11513b384c973e8c3fdbf313d6d';
-		await eas.revokeOffchain(uid);
-	};
+	const onClaim = useCallback(
+		async (params: IClaimParams) => {
+			const { contributionId, uId, token } = params;
+			console.log('onClaim params', params);
+			openGlobalLoading();
+			try {
+				const claimSchemaUid = EasSchemaUidMap.claim;
+				const signature = await getEasSignature({
+					wallet: myAddress as string,
+					cId: contributionId,
+					chainId: network.chain?.id as number,
+				});
 
-	const getSignMsg = async (_attester: string, _pid: any, _cid: any) => {
-		console.log(ethers);
-		const salt = ethers.hexlify(ethers.randomBytes(32));
+				const schemaEncoder = new SchemaEncoder(
+					'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
+				);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'pid', value: pid, type: 'uint256' },
+					{ name: 'cid', value: contributionId, type: 'uint64' },
+					{
+						name: 'voters',
+						value: [
+							'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
+							'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
+							'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
+							'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
+						],
+						type: 'address[]',
+					},
+					{ name: 'values', value: [1, 1, 1, 2], type: 'uint8[]' },
+					{ name: 'token', value: token, type: 'uint64' },
+					{ name: 'signature', value: signature, type: 'bytes' },
+				]);
 
-		console.log(ethers.AbiCoder.defaultAbiCoder);
-
-		const hash = ethers.keccak256(
-			ethers.AbiCoder.defaultAbiCoder().encode(
-				['address', 'uint256', 'uint64'],
-				[_attester, _pid, _cid],
-			),
-		);
-
-		console.log('hash', hash);
-
-		const signerWallet = new ethers.Wallet(`${process.env.NEXT_PUBLIC__KEY}`);
-		const signature = await signerWallet.signMessage(ethers.getBytes(hash));
-
-		console.log('signature', signature);
-
-		return { signature };
-	};
-
-	const handleClaim = async () => {
-		const claimSchemaUid = EasSchemaUidMap.claim;
-		const { signature } = await getSignMsg(myAddress as string, pid, cid);
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
-		);
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{
-				name: 'voters',
-				value: [
-					'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-					'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
-					'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
-					'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
-				],
-				type: 'address[]',
-			},
-			{ name: 'values', value: [1, 1, 1, 2], type: 'uint8[]' },
-			{ name: 'token', value: 2000, type: 'uint64' },
-			{ name: 'signature', value: signature, type: 'bytes' },
-		]);
-
-		const attestation = await eas.attest({
-			schema: claimSchemaUid,
-			data: {
-				recipient: myAddress as string,
-				expirationTime: BigInt(0),
-				revocable: false,
-				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-				data: encodedData,
-				value: BigInt(0),
-			},
-		});
-		console.log('onchainAttestation:', attestation);
-	};
+				const attestation = await eas.attest({
+					schema: claimSchemaUid,
+					data: {
+						recipient: myAddress as string,
+						expirationTime: BigInt(0),
+						revocable: false,
+						refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+						data: encodedData,
+						value: BigInt(0),
+					},
+				});
+				console.log('onchainAttestation:', attestation);
+				const updateStatus = await updateContributionStatus(contributionId, {
+					type: 'claim',
+					uId: uId,
+				});
+				console.log('claim updateStatus', updateStatus);
+				fetchContributionList();
+				// 	TODO 修改DB状态
+			} catch (e) {
+				console.log('onClaim error', e);
+			} finally {
+				closeGlobalLoading();
+			}
+		},
+		[myAddress, pid, eas, network],
+	);
 
 	return (
 		<div style={{ flex: '1' }}>
@@ -391,23 +403,13 @@ export default function Page({ params }: { params: { id: string } }) {
 
 			<PostContribution onPost={onPostContribution} confirmText={'Post'} />
 
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleClaim();
-					}}
-				>
-					Test claim
-				</Button>
-			</StyledFlexBox>
-
 			{projectDetail && contributionList.length > 0 ? (
 				<ContributionList
 					projectId={params.id}
 					contributionList={contributionList || []}
 					projectDetail={projectDetail}
 					onVote={onVote}
+					onClaim={onClaim}
 				/>
 			) : null}
 		</div>

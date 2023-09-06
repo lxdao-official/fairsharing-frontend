@@ -26,7 +26,11 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
-import { IVoteParams, IVoteValueEnum } from '@/components/project/contribution/contributionList';
+import {
+	IClaimParams,
+	IVoteParams,
+	IVoteValueEnum,
+} from '@/components/project/contribution/contributionList';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -36,6 +40,7 @@ export interface IContributionItemProps {
 	onSelect: (idList: number[]) => void;
 	showDeleteDialog: () => void;
 	onVote: (params: IVoteParams) => void;
+	onClaim: (params: IClaimParams) => void;
 }
 
 // TODO contribution的头像是owner头像？
@@ -65,6 +70,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 			contributionId: contribution.id,
 			uId: contribution.uId as string,
 			value: voteValue,
+		});
+	};
+
+	const handleClaim = () => {
+		props.onClaim({
+			contributionId: contribution.id,
+			uId: contribution.uId || ('' as string),
+			token: contribution.credit,
 		});
 	};
 
@@ -130,7 +143,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Typography sx={{ marginLeft: '12px' }}>2 hour ago</Typography>
 						</StyledFlexBox>
 						<StyledFlexBox>
-							<StatusText contribution={contribution} />
+							<StatusText contribution={contribution} onClaim={handleClaim} />
 							<Tooltip title="View on chain" placement="top">
 								<Image
 									src={'/images/eas_logo.png'}
