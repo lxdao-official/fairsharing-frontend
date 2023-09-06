@@ -12,7 +12,7 @@ import {
 	SelectChangeEvent,
 	Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -20,13 +20,15 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { IContribution, IContributor } from '@/services/types';
+import { IContribution, IContributor, IProject } from '@/services/types';
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
 
 export interface IContributionListProps {
 	projectId: string;
+	contributionList: IContribution[];
+	projectDetail: IProject;
 }
 
 const FakeContributionList: IContribution[] = [
@@ -122,7 +124,11 @@ const FakeContributionList: IContribution[] = [
 	},
 ];
 
-const ContributionList = (props: IContributionListProps) => {
+const ContributionList = ({
+	contributionList,
+	projectId,
+	projectDetail,
+}: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(true);
 	const [showSelect, setShowSelect] = useState(true);
@@ -132,7 +138,6 @@ const ContributionList = (props: IContributionListProps) => {
 	const [contributor, setContributor] = useState('1');
 
 	const [selected, setSelected] = useState<Array<number>>([]);
-	const [list, setList] = useState<IContribution[]>(() => FakeContributionList);
 
 	const [showDialog, setShowDialog] = useState(false);
 
@@ -168,7 +173,7 @@ const ContributionList = (props: IContributionListProps) => {
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
 		console.log('type', type);
 		if (type === 'All') {
-			setSelected(list.map((item, idx) => item.id));
+			setSelected(contributionList.map((item, idx) => item.id));
 		} else {
 			setSelected([]);
 		}
@@ -268,7 +273,7 @@ const ContributionList = (props: IContributionListProps) => {
 					<StyledFlexBox>
 						{/* TODO use native checkbox */}
 						<Checkbox
-							total={list.length}
+							total={contributionList.length}
 							selected={selected.length}
 							onChange={onClickSelectParent}
 						/>
@@ -315,7 +320,7 @@ const ContributionList = (props: IContributionListProps) => {
 				</StyledFlexBox>
 			) : null}
 
-			{list.map((contribution, idx) => (
+			{contributionList.map((contribution, idx) => (
 				<ContributionItem
 					key={contribution.id}
 					contribution={contribution}
@@ -323,6 +328,7 @@ const ContributionList = (props: IContributionListProps) => {
 					selected={selected}
 					onSelect={onSelect}
 					showDeleteDialog={showDeleteDialog}
+					projectDetail={projectDetail}
 				/>
 			))}
 

@@ -1,6 +1,6 @@
 import { request } from '@/common/request';
 import { IContribution } from '@/services/types';
-import { PageListParams } from '@/common/types';
+import { PageListData, PageListParams } from '@/common/types';
 
 export interface IAuthBody {
 	signature?: string;
@@ -41,5 +41,5 @@ export const updateContributionStatus = (cid: string, params: IUpdateContributio
 };
 
 export const getContributionList = (params: PageListParams & { projectId: string }) => {
-	return request<IContribution[]>('contribution/list', 1, params);
+	return request<PageListData<IContribution>>('contribution/list', 1, params);
 };

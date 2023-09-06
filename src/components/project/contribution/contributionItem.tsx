@@ -23,12 +23,13 @@ import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution } from '@/services/types';
+import { IContribution, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
+	projectDetail: IProject;
 	showSelect: boolean;
 	selected: number[];
 	onSelect: (idList: number[]) => void;
@@ -39,7 +40,7 @@ export interface IContributionItemProps {
 // TODO 标题是project owner name?
 // TODO time
 const ContributionItem = (props: IContributionItemProps) => {
-	const { contribution, selected, onSelect, showSelect, showDeleteDialog } = props;
+	const { contribution, selected, onSelect, showSelect, showDeleteDialog, projectDetail } = props;
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -108,7 +109,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 						/>
 					) : null}
 					<Img3
-						src={contribution.project.logo}
+						src={projectDetail.logo}
 						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
 					/>
 				</StyledFlexBox>

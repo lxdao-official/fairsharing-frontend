@@ -77,33 +77,31 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [contributionList, setContributionList] = useState<IContribution[]>([]);
 
 	useEffect(() => {
-		const fetchProjectDetail = async () => {
-			const res = await getProjectDetail(params.id);
-			console.log('fetchProjectDetail', res);
-			setProjectDetail(res);
-		};
-		const fetchContributorList = async () => {
-			const list = await getContributorList(params.id);
-			console.log('fetchContributorList list', list);
-			setContributorList(list);
-		};
-		const fetchContributionList = async () => {
-			const list = await getContributionList({
-				pageSize: 50,
-				currentPage: 1,
-				projectId: params.id,
-			});
-			console.log('fetchContributionList list', list);
-			setContributionList(list);
-		};
+		setCurrentProjectId(queryParams.id as string);
 		fetchProjectDetail();
 		fetchContributorList();
 		fetchContributionList();
 	}, []);
 
-	useEffect(() => {
-		setCurrentProjectId(queryParams.id as string);
-	}, []);
+	const fetchProjectDetail = async () => {
+		const res = await getProjectDetail(params.id);
+		console.log('fetchProjectDetail', res);
+		setProjectDetail(res);
+	};
+	const fetchContributorList = async () => {
+		const list = await getContributorList(params.id);
+		console.log('fetchContributorList list', list);
+		setContributorList(list);
+	};
+	const fetchContributionList = async () => {
+		const { list } = await getContributionList({
+			pageSize: 50,
+			currentPage: 1,
+			projectId: params.id,
+		});
+		console.log('fetchContributionList list', list);
+		setContributionList(list);
+	};
 
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
@@ -411,7 +409,13 @@ export default function Page({ params }: { params: { id: string } }) {
 				</Button>
 			</StyledFlexBox>
 
-			<ContributionList projectId={params.id} />
+			{projectDetail && contributionList.length > 0 ? (
+				<ContributionList
+					projectId={params.id}
+					contributionList={contributionList || []}
+					projectDetail={projectDetail}
+				/>
+			) : null}
 		</div>
 	);
 }
