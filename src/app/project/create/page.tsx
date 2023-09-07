@@ -23,9 +23,12 @@ import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
 
-import { createProject, CreateProjectParams } from '@/services/project';
+import { createProject, CreateProjectParams, getProjectList } from '@/services/project';
 
 import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
+
+import { getUserInfo } from '@/services/user';
+import { setUserProjectList } from '@/store/project';
 
 // @ts-ignore
 import project_register_abi = require('../../../../abi/project_register_abi.json');
@@ -147,6 +150,9 @@ export default function Page() {
 			console.log('CreateProjectParams', params);
 			const result = await createProject(params);
 			console.log('createProject res', result);
+
+			await getUserProjectList();
+
 			const { id } = result;
 			router.push(`/project/${id}/contribution`);
 		} catch (e) {
@@ -154,6 +160,17 @@ export default function Page() {
 		} finally {
 			closeGlobalLoading();
 		}
+	};
+
+	const getUserProjectList = async () => {
+		const myInfo = await getUserInfo(myAddress as string);
+		const params = {
+			currentPage: 1,
+			pageSize: 50,
+			userId: myInfo.id,
+		};
+		const { list } = await getProjectList(params);
+		setUserProjectList(list || []);
 	};
 
 	return (

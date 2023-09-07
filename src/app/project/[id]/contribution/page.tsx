@@ -1,9 +1,6 @@
 'use client';
 
-import process from 'process';
-
-import { Button, styled, TextField, Typography } from '@mui/material';
-import { ethers } from 'ethers';
+import { Typography } from '@mui/material';
 import { useAccount, useNetwork } from 'wagmi';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -42,7 +39,7 @@ import {
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
 import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
-import { getEasSignature } from '@/services/eas';
+import { EasContribution, getEASContributionList, getEasSignature } from '@/services/eas';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -72,14 +69,6 @@ export default function Page({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const queryParams = useParams();
 
-	const graphqlEndpoint = useMemo(() => {
-		const activeChainConfig =
-			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
-			EAS_CHAIN_CONFIGS[3];
-		return activeChainConfig.graphQLEndpoint;
-	}, [network]);
-
-	const [cid, setCid] = useState('1');
 	const pid = useMemo(() => {
 		return params.id;
 	}, [params]);
@@ -87,6 +76,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [projectDetail, setProjectDetail] = useState<IProject>();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
 	const [contributionList, setContributionList] = useState<IContribution[]>([]);
+	const [easContributionList, setEasContributionList] = useState<EasContribution[]>([]);
 
 	useEffect(() => {
 		setCurrentProjectId(queryParams.id as string);
@@ -95,32 +85,27 @@ export default function Page({ params }: { params: { id: string } }) {
 		fetchContributionList();
 	}, []);
 
-	const fetchContributionListFromEAS = async (id: string) => {
-		const queryString = `
-			query Attestation {
-			  attestation(
-			  	take: 5,
-			  	where: {
-			  		id_in: [
-			  			"${id}"
-					]
-			  	}
-			  ) {
-				id
-				attester
-				recipient
-				refUID
-				revocable
-				revocationTime
-				expirationTime
-				data
-			  }
-			}
-		`;
-		const res = axios.post(graphqlEndpoint, {
-			query: queryString,
-		});
-		console.log('graphql res', res);
+	useEffect(() => {
+		if (contributionList.length > 0) {
+			const cids = contributionList
+				.filter((contribution) => !!contribution.uId)
+				.map((item) => item.uId);
+			fetchContributionListFromEAS(cids as string[]);
+		}
+	}, [contributionList]);
+
+	const fetchContributionListFromEAS = async (cids: string[]) => {
+		const ids =
+			cids.length > 0
+				? cids
+				: [
+						'0x0004221eb330629fc5c3a57125b19ef7f4d17c79b9ecedff28f95de887a6271f',
+						'0x000455010280438c14c6f53d8f562abdded6791880e4015bbc4e933dfb482622',
+				  ];
+		console.log(cids.length > 0 ? `真实cids` : '假cids', ids);
+		const res = await getEASContributionList(ids, network.chain?.id);
+		setEasContributionList(res.attestations);
+		console.log('graphql -> EASContributionList: ', res.attestations);
 	};
 	const fetchProjectDetail = async () => {
 		const res = await getProjectDetail(params.id);
@@ -192,71 +177,74 @@ export default function Page({ params }: { params: { id: string } }) {
 				console.error('operatorId not exist');
 				return false;
 			}
-			const contribution = await createContribution({
-				projectId: pid,
-				operatorId: operatorId as string,
-				...postData,
-				credit: Number(postData.credit),
-				toIds: postData.contributors,
-			});
-			console.log('createContribution res', contribution);
+			try {
+				openGlobalLoading();
+				const contribution = await createContribution({
+					projectId: pid,
+					operatorId: operatorId as string,
+					...postData,
+					credit: Number(postData.credit),
+					toIds: postData.contributors,
+				});
+				console.log('createContribution res', contribution);
 
-			const offchain = await eas.getOffchain();
+				const offchain = await eas.getOffchain();
+				const contributionSchemaUid = EasSchemaUidMap.contribution;
+				const schemaEncoder = new SchemaEncoder(
+					'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
+				);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'pid', value: pid, type: 'uint256' },
+					{ name: 'cid', value: contribution.id, type: 'uint64' },
+					{ name: 'title', value: 'first contribution title', type: 'string' },
+					{ name: 'detail', value: postData.detail, type: 'string' },
+					{ name: 'poc', value: postData.proof, type: 'string' },
+					{ name: 'token', value: Number(postData.credit), type: 'uint64' },
+				]);
 
-			const contributionSchemaUid = EasSchemaUidMap.contribution;
-			// Initialize SchemaEncoder with the schema string
-			const schemaEncoder = new SchemaEncoder(
-				'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
-			);
-			const encodedData = schemaEncoder.encodeData([
-				{ name: 'pid', value: pid, type: 'uint256' },
-				{ name: 'cid', value: contribution.id, type: 'uint64' },
-				{ name: 'title', value: 'first contribution title', type: 'string' },
-				{ name: 'detail', value: postData.detail, type: 'string' },
-				{ name: 'poc', value: postData.proof, type: 'string' },
-				{ name: 'token', value: Number(postData.credit), type: 'uint64' },
-			]);
-
-			const block = await provider.getBlock('latest');
-			if (!signer) {
-				return;
-			}
-			const offchainAttestation = await offchain.signOffchainAttestation(
-				{
-					recipient: '0x0000000000000000000000000000000000000000',
-					expirationTime: BigInt(0),
-					time: BigInt(block ? block.timestamp : 0),
-					revocable: true,
-					version: 1,
-					nonce: BigInt(0),
-					schema: contributionSchemaUid,
-					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-					data: encodedData,
-				},
-				signer,
-			);
-
-			const res = await submitSignedAttestation({
-				signer: myAddress as string,
-				sig: offchainAttestation,
-			});
-			console.log('submitSignedAttestation res', res);
-			if (!res.data.error) {
-				try {
-					const baseURL = getBASEURL();
-					// Update ENS names
-					const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-					console.log('getENSRes', getENSRes);
-					// 传eas返回的uid, 更新status为claim
-					const updateStatus = await updateContributionStatus(contribution.id, {
-						type: 'ready',
-						uId: res.data.offchainAttestationId as string,
-					});
-					console.log('updateStatus', updateStatus);
-					fetchContributionList();
-				} catch (e) {
-					console.error('ens error:', e);
+				const block = await provider.getBlock('latest');
+				if (!signer) {
+					return;
 				}
+				const offchainAttestation = await offchain.signOffchainAttestation(
+					{
+						recipient: '0x0000000000000000000000000000000000000000',
+						expirationTime: BigInt(0),
+						time: BigInt(block ? block.timestamp : 0),
+						revocable: true,
+						version: 1,
+						nonce: BigInt(0),
+						schema: contributionSchemaUid,
+						refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+						data: encodedData,
+					},
+					signer,
+				);
+
+				const res = await submitSignedAttestation({
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				});
+				console.log('submitSignedAttestation res', res);
+				if (res.data.error) {
+					console.error('submitSignedAttestation fail', res.data);
+					throw new Error(res.data.error);
+				}
+				const baseURL = getBASEURL();
+				// Update ENS names
+				const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+				console.log('getENSRes', getENSRes);
+				// 传eas返回的uid, 更新status为claim
+				const updateStatus = await updateContributionStatus(contribution.id, {
+					type: 'ready',
+					uId: res.data.offchainAttestationId as string,
+				});
+				console.log('updateStatus', updateStatus);
+				fetchContributionList();
+			} catch (err) {
+				console.error(err);
+			} finally {
+				closeGlobalLoading();
 			}
 		},
 		[myInfo, pid, operatorId, signer, provider, eas],

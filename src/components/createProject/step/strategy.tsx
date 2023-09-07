@@ -30,7 +30,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const { step, setActiveStep } = props;
 	const [symbol, setSymbol] = useState('Token Symbol');
 	const [token, setToken] = useState('1200');
-	const [network, setNetwork] = useState(1);
+	const [network, setNetwork] = useState(420);
 	const [period, setPeriod] = useState('365');
 
 	const [symbolError, setSymbolError] = useState(false);
@@ -113,8 +113,8 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				placeholder={'Select network'}
 				sx={{ width: '320px', marginTop: '32px' }}
 			>
-				<MenuItem value={'1'}>Georily</MenuItem>
 				<MenuItem value={'5'}>MainNet</MenuItem>
+				<MenuItem value={'1'}>Georily</MenuItem>
 				<MenuItem value={'420'}>optimismGoerli</MenuItem>
 			</Select>
 

@@ -13,6 +13,7 @@
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
+    "@apollo/client": "^3.8.3",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
@@ -33,6 +34,7 @@
     "eslint": "8.46.0",
     "eslint-config-next": "13.4.12",
     "ethers": "^6.7.1",
+    "graphql": "^16.8.0",
     "next": "13.4.12",
     "react": "18.2.0",
     "react-dom": "18.2.0",

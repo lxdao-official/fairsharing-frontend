@@ -26,10 +26,10 @@ const PostContribution = ({
 	onCancel,
 	confirmText,
 }: IPostContributionProps) => {
-	const [detail, setDetail] = useState(contribution?.detail || 'test detail');
-	const [proof, setProof] = useState(contribution?.proof || 'https://proof.com');
+	const [detail, setDetail] = useState(contribution?.detail || 'contribution detail');
+	const [proof, setProof] = useState(contribution?.proof || 'https://google.com');
 	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState(String(contribution?.credit || '119'));
+	const [credit, setCredit] = useState(String(contribution?.credit || '9'));
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);

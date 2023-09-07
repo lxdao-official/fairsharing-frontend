@@ -8,7 +8,12 @@ import { useEffect, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 
-import { setAllProjectList, setCurrentProjectId, useProjectStore } from '@/store/project';
+import {
+	setAllProjectList,
+	setCurrentProjectId,
+	setUserProjectList,
+	useProjectStore,
+} from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectList } from '@/services/project';
@@ -17,7 +22,6 @@ import { getContributorList } from '@/services/contributor';
 export default function Nav() {
 	const { currentProjectId, projectList } = useProjectStore();
 	const pathname = usePathname();
-	const queryParams = useParams();
 	const { address: myAddress } = useAccount();
 
 	useEffect(() => {
@@ -30,23 +34,20 @@ export default function Nav() {
 	}, [pathname]);
 
 	useEffect(() => {
-		getUserProjectList();
+		fetchProjectList();
 	}, []);
 
 	useEffect(() => {
-		if (myAddress) {
-			getUserProjectList(myAddress);
-		}
+		fetchProjectList(myAddress);
 	}, [myAddress]);
 
-	const getUserProjectList = async (userWallet?: string) => {
+	const fetchProjectList = async (userWallet?: string) => {
 		const params = {
 			currentPage: 1,
 			pageSize: 50,
 		};
 		if (userWallet) {
 			let myInfo = await getUserInfo(userWallet);
-			// const myInfo = await signup(userWallet);
 			if (!myInfo) {
 				myInfo = await signup(userWallet);
 			}
@@ -55,7 +56,9 @@ export default function Nav() {
 			Object.assign(params, { userId: myInfo.id });
 		}
 		const { list } = await getProjectList(params);
-		if (list && !userWallet) {
+		if (userWallet) {
+			setUserProjectList(list || []);
+		} else {
 			setAllProjectList(list || []);
 		}
 	};
