@@ -11,7 +11,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -32,6 +32,7 @@ import {
 	IVoteParams,
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
+import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -42,13 +43,46 @@ export interface IContributionItemProps {
 	showDeleteDialog: () => void;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
+	easVoteList: EasAttestation[];
 }
 
-// TODO contribution的头像是owner头像？
-// TODO 标题是project owner name?
-// TODO time
 const ContributionItem = (props: IContributionItemProps) => {
-	const { contribution, selected, onSelect, showSelect, showDeleteDialog, projectDetail } = props;
+	const {
+		contribution,
+		selected,
+		onSelect,
+		showSelect,
+		showDeleteDialog,
+		projectDetail,
+		easVoteList,
+	} = props;
+
+	const voteInfoMap = useMemo(() => {
+		let For = 0,
+			Against = 0,
+			Abstain = 0;
+		const voters: string[] = [];
+		const voterValues: number[] = [];
+		easVoteList?.forEach((vote) => {
+			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData[];
+			const attestationData = vote.data as EasAttestationData;
+
+			const voteValueItem = decodedDataJson.find((item) => item.name === 'value');
+			if (voteValueItem) {
+				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
+				voters.push(attestationData.signer);
+				voterValues.push(voteNumber);
+				if (voteNumber === IVoteValueEnum.FOR) {
+					For += 1;
+				} else if (voteNumber === IVoteValueEnum.AGAINST) {
+					Against += 1;
+				} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
+					Abstain += 1;
+				}
+			}
+		});
+		return { For, Against, Abstain, voters, voterValues };
+	}, [easVoteList]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -79,6 +113,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
 			token: contribution.credit,
+			voters: voteInfoMap.voters,
+			voteValues: voteInfoMap.voterValues,
 		});
 	};
 
@@ -265,21 +301,21 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<VoteAction
 								type={VoteTypeEnum.FOR}
 								status={VoteStatus.DONE}
-								count={98}
+								count={voteInfoMap.For}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
 								status={VoteStatus.NORMAL}
-								count={14}
+								count={voteInfoMap.Against}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
 								status={VoteStatus.DISABLED}
-								count={4}
+								count={voteInfoMap.Abstain}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 							/>

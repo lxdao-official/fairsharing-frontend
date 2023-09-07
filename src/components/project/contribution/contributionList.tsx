@@ -24,6 +24,7 @@ import { IContribution, IContributor, IProject } from '@/services/types';
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
+import { EasAttestation } from '@/services/eas';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -40,6 +41,8 @@ export interface IClaimParams {
 	contributionId: number;
 	uId: string;
 	token: number;
+	voters: string[];
+	voteValues: number[];
 }
 
 export interface IContributionListProps {
@@ -48,6 +51,7 @@ export interface IContributionListProps {
 	projectDetail: IProject;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
+	easVoteMap: Record<string, EasAttestation[]>;
 }
 
 const ContributionList = ({
@@ -55,6 +59,7 @@ const ContributionList = ({
 	projectDetail,
 	onVote,
 	onClaim,
+	easVoteMap,
 }: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
@@ -258,6 +263,7 @@ const ContributionList = ({
 					projectDetail={projectDetail}
 					onVote={onVote}
 					onClaim={onClaim}
+					easVoteList={easVoteMap[contribution.uId as string]}
 				/>
 			))}
 

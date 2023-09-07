@@ -39,7 +39,14 @@ import {
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
 import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
-import { EasContribution, getEASContributionList, getEasSignature } from '@/services/eas';
+import {
+	EasAttestation,
+	EasAttestationData,
+	EasAttestationDecodedData,
+	getEASContributionList,
+	getEasSignature,
+	getEASVoteRecord,
+} from '@/services/eas';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -76,7 +83,32 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [projectDetail, setProjectDetail] = useState<IProject>();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
 	const [contributionList, setContributionList] = useState<IContribution[]>([]);
-	const [easContributionList, setEasContributionList] = useState<EasContribution[]>([]);
+	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
+	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
+
+	const contributionUIds = useMemo(() => {
+		return contributionList
+			.filter((contribution) => !!contribution.uId)
+			.map((item) => item.uId) as string[];
+	}, [contributionList]);
+
+	const easVoteMap = useMemo(() => {
+		if (easVoteList.length === 0) return {};
+		const map = contributionUIds.reduce(
+			(pre, cur) => {
+				return {
+					...pre,
+					[cur]: [],
+				};
+			},
+			{} as Record<string, EasAttestation[]>,
+		);
+		easVoteList.forEach((item) => {
+			map[item.refUID].push(item);
+		});
+		console.log('easVoteMap', map);
+		return map;
+	}, [easVoteList, contributionUIds]);
 
 	useEffect(() => {
 		setCurrentProjectId(queryParams.id as string);
@@ -86,24 +118,40 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, []);
 
 	useEffect(() => {
-		if (contributionList.length > 0) {
-			const cids = contributionList
-				.filter((contribution) => !!contribution.uId)
-				.map((item) => item.uId);
-			fetchContributionListFromEAS(cids as string[]);
+		if (contributionUIds.length > 0) {
+			fetchEasContributionList(contributionUIds);
+			fetchEasVoteList(contributionUIds);
 		}
-	}, [contributionList]);
+	}, [contributionUIds]);
 
-	const fetchContributionListFromEAS = async (cids: string[]) => {
-		const { attestations } = await getEASContributionList(cids, network.chain?.id);
+	const fetchEasContributionList = async (uIds: string[]) => {
+		const { attestations } = await getEASContributionList(uIds, network.chain?.id);
 		const easList = attestations.map((item) => ({
 			...item,
-			decodedDataJson: JSON.parse(item.decodedDataJson as string),
-			data: JSON.parse(item.data as string),
+			decodedDataJson: JSON.parse(
+				item.decodedDataJson as string,
+			) as EasAttestationDecodedData[],
+			data: JSON.parse(item.data as string) as EasAttestationData,
 		}));
 		setEasContributionList(easList);
 		console.log('graphql -> EASContributionList: ', easList);
 	};
+	const fetchEasVoteList = async (uIds: string[]) => {
+		getEASVoteRecord(uIds as string[], network.chain?.id)
+			.then(({ attestations }) => {
+				const easVoteList = attestations.map((item) => ({
+					...item,
+					decodedDataJson: JSON.parse(
+						item.decodedDataJson as string,
+					) as EasAttestationDecodedData[],
+					data: JSON.parse(item.data as string) as EasAttestationData,
+				}));
+				console.log('easVoteList', easVoteList);
+				setEasVoteList(easVoteList);
+			})
+			.catch((e) => console.error('getEASVoteRecord error', e));
+	};
+
 	const fetchProjectDetail = async () => {
 		const res = await getProjectDetail(params.id);
 		console.log('fetchProjectDetail', res);
@@ -285,7 +333,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						version: 1,
 						nonce: BigInt(0),
 						schema: voteSchemaUid,
-						refUID: uId,
+						refUID: uId, // 可用来查询vote信息
 						data: encodedData,
 					},
 					signer,
@@ -308,7 +356,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				const cids = list
 					.filter((contribution) => !!contribution.uId)
 					.map((item) => item.uId);
-				fetchContributionListFromEAS(cids as string[]);
+				fetchEasContributionList(cids as string[]);
 			} catch (e) {
 				console.error('onVote error', e);
 			} finally {
@@ -320,10 +368,10 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const onClaim = useCallback(
 		async (params: IClaimParams) => {
-			const { contributionId, uId, token } = params;
+			const { contributionId, uId, token, voters, voteValues } = params;
 			console.log('onClaim params', params);
-			openGlobalLoading();
 			try {
+				openGlobalLoading();
 				const claimSchemaUid = EasSchemaUidMap.claim;
 				const signature = await getEasSignature({
 					wallet: myAddress as string,
@@ -332,26 +380,23 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 
 				const schemaEncoder = new SchemaEncoder(
-					'projectAddress address, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
+					'address projectAddress, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 				);
-				// TODO 如何获取voters和value数据
+				console.log('schemaEncoder', schemaEncoder);
 				const encodedData = schemaEncoder.encodeData([
 					{ name: 'projectAddress', value: pid, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
 					{
 						name: 'voters',
-						value: [
-							'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-							'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
-							'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
-							'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
-						],
+						value: voters,
 						type: 'address[]',
 					},
-					{ name: 'values', value: [1, 1, 1, 2], type: 'uint8[]' },
+					{ name: 'values', value: voteValues, type: 'uint8[]' },
 					{ name: 'token', value: token, type: 'uint64' },
 					{ name: 'signature', value: signature, type: 'bytes' },
 				]);
+
+				console.log('encodedData', encodedData);
 
 				const attestation = await eas.attest({
 					schema: claimSchemaUid,
@@ -369,11 +414,10 @@ export default function Page({ params }: { params: { id: string } }) {
 					type: 'claim',
 					uId: uId,
 				});
-				console.log('claim updateStatus', updateStatus);
+				console.log('claim updateStatus success', updateStatus);
 				fetchContributionList();
-				// 	TODO 修改DB状态
-			} catch (e) {
-				console.log('onClaim error', e);
+			} catch (err) {
+				console.error('onClaim error', err);
 			} finally {
 				closeGlobalLoading();
 			}
@@ -403,6 +447,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					projectDetail={projectDetail}
 					onVote={onVote}
 					onClaim={onClaim}
+					easVoteMap={easVoteMap}
 				/>
 			) : null}
 		</div>

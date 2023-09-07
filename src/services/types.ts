@@ -31,9 +31,9 @@ export interface IContribution {
 }
 
 export enum Status {
-	UNREADY,
-	READY,
-	CLAIM,
+	UNREADY = 'UNREADY',
+	READY = 'READY',
+	CLAIM = 'CLAIM',
 }
 
 export interface IContributor {
