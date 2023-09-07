@@ -102,21 +102,31 @@ export default function Page() {
 		const members = contributors.map((contributor) => contributor.wallet);
 		openGlobalLoading();
 		const contract = new ethers.Contract(
-			`${process.env.NEXT_PUBLIC_CONTRACT}`,
+			`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
 			project_register_abi,
 			signer,
 		);
 		let contractRes;
 		try {
-			console.log('create project params', owner, members, symbol);
-			const tx: TransactionResponse = await contract.create(owner, members, symbol);
+			const votingContract = `${process.env.NEXT_PUBLIC_DEFAULT_VOTING_STRATEGY}`;
+			console.log('create project params', owner, members, symbol, votingContract);
+			const tx: TransactionResponse = await contract.create(
+				owner,
+				members,
+				symbol,
+				votingContract,
+			);
 			const response = await tx.wait(1);
 			if (response.status === 1) {
-				const result = await contract.create.staticCallResult(owner, members, symbol);
+				const result = await contract.create.staticCallResult(
+					owner,
+					members,
+					symbol,
+					votingContract,
+				);
 				const projectContract = result[0];
-				const pid = result[1];
-				contractRes = { projectContract, pid };
-				console.log('callStatic projectContract:', projectContract, 'pid:', pid);
+				contractRes = { projectContract: projectContract };
+				console.log('callStatic projectContract:', projectContract);
 			}
 		} catch (e) {
 			closeGlobalLoading();

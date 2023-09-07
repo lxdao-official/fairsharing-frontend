@@ -47,7 +47,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 ];
 
 export const EasSchemaUidMap = {
-	contribution: '0x446a57b67cc7459c9aa55a372b1395251db4f4732fff04f76c134f57a0409fe4',
-	vote: '0x82280290eeca50f5d7bf7b75bdf1241c8dbd8ae41dda1dde5d32159c00003c12',
-	claim: '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986',
+	contribution: '0x90538b4421272d54351d6c867fc4575d0cc46b319d191a2ea39ba1a4fd89aa39',
+	vote: '0x16798347274c3b96dce526092892afe07bb1e884a4a4208f976530ec97925780',
+	claim: '0x584ad6d7183d0f29c4faaadf11c99d217b16a6bccd385ce3a5f4dda4a7b39467',
 };
