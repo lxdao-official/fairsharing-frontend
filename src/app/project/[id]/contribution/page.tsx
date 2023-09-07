@@ -95,27 +95,26 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [contributionList]);
 
 	const fetchContributionListFromEAS = async (cids: string[]) => {
-		const ids =
-			cids.length > 0
-				? cids
-				: [
-						'0x0004221eb330629fc5c3a57125b19ef7f4d17c79b9ecedff28f95de887a6271f',
-						'0x000455010280438c14c6f53d8f562abdded6791880e4015bbc4e933dfb482622',
-				  ];
-		console.log(cids.length > 0 ? `真实cids` : '假cids', ids);
-		const res = await getEASContributionList(ids, network.chain?.id);
-		setEasContributionList(res.attestations);
-		console.log('graphql -> EASContributionList: ', res.attestations);
+		const { attestations } = await getEASContributionList(cids, network.chain?.id);
+		const easList = attestations.map((item) => ({
+			...item,
+			decodedDataJson: JSON.parse(item.decodedDataJson as string),
+			data: JSON.parse(item.data as string),
+		}));
+		setEasContributionList(easList);
+		console.log('graphql -> EASContributionList: ', easList);
 	};
 	const fetchProjectDetail = async () => {
 		const res = await getProjectDetail(params.id);
 		console.log('fetchProjectDetail', res);
 		setProjectDetail(res);
+		return res;
 	};
 	const fetchContributorList = async () => {
 		const list = await getContributorList(params.id);
 		console.log('fetchContributorList list', list);
 		setContributorList(list);
+		return list;
 	};
 	const fetchContributionList = async () => {
 		const { list } = await getContributionList({
@@ -125,6 +124,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		});
 		console.log('fetchContributionList list', list);
 		setContributionList(list);
+		return list;
 	};
 
 	const operatorId = useMemo(() => {
@@ -137,8 +137,8 @@ export default function Page({ params }: { params: { id: string } }) {
 	const eas = useMemo(() => {
 		const activeChainConfig =
 			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
-			EAS_CHAIN_CONFIGS[3];
-		const EASContractAddress = activeChainConfig.contractAddress;
+			EAS_CHAIN_CONFIGS[2];
+		const EASContractAddress = activeChainConfig?.contractAddress;
 		if (!signer) {
 			// TODO deal with eas.connect(signer);
 			return new EAS(EASContractAddress);
@@ -258,24 +258,24 @@ export default function Page({ params }: { params: { id: string } }) {
 				console.error('uId not exist');
 				return;
 			}
-			openGlobalLoading();
-			const offchain = await eas.getOffchain();
-			const voteSchemaUid = EasSchemaUidMap.vote;
-
-			const schemaEncoder = new SchemaEncoder(
-				'address projectAddress, uint64 cid, uint8 value, string reason',
-			);
-			const encodedData = schemaEncoder.encodeData([
-				{ name: 'projectAddress', value: pid, type: 'address' },
-				{ name: 'cid', value: contributionId, type: 'uint64' },
-				{ name: 'value', value: value, type: 'uint8' },
-				{ name: 'reason', value: 'good contribution', type: 'string' },
-			]);
-			const block = await provider.getBlock('latest');
-			if (!signer) {
-				return;
-			}
 			try {
+				openGlobalLoading();
+				const offchain = await eas.getOffchain();
+				const voteSchemaUid = EasSchemaUidMap.vote;
+
+				const schemaEncoder = new SchemaEncoder(
+					'address projectAddress, uint64 cid, uint8 value, string reason',
+				);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'projectAddress', value: pid, type: 'address' },
+					{ name: 'cid', value: contributionId, type: 'uint64' },
+					{ name: 'value', value: value, type: 'uint8' },
+					{ name: 'reason', value: 'good contribution', type: 'string' },
+				]);
+				const block = await provider.getBlock('latest');
+				if (!signer) {
+					return;
+				}
 				const offchainAttestation = await offchain.signOffchainAttestation(
 					{
 						recipient: '0x0000000000000000000000000000000000000000',
@@ -290,25 +290,28 @@ export default function Page({ params }: { params: { id: string } }) {
 					},
 					signer,
 				);
+				console.log('vote offchainAttestation', offchainAttestation);
 
 				const res = await submitSignedAttestation({
 					signer: myAddress as string,
 					sig: offchainAttestation,
 				});
-				if (!res.data.error) {
-					try {
-						const baseURL = getBASEURL();
-						// Update ENS names
-						await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-						// TODO graphql获取投票数据
-					} catch (e) {
-						console.error('ens error:', e);
-					} finally {
-						closeGlobalLoading();
-					}
+				console.log('vote submitSignedAttestation', res);
+				if (res.data.error) {
+					console.error('vote submitSignedAttestation fail', res.data);
+					throw new Error(res.data.error);
 				}
+				const baseURL = getBASEURL();
+				// Update ENS names
+				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+				const list = await fetchContributionList();
+				const cids = list
+					.filter((contribution) => !!contribution.uId)
+					.map((item) => item.uId);
+				fetchContributionListFromEAS(cids as string[]);
 			} catch (e) {
 				console.error('onVote error', e);
+			} finally {
 				closeGlobalLoading();
 			}
 		},
@@ -331,6 +334,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				const schemaEncoder = new SchemaEncoder(
 					'projectAddress address, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 				);
+				// TODO 如何获取voters和value数据
 				const encodedData = schemaEncoder.encodeData([
 					{ name: 'projectAddress', value: pid, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },

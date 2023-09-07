@@ -10,8 +10,14 @@ export interface EasContribution {
 	refUID: string;
 	ipfsHash: string;
 	recipient: string;
-	decodedDataJson: string;
-	data: string;
+	/**
+	 * can be JSON.parse
+	 */
+	decodedDataJson: string | Record<string, any>;
+	/**
+	 * can be JSON.parse
+	 */
+	data: string | Record<string, any>;
 	attester: string;
 	revocable: string;
 	revoked: string;
