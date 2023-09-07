@@ -121,15 +121,13 @@ export default function Page() {
 			);
 			const response = await tx.wait(1);
 			if (response.status === 1) {
-				const result = await contract.create.staticCallResult(
+				const count: bigint = await contract.projectsCount();
+				const projectAddress = await contract.getOwnerLatestProject(
 					owner,
-					members,
-					symbol,
-					votingContract,
+					0,
+					Number(count) - 1,
 				);
-				const projectContract = result[0];
-				contractRes = { projectContract: projectContract };
-				console.log('callStatic projectContract:', projectContract);
+				contractRes = { projectContract: projectAddress };
 			}
 		} catch (e) {
 			closeGlobalLoading();

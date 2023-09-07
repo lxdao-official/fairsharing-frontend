@@ -190,11 +190,12 @@ export default function Page({ params }: { params: { id: string } }) {
 
 				const offchain = await eas.getOffchain();
 				const contributionSchemaUid = EasSchemaUidMap.contribution;
+				// Initialize SchemaEncoder with the schema string
 				const schemaEncoder = new SchemaEncoder(
-					'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
+					'address projectAddress, uint64 cid, string title, string detail, string poc, uint64 token',
 				);
 				const encodedData = schemaEncoder.encodeData([
-					{ name: 'pid', value: pid, type: 'uint256' },
+					{ name: 'projectAddress', value: pid, type: 'address' },
 					{ name: 'cid', value: contribution.id, type: 'uint64' },
 					{ name: 'title', value: 'first contribution title', type: 'string' },
 					{ name: 'detail', value: postData.detail, type: 'string' },
