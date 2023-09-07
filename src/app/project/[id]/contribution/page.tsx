@@ -263,10 +263,10 @@ export default function Page({ params }: { params: { id: string } }) {
 			const voteSchemaUid = EasSchemaUidMap.vote;
 
 			const schemaEncoder = new SchemaEncoder(
-				'uint256 pid, uint64 cid, uint8 value, string reason',
+				'address projectAddress, uint64 cid, uint8 value, string reason',
 			);
 			const encodedData = schemaEncoder.encodeData([
-				{ name: 'pid', value: pid, type: 'uint256' },
+				{ name: 'projectAddress', value: pid, type: 'address' },
 				{ name: 'cid', value: contributionId, type: 'uint64' },
 				{ name: 'value', value: value, type: 'uint8' },
 				{ name: 'reason', value: 'good contribution', type: 'string' },
@@ -329,10 +329,10 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 
 				const schemaEncoder = new SchemaEncoder(
-					'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
+					'projectAddress address, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 				);
 				const encodedData = schemaEncoder.encodeData([
-					{ name: 'pid', value: pid, type: 'uint256' },
+					{ name: 'projectAddress', value: pid, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
 					{
 						name: 'voters',
