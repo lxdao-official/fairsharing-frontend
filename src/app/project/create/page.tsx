@@ -31,7 +31,7 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList } from '@/store/project';
 
 // @ts-ignore
-import project_register_abi = require('../../../../abi/project_register_abi.json');
+import { ProjectRegisterABI } from '@/constant/eas';
 
 const steps = [
 	{
@@ -66,31 +66,6 @@ export default function Page() {
 		console.log('create project Data:', data);
 	};
 
-	// 测试代码，先不管
-	// useContractRead({
-	// 	address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
-	// 	abi: project_register_abi,
-	// 	functionName: 'owner',
-	// 	onSuccess(data) {
-	// 		console.log('get project register owner:', data);
-	// 	},
-	// });
-
-	// const {
-	// 	data: registerResult,
-	// 	isLoading,
-	// 	isSuccess,
-	// 	write,
-	// } = useContractWrite({
-	// 	address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
-	// 	abi: project_register_abi,
-	// 	functionName: 'register',
-	// });
-	//
-	// const waitForTransaction = useWaitForTransaction({
-	// 	hash: registerResult?.hash,
-	// });
-
 	const handleCreateProject = async () => {
 		const profileFormData = (stepProfileRef.current as StepProfileRef).getFormData();
 		const strategyFormData = (stepStrategyRef.current as StepStrategyRef).getFormData();
@@ -106,7 +81,7 @@ export default function Page() {
 		openGlobalLoading();
 		const contract = new ethers.Contract(
 			`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
-			project_register_abi,
+			ProjectRegisterABI,
 			signer,
 		);
 		let contractRes;

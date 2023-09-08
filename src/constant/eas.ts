@@ -1,3 +1,8 @@
+// @ts-ignore
+import project_register_abi = require('../../abi/project_register_abi.json');
+// @ts-ignore
+import project_abi = require('../../abi/project_abi.json');
+
 export interface EASChainConfig {
 	chainId: number;
 	chainName: string;
@@ -10,6 +15,7 @@ export interface EASChainConfig {
 	rpcProvider: string;
 	graphQLEndpoint: string;
 }
+
 export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	{
 		chainId: 11155111,
@@ -51,3 +57,6 @@ export const EasSchemaUidMap = {
 	vote: '0x16798347274c3b96dce526092892afe07bb1e884a4a4208f976530ec97925780',
 	claim: '0x584ad6d7183d0f29c4faaadf11c99d217b16a6bccd385ce3a5f4dda4a7b39467',
 };
+
+export const ProjectRegisterABI = project_register_abi;
+export const ProjectABI = project_abi;

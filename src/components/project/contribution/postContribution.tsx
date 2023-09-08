@@ -28,7 +28,7 @@ const PostContribution = ({
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || 'contribution detail');
 	const [proof, setProof] = useState(contribution?.proof || 'https://google.com');
-	const [contributors, setContributors] = useState([]);
+	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || '9'));
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +40,10 @@ const PostContribution = ({
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
+	};
+
+	const handleContributorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setContributors([event.target.value]);
 	};
 
 	const onSubmit = () => {
@@ -83,8 +87,8 @@ const PostContribution = ({
 					required
 					value={contributors}
 					size={'small'}
-					onChange={handleDetailInputChange}
-					placeholder={'Type @ to select contributor'}
+					onChange={handleContributorChange}
+					placeholder={'Type @ to select contributor, 先直接填一个address'}
 				/>
 			</StyledFlexBox>
 

@@ -1,5 +1,7 @@
 'use client';
 
+import process from 'process';
+
 import { Typography } from '@mui/material';
 import { useAccount, useNetwork } from 'wagmi';
 
@@ -17,6 +19,10 @@ import {
 
 import { useParams } from 'next/navigation';
 
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+import { readContract } from '@wagmi/core';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
@@ -25,7 +31,7 @@ import ContributionList, {
 	IClaimParams,
 	IVoteParams,
 } from '@/components/project/contribution/contributionList';
-import { EAS_CHAIN_CONFIGS, EasSchemaUidMap } from '@/constant/eas';
+import { EAS_CHAIN_CONFIGS, EasSchemaUidMap, ProjectABI, ProjectRegisterABI } from '@/constant/eas';
 import { IContribution, IContributor, IProject } from '@/services/types';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
@@ -75,6 +81,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
 	const queryParams = useParams();
+	const { openConnectModal } = useConnectModal();
 
 	const pid = useMemo(() => {
 		return params.id;
@@ -85,6 +92,13 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [contributionList, setContributionList] = useState<IContribution[]>([]);
 	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
 	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
+
+	const checkLogin = () => {
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
+	};
 
 	const contributionUIds = useMemo(() => {
 		return contributionList
@@ -218,7 +232,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const onPostContribution = useCallback(
 		async (postData: PostData) => {
 			if (!myInfo) {
-				console.error('connect wallet and login');
+				openConnectModal?.();
 				return false;
 			}
 			if (!operatorId) {
@@ -369,6 +383,11 @@ export default function Page({ params }: { params: { id: string } }) {
 	const onClaim = useCallback(
 		async (params: IClaimParams) => {
 			const { contributionId, uId, token, voters, voteValues } = params;
+			const claimAddress = await readProjectContract(contributionId);
+			if (claimAddress === myAddress) {
+				console.log('已经claim过了');
+				return false;
+			}
 			console.log('onClaim params', params);
 			try {
 				openGlobalLoading();
@@ -424,6 +443,19 @@ export default function Page({ params }: { params: { id: string } }) {
 		},
 		[myAddress, pid, eas, network],
 	);
+
+	const readProjectContract = async (cid: number) => {
+		console.log('readProjectContract getClaims params', cid);
+		const data = await readContract({
+			// @ts-ignore
+			address: `${process.env.NEXT_PUBLIC_PROJECT_CONTRACT}`,
+			abi: ProjectABI,
+			functionName: 'getClaims',
+			args: [cid],
+		});
+		console.log('readProjectContract getClaims', data);
+		return data;
+	};
 
 	return (
 		<div style={{ flex: '1' }}>
