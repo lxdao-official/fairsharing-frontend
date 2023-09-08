@@ -448,7 +448,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		console.log('readProjectContract getClaims params', cid);
 		const data = await readContract({
 			// @ts-ignore
-			address: `${process.env.NEXT_PUBLIC_PROJECT_CONTRACT}`,
+			address: projectDetail?.id,
 			abi: ProjectABI,
 			functionName: 'getClaims',
 			args: [cid],
