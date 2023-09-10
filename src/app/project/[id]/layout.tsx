@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 
 import styles from '@/styles/project.module.css';
 import ProjectNav from '@/components/project/projectNav';

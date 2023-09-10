@@ -1,6 +1,9 @@
+'use client';
+
 import { Button, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
-import { forwardRef } from 'react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
 
 const StartTip = [
 	'For a project, we facilitate it by recording contributions and ensuring fair allocation.',
@@ -10,11 +13,23 @@ const StartTip = [
 export interface IStepBaseProps {
 	step: number;
 	setActiveStep: (step: number) => void;
+	onCreateProject?: () => void;
 }
 
 export interface IStepStartProps extends IStepBaseProps {}
 
 const StepStart = ({ step, setActiveStep }: IStepStartProps) => {
+	const { openConnectModal } = useConnectModal();
+	const { address } = useAccount();
+
+	const onClickStart = () => {
+		if (!address) {
+			openConnectModal?.();
+			return false;
+		}
+		setActiveStep(step + 1);
+	};
+
 	return (
 		<>
 			<Typography variant={'subtitle1'} style={{ fontWeight: 'bold' }}>
@@ -37,11 +52,7 @@ const StepStart = ({ step, setActiveStep }: IStepStartProps) => {
 					</ListItem>
 				))}
 			</List>
-			<Button
-				variant={'contained'}
-				sx={{ marginTop: '40px' }}
-				onClick={() => setActiveStep(step + 1)}
-			>
+			<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={onClickStart}>
 				Get started
 			</Button>
 		</>

@@ -1,21 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Image from 'next/image';
 import { Button, styled, TextField, Typography } from '@mui/material';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution } from '@/services/types';
+import { IContribution, IContributor } from '@/services/types';
+import MultipleContributorSelector from '@/components/project/contribution/contributorSelector';
 
 export interface IPostContributionProps {
-	contribution: IContribution;
-	onPost: () => void;
-	onCancel: () => void;
+	onPost: (data: PostData) => void;
+	contribution?: IContribution;
+	onCancel?: () => void;
+	confirmText?: string;
+	contributorList: IContributor[];
 }
-const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionProps) => {
-	const [detail, setDetail] = useState(contribution.detail);
-	const [proof, setProof] = useState(contribution.proof);
-	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState(String(contribution.credit));
+
+export interface PostData {
+	detail: string;
+	proof: string;
+	contributors: string[];
+	credit: string;
+}
+
+const PostContribution = ({
+	contribution,
+	onPost,
+	onCancel,
+	confirmText,
+	contributorList,
+}: IPostContributionProps) => {
+	const [detail, setDetail] = useState(contribution?.detail || 'contribution detail');
+	const [proof, setProof] = useState(contribution?.proof || 'https://google.com');
+	const [contributors, setContributors] = useState<string[]>([]);
+	const [credit, setCredit] = useState(String(contribution?.credit || '9'));
+
+	useEffect(() => {
+		if (contributorList.length > 0) {
+			console.log('props contributorList', contributorList);
+		}
+	}, [contributorList]);
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -26,6 +49,15 @@ const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionP
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
+	};
+
+	const handleContributorChange = (wallets: string[]) => {
+		setContributors(wallets);
+	};
+
+	const onSubmit = () => {
+		const params: PostData = { detail, proof, contributors, credit };
+		onPost(params);
 	};
 
 	return (
@@ -58,21 +90,16 @@ const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionP
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
-				<StyledInput
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
-					value={contributors}
-					size={'small'}
-					onChange={handleDetailInputChange}
-					placeholder={'Type @ to select contributor'}
+				<MultipleContributorSelector
+					contributorList={contributorList}
+					onChange={handleContributorChange}
 				/>
 			</StyledFlexBox>
 
 			<CreditContainer>
 				<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
 				<StyledInput
-					sx={{ marginLeft: '4px' }}
+					sx={{ marginLeft: '4px', marginTop: '4px' }}
 					variant={'standard'}
 					InputProps={{ disableUnderline: true }}
 					required
@@ -84,16 +111,19 @@ const PostContribution = ({ contribution, onPost, onCancel }: IPostContributionP
 			</CreditContainer>
 
 			<PostButton>
-				<Button
-					variant={'contained'}
-					color={'info'}
-					sx={{ marginRight: '24px' }}
-					onClick={onCancel}
-				>
-					Cancel
-				</Button>
-				<Button variant={'contained'} onClick={onPost}>
-					Re-Post
+				{onCancel ? (
+					<Button
+						variant={'contained'}
+						color={'info'}
+						sx={{ marginRight: '24px' }}
+						onClick={onCancel}
+					>
+						Cancel
+					</Button>
+				) : null}
+
+				<Button variant={'contained'} onClick={onSubmit}>
+					{confirmText || 'Re-Post'}
 				</Button>
 			</PostButton>
 		</PostContainer>
@@ -128,6 +158,7 @@ const StyledInput = styled(TextField)({
 });
 
 const CreditContainer = styled(StyledFlexBox)({
+	justifyContent: 'center',
 	marginTop: '8px',
 	width: '200px',
 	height: '30px',

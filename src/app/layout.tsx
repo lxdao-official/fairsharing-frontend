@@ -17,6 +17,8 @@ import Nav from '@/components/nav/nav';
 
 import SimpleGlobalLoading from '@/components/loading';
 
+import SimpleSnackbar from '@/components/simpleSnackbar/snackbar';
+
 import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -65,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							{children}
 						</div>
 						<SimpleGlobalLoading />
+						<SimpleSnackbar />
 					</RainbowProvider>
 				</ThemeRegistry>
 			</body>

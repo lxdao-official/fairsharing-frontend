@@ -1,12 +1,9 @@
 'use client';
 
-import process from 'process';
-
-import { Button, styled, TextField, Typography } from '@mui/material';
-import { ethers } from 'ethers';
+import { Typography } from '@mui/material';
 import { useAccount, useNetwork } from 'wagmi';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -18,57 +15,42 @@ import {
 	SchemaEncoder,
 } from '@ethereum-attestation-service/eas-sdk';
 
+import { useParams } from 'next/navigation';
+
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+import { readContract } from '@wagmi/core';
+
+import useSWR from 'swr';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
-// @ts-ignore
-import ContributionList from '@/components/project/contribution/contributionList';
-
-type EASChainConfig = {
-	chainId: number;
-	chainName: string;
-	version: string;
-	contractAddress: string;
-	schemaRegistryAddress: string;
-	etherscanURL: string;
-	/** Must contain a trailing dot (unless mainnet). */
-	subdomain: string;
-	rpcProvider: string;
-};
-
-const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
-	{
-		chainId: 11155111,
-		chainName: 'sepolia',
-		subdomain: 'sepolia.',
-		version: '0.26',
-		contractAddress: '0xC2679fBD37d54388Ce493F1DB75320D236e1815e',
-		schemaRegistryAddress: '0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0',
-		etherscanURL: 'https://sepolia.etherscan.io',
-		rpcProvider: `https://sepolia.infura.io/v3/`,
-	},
-	{
-		chainId: 1,
-		chainName: 'mainnet',
-		subdomain: '',
-		version: '0.26',
-		contractAddress: '0xA1207F3BBa224E2c9c3c6D5aF63D0eb1582Ce587',
-		schemaRegistryAddress: '0xA7b39296258348C78294F95B872b282326A97BDF',
-		etherscanURL: 'https://etherscan.io',
-		rpcProvider: `https://mainnet.infura.io/v3/`,
-	},
-	{
-		chainId: 420,
-		chainName: 'goerli-optimism',
-		subdomain: 'optimism-goerli-bedrock.',
-		version: '1.0.1',
-		contractAddress: '0x4200000000000000000000000000000000000021',
-		schemaRegistryAddress: '0x4200000000000000000000000000000000000020',
-		etherscanURL: 'https://optimism-goerli-bedrock.easscan.org',
-		rpcProvider: `https://mainnet.infura.io/v3/`,
-	},
-];
+import ContributionList, {
+	IClaimParams,
+	IVoteParams,
+} from '@/components/project/contribution/contributionList';
+import { EAS_CHAIN_CONFIGS, EasSchemaUidMap, ProjectABI } from '@/constant/eas';
+import { getProjectDetail } from '@/services/project';
+import { setCurrentProjectId } from '@/store/project';
+import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
+import {
+	createContribution,
+	getContributionList,
+	updateContributionStatus,
+} from '@/services/contribution';
+import { useUserStore } from '@/store/user';
+import { getContributorList } from '@/services/contributor';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
+import {
+	EasAttestation,
+	EasAttestationData,
+	EasAttestationDecodedData,
+	getEASContributionList,
+	getEasSignature,
+	getEASVoteRecord,
+} from '@/services/eas';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -83,49 +65,150 @@ interface BigInt {
 	/** Convert to BigInt to string form in JSON.stringify */
 	toJSON: () => string;
 }
+
 // @ts-ignore
 BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
 export default function Page({ params }: { params: { id: string } }) {
-	const [detail, setDetail] = useState('');
-	const [proof, setProof] = useState('');
-	const [contributors, setContributors] = useState([]);
-	const [credit, setCredit] = useState('');
-
-	const EASContractAddress = '0x4200000000000000000000000000000000000021';
+	const { myInfo } = useUserStore();
 
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
-	const eas = new EAS(EASContractAddress, { signerOrProvider: signer });
+	const queryParams = useParams();
+	const { openConnectModal } = useConnectModal();
 
-	let contributionUID: string =
-		'0x0000000000000000000000000000000000000000000000000000000000000000';
-	const pid = 1;
-	const cid = 1;
+	const { data: projectDetail } = useSWR(
+		['project/detail', params.id],
+		() => getProjectDetail(params.id),
+		{
+			onSuccess: (data) => console.log('getProjectDetail', data),
+		},
+	);
+	const { data: contributorList } = useSWR(
+		['contributor/list', params.id],
+		() => getContributorList(params.id),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('getContributorList', data),
+		},
+	);
+	const { data: contributionList } = useSWR(
+		['contribution/list', params.id],
+		() => fetchContributionList(),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('fetchContributionList', data),
+		},
+	);
+	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
+	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
 
-	// useEffect(() => {
-	// 	console.log('signer:', signer);
-	// 	if (signer) {
-	// 		eas.connect(signer);
-	// 	}
-	// }, [signer]);
+	const contributionUIds = useMemo(() => {
+		return contributionList
+			.filter((contribution) => !!contribution.uId)
+			.map((item) => item.uId) as string[];
+	}, [contributionList]);
 
-	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setDetail(event.target.value);
+	const easVoteMap = useMemo(() => {
+		if (easVoteList.length === 0) return {};
+		const map = contributionUIds.reduce(
+			(pre, cur) => {
+				return {
+					...pre,
+					[cur]: [],
+				};
+			},
+			{} as Record<string, EasAttestation[]>,
+		);
+		easVoteList.forEach((item) => {
+			map[item.refUID].push(item);
+		});
+		console.log('easVoteMap', map);
+		return map;
+	}, [easVoteList, contributionUIds]);
+
+	const operatorId = useMemo(() => {
+		if (contributorList.length === 0 || !myInfo) {
+			return '';
+		}
+		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorList, myInfo]);
+
+	const eas = useMemo(() => {
+		const activeChainConfig =
+			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
+			EAS_CHAIN_CONFIGS[2];
+		const EASContractAddress = activeChainConfig?.contractAddress;
+		if (!signer) {
+			return new EAS(EASContractAddress);
+		}
+		return new EAS(EASContractAddress, { signerOrProvider: signer });
+	}, [network, signer]);
+
+	useEffect(() => {
+		setCurrentProjectId(queryParams.id as string);
+	}, []);
+
+	useEffect(() => {
+		if (contributionUIds.length > 0) {
+			fetchEasContributionList(contributionUIds);
+			fetchEasVoteList(contributionUIds);
+		}
+	}, [contributionUIds]);
+
+	const checkLogin = () => {
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
 	};
 
-	const handleProofInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setProof(event.target.value);
-	};
-	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setCredit(event.target.value);
+	const fetchContributionList = async () => {
+		try {
+			const { list } = await getContributionList({
+				pageSize: 50,
+				currentPage: 1,
+				projectId: params.id,
+			});
+			return list;
+		} catch (err) {
+			return Promise.reject(err);
+		}
 	};
 
-	const getBASEURL = () => {
+	const fetchEasContributionList = async (uIds: string[]) => {
+		const { attestations } = await getEASContributionList(uIds, network.chain?.id);
+		const easList = attestations.map((item) => ({
+			...item,
+			decodedDataJson: JSON.parse(
+				item.decodedDataJson as string,
+			) as EasAttestationDecodedData[],
+			data: JSON.parse(item.data as string) as EasAttestationData,
+		}));
+		setEasContributionList(easList);
+		console.log('graphql -> EASContributionList: ', easList);
+	};
+	const fetchEasVoteList = async (uIds: string[]) => {
+		getEASVoteRecord(uIds as string[], network.chain?.id)
+			.then(({ attestations }) => {
+				const easVoteList = attestations.map((item) => ({
+					...item,
+					decodedDataJson: JSON.parse(
+						item.decodedDataJson as string,
+					) as EasAttestationDecodedData[],
+					data: JSON.parse(item.data as string) as EasAttestationData,
+				}));
+				console.log('easVoteList', easVoteList);
+				setEasVoteList(easVoteList);
+			})
+			.catch((e) => console.error('getEASVoteRecord error', e));
+	};
+
+	const getEasScanURL = () => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
 			(config) => config.chainId === network.chain?.id,
 		);
@@ -134,7 +217,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
-		const baseURL = getBASEURL();
+		const baseURL = getEasScanURL();
 
 		console.log('baseURL:', baseURL);
 
@@ -146,189 +229,236 @@ export default function Page({ params }: { params: { id: string } }) {
 		return await axios.post<StoreIPFSActionReturn>(`${baseURL}/offchain/store`, data);
 	};
 
-	const handlePrepareContribution = async () => {
-		const offchain = await eas.getOffchain();
-
-		const contributionSchemaUid =
-			'0x446a57b67cc7459c9aa55a372b1395251db4f4732fff04f76c134f57a0409fe4';
-
-		// Initialize SchemaEncoder with the schema string
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, string title, string detail, string poc, uint64 token',
-		);
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{ name: 'title', value: 'first contribution title', type: 'string' },
-			{ name: 'detail', value: 'first contribution detail', type: 'string' },
-			{ name: 'poc', value: 'the poc', type: 'string' },
-			{ name: 'token', value: 2000, type: 'uint64' },
-		]);
-
-		const block = await provider.getBlock('latest');
-		if (!signer) {
-			return;
-		}
-		const offchainAttestation = await offchain.signOffchainAttestation(
-			{
-				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: BigInt(0),
-				time: BigInt(block ? block.timestamp : 0),
-				revocable: true,
-				version: 1,
-				nonce: BigInt(0),
-				schema: contributionSchemaUid,
-				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-				data: encodedData,
-			},
-			signer,
-		);
-
-		contributionUID = offchainAttestation.uid;
-
-		const res = await submitSignedAttestation({
-			signer: myAddress as string,
-			sig: offchainAttestation,
-		});
-		if (!res.data.error) {
+	const onPostContribution = useCallback(
+		async (postData: PostData) => {
+			if (!myInfo) {
+				openConnectModal?.();
+				return false;
+			}
+			if (!operatorId) {
+				console.error('operatorId not exist');
+				return false;
+			}
 			try {
-				const baseURL = getBASEURL();
+				openGlobalLoading();
+				const contribution = await createContribution({
+					projectId: params.id,
+					operatorId: operatorId as string,
+					...postData,
+					credit: Number(postData.credit),
+					toIds: postData.contributors,
+				});
+				console.log('createContribution res', contribution);
+
+				const offchain = await eas.getOffchain();
+				const contributionSchemaUid = EasSchemaUidMap.contribution;
+				// Initialize SchemaEncoder with the schema string
+				const schemaEncoder = new SchemaEncoder(
+					'address projectAddress, uint64 cid, string title, string detail, string poc, uint64 token',
+				);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'projectAddress', value: params.id, type: 'address' },
+					{ name: 'cid', value: contribution.id, type: 'uint64' },
+					{ name: 'title', value: 'first contribution title', type: 'string' },
+					{ name: 'detail', value: postData.detail, type: 'string' },
+					{ name: 'poc', value: postData.proof, type: 'string' },
+					{ name: 'token', value: Number(postData.credit), type: 'uint64' },
+				]);
+
+				const block = await provider.getBlock('latest');
+				if (!signer) {
+					return;
+				}
+				const offchainAttestation = await offchain.signOffchainAttestation(
+					{
+						recipient: '0x0000000000000000000000000000000000000000',
+						expirationTime: BigInt(0),
+						time: BigInt(block ? block.timestamp : 0),
+						revocable: true,
+						version: 1,
+						nonce: BigInt(0),
+						schema: contributionSchemaUid,
+						refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+						data: encodedData,
+					},
+					signer,
+				);
+
+				const res = await submitSignedAttestation({
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				});
+				console.log('submitSignedAttestation res', res);
+				if (res.data.error) {
+					console.error('submitSignedAttestation fail', res.data);
+					throw new Error(res.data.error);
+				}
+				const baseURL = getEasScanURL();
+				// Update ENS names
+				const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+				console.log('getENSRes', getENSRes);
+				// 传eas返回的uid, 更新status为claim
+				const updateStatus = await updateContributionStatus(contribution.id, {
+					type: 'ready',
+					uId: res.data.offchainAttestationId as string,
+				});
+				showToast('Create contribution success', 'success');
+				console.log('updateStatus', updateStatus);
+				fetchContributionList();
+			} catch (err) {
+				console.error(err);
+			} finally {
+				closeGlobalLoading();
+			}
+		},
+		[myInfo, params.id, operatorId, signer, provider, eas],
+	);
+
+	const onVote = useCallback(
+		async ({ contributionId, value, uId }: IVoteParams) => {
+			console.log('vote params', contributionId, value, uId);
+			if (!uId) {
+				console.error('uId not exist');
+				return;
+			}
+			try {
+				openGlobalLoading();
+				const offchain = await eas.getOffchain();
+				const voteSchemaUid = EasSchemaUidMap.vote;
+
+				const schemaEncoder = new SchemaEncoder(
+					'address projectAddress, uint64 cid, uint8 value, string reason',
+				);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'projectAddress', value: params.id, type: 'address' },
+					{ name: 'cid', value: contributionId, type: 'uint64' },
+					{ name: 'value', value: value, type: 'uint8' },
+					{ name: 'reason', value: 'good contribution', type: 'string' },
+				]);
+				const block = await provider.getBlock('latest');
+				if (!signer) {
+					return;
+				}
+				const offchainAttestation = await offchain.signOffchainAttestation(
+					{
+						recipient: '0x0000000000000000000000000000000000000000',
+						expirationTime: BigInt(0),
+						time: BigInt(block ? block.timestamp : 0),
+						revocable: true,
+						version: 1,
+						nonce: BigInt(0),
+						schema: voteSchemaUid,
+						refUID: uId, // 可用来查询vote信息
+						data: encodedData,
+					},
+					signer,
+				);
+				console.log('vote offchainAttestation', offchainAttestation);
+
+				const res = await submitSignedAttestation({
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				});
+				console.log('vote submitSignedAttestation', res);
+				if (res.data.error) {
+					console.error('vote submitSignedAttestation fail', res.data);
+					throw new Error(res.data.error);
+				}
+				showToast('Vote success', 'success');
+				const baseURL = getEasScanURL();
 				// Update ENS names
 				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+				const list = await fetchContributionList();
+				const cids = list
+					.filter((contribution) => !!contribution.uId)
+					.map((item) => item.uId);
+				fetchEasContributionList(cids as string[]);
 			} catch (e) {
-				console.error('ens error:', e);
+				console.error('onVote error', e);
+			} finally {
+				closeGlobalLoading();
 			}
-		}
-	};
+		},
+		[params.id, signer, myAddress, eas],
+	);
 
-	const handleRevokeContribution = async () => {
-		const uid = '0x720eea3a0fb22ca36637e8faa2b66c649cf734402902cb587d9f9f5bc405e4cf';
-		await eas.revokeOffchain(uid);
-	};
-
-	const handleVote = async (value: any) => {
-		const offchain = await eas.getOffchain();
-
-		const voteSchemaUid = '0x82280290eeca50f5d7bf7b75bdf1241c8dbd8ae41dda1dde5d32159c00003c12';
-
-		// Initialize SchemaEncoder with the schema string
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, uint8 value, string reason',
-		);
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{ name: 'value', value: value, type: 'uint8' },
-			{ name: 'reason', value: 'good contribution', type: 'string' },
-		]);
-
-		const block = await provider.getBlock('latest');
-
-		if (!signer) {
-			return;
-		}
-		const offchainAttestation = await offchain.signOffchainAttestation(
-			{
-				recipient: '0x0000000000000000000000000000000000000000',
-				expirationTime: BigInt(0),
-				time: BigInt(block ? block.timestamp : 0),
-				revocable: true,
-				version: 1,
-				nonce: BigInt(0),
-				schema: voteSchemaUid,
-				refUID: contributionUID,
-				data: encodedData,
-			},
-			signer,
-		);
-
-		const res = await submitSignedAttestation({
-			signer: myAddress as string,
-			sig: offchainAttestation,
-		});
-		if (!res.data.error) {
+	const onClaim = useCallback(
+		async (claimParams: IClaimParams) => {
+			const { contributionId, uId, token, voters, voteValues } = claimParams;
+			const claimAddress = await readProjectContract(contributionId);
+			if (claimAddress === myAddress) {
+				console.log('已经claim过了');
+				return false;
+			}
+			console.log('onClaim params', params);
 			try {
-				const baseURL = getBASEURL();
-				// Update ENS names
-				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-			} catch (e) {
-				console.error('ens error:', e);
+				openGlobalLoading();
+				const claimSchemaUid = EasSchemaUidMap.claim;
+				const signature = await getEasSignature({
+					wallet: myAddress as string,
+					cId: contributionId,
+					chainId: network.chain?.id as number,
+				});
+
+				const schemaEncoder = new SchemaEncoder(
+					'address projectAddress, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
+				);
+				console.log('schemaEncoder', schemaEncoder);
+				const encodedData = schemaEncoder.encodeData([
+					{ name: 'projectAddress', value: params.id, type: 'address' },
+					{ name: 'cid', value: contributionId, type: 'uint64' },
+					{
+						name: 'voters',
+						value: voters,
+						type: 'address[]',
+					},
+					{ name: 'values', value: voteValues, type: 'uint8[]' },
+					{ name: 'token', value: token, type: 'uint64' },
+					{ name: 'signature', value: signature, type: 'bytes' },
+				]);
+
+				console.log('encodedData', encodedData);
+
+				const attestation = await eas.attest({
+					schema: claimSchemaUid,
+					data: {
+						recipient: myAddress as string,
+						expirationTime: BigInt(0),
+						revocable: false,
+						refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+						data: encodedData,
+						value: BigInt(0),
+					},
+				});
+				console.log('onchainAttestation:', attestation);
+				const updateStatus = await updateContributionStatus(contributionId, {
+					type: 'claim',
+					uId: uId,
+				});
+				showToast('Claim success', 'success');
+				console.log('claim updateStatus success', updateStatus);
+				fetchContributionList();
+				// 	TODO update data by SWR
+			} catch (err) {
+				console.error('onClaim error', err);
+			} finally {
+				closeGlobalLoading();
 			}
-		}
-	};
+		},
+		[params.id, myAddress, eas, network],
+	);
 
-	const handleRevokeVote = async () => {
-		const uid = '0x6b26a1c579ebbe33a3e4c46756b6fee48855f11513b384c973e8c3fdbf313d6d';
-		await eas.revokeOffchain(uid);
-	};
-
-	const getSignMsg = async (_attester: string, _pid: any, _cid: any) => {
-		console.log(ethers);
-		const salt = ethers.hexlify(ethers.randomBytes(32));
-
-		console.log(ethers.AbiCoder.defaultAbiCoder);
-
-		const hash = ethers.keccak256(
-			ethers.AbiCoder.defaultAbiCoder().encode(
-				['address', 'uint256', 'uint64'],
-				[_attester, _pid, _cid],
-			),
-		);
-
-		console.log('hash', hash);
-
-		const signerWallet = new ethers.Wallet(`${process.env.NEXT_PUBLIC__KEY}`);
-		const signature = await signerWallet.signMessage(ethers.getBytes(hash));
-
-		console.log('signature', signature);
-
-		return { signature };
-	};
-
-	const handleClaim = async () => {
-		const claimSchemaUid = '0x0f11736c835bc2050b478961f250410274d2d6c1f821154e8fd66ef7eb61d986';
-
-		const { signature } = await getSignMsg(myAddress as string, pid, cid);
-
-		// Initialize SchemaEncoder with the schema string
-		const schemaEncoder = new SchemaEncoder(
-			'uint256 pid, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
-		);
-
-		const encodedData = schemaEncoder.encodeData([
-			{ name: 'pid', value: pid, type: 'uint256' },
-			{ name: 'cid', value: cid, type: 'uint64' },
-			{
-				name: 'voters',
-				value: [
-					'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-					'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
-					'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
-					'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
-				],
-				type: 'address[]',
-			},
-			{ name: 'values', value: [1, 1, 1, 2], type: 'uint8[]' },
-			{ name: 'token', value: 2000, type: 'uint64' },
-			{
-				name: 'signature',
-				value: signature,
-				type: 'bytes',
-			},
-		]);
-
-		const attestation = await eas.attest({
-			schema: claimSchemaUid,
-			data: {
-				recipient: myAddress as string,
-				expirationTime: BigInt(0),
-				revocable: false,
-				refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-				data: encodedData,
-				value: BigInt(0),
-			},
+	const readProjectContract = async (cid: number) => {
+		console.log('readProjectContract getClaims params', cid);
+		const data = await readContract({
+			// @ts-ignore
+			address: projectDetail?.id,
+			abi: ProjectABI,
+			functionName: 'getClaims',
+			args: [cid],
 		});
-		console.log('onchainAttestation:', attestation);
+		console.log('readProjectContract getClaims', data);
+		return data;
 	};
 
 	return (
@@ -344,154 +474,23 @@ export default function Page({ params }: { params: { id: string } }) {
 				/>
 			</StyledFlexBox>
 
-			<PostContainer>
-				<StyledFlexBox>
-					<TagLabel>#detail</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={detail}
-						size={'small'}
-						onChange={handleDetailInputChange}
-						placeholder={'I developed sign in with wallet feature'}
-					/>
-				</StyledFlexBox>
+			<PostContribution
+				onPost={onPostContribution}
+				confirmText={'Post'}
+				contributorList={contributorList}
+			/>
 
-				<StyledFlexBox sx={{ marginTop: '8px' }}>
-					<TagLabel>#proof</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={proof}
-						size={'small'}
-						onChange={handleProofInputChange}
-						placeholder={'https: //notion.so/1234'}
-					/>
-				</StyledFlexBox>
-
-				<StyledFlexBox sx={{ marginTop: '8px' }}>
-					<TagLabel>#to</TagLabel>
-					<StyledInput
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={contributors}
-						size={'small'}
-						onChange={handleDetailInputChange}
-						placeholder={'Type @ to select contributor'}
-					/>
-				</StyledFlexBox>
-
-				<CreditContainer>
-					<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
-					<StyledInput
-						sx={{ marginLeft: '4px' }}
-						variant={'standard'}
-						InputProps={{ disableUnderline: true }}
-						required
-						value={credit}
-						size={'small'}
-						onChange={handleCreditInputChange}
-						placeholder={'Pizza slices, e.g. 120'}
-					/>
-				</CreditContainer>
-
-				<PostButton>
-					<Button variant={'contained'}>Post</Button>
-				</PostButton>
-			</PostContainer>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handlePrepareContribution();
-					}}
-				>
-					Test Prepare contribution
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleRevokeContribution();
-					}}
-				>
-					Test Revoke contribution
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleVote(1);
-					}}
-				>
-					Test Vote
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleRevokeVote();
-					}}
-				>
-					Test Revoke Vote
-				</Button>
-			</StyledFlexBox>
-
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<Button
-					variant={'contained'}
-					onClick={async () => {
-						await handleClaim();
-					}}
-				>
-					Test claim
-				</Button>
-			</StyledFlexBox>
-
-			<ContributionList projectId={params.id} />
+			{projectDetail && contributionList.length > 0 ? (
+				<ContributionList
+					projectId={params.id}
+					contributionList={contributionList || []}
+					projectDetail={projectDetail}
+					onVote={onVote}
+					onClaim={onClaim}
+					easVoteMap={easVoteMap}
+					contributorList={contributorList}
+				/>
+			) : null}
 		</div>
 	);
 }
-
-const PostContainer = styled('div')({
-	minHeight: '90px',
-	backgroundColor: 'white',
-	marginTop: '16px',
-	padding: '12px 16px',
-	border: '0.5px solid rgba(15, 23, 42, 0.16)',
-	borderRadius: '4px',
-	position: 'relative',
-});
-const PostButton = styled('div')({
-	position: 'absolute',
-	right: '16px',
-	bottom: '12px',
-});
-const TagLabel = styled(Typography)({
-	color: '#437EF7',
-	width: '60px',
-});
-
-const StyledInput = styled(TextField)({
-	flex: '1',
-	border: 'none',
-});
-
-const CreditContainer = styled(StyledFlexBox)({
-	marginTop: '8px',
-	width: '200px',
-	height: '30px',
-	border: '1px solid rgba(15, 23, 42, 0.16)',
-	borderRadius: '5px',
-	padding: '3px 8px',
-});

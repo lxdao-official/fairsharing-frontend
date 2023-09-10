@@ -25,7 +25,6 @@ export interface IVoteActionProps {
 	onConfirm: () => void;
 }
 
-// TODO API 个人是否已经投过票
 const VoteActionIcon: Record<VoteTypeEnum, Record<VoteStatus, string>> = {
 	[VoteTypeEnum.FOR]: {
 		[VoteStatus.DONE]: '/images/vote_for_done.png',
@@ -58,6 +57,7 @@ const VoteAction = ({ type, status, count, onConfirm }: IVoteActionProps) => {
 				cursor: 'pointer',
 				opacity: status === VoteStatus.DISABLED ? '0.5' : '1',
 			}}
+			onClick={onConfirm}
 		>
 			<Image src={VoteActionIcon[type][status]} width={20} height={20} alt={''} />
 			<Typography

@@ -12,9 +12,6 @@ import styles from '@/styles/project.module.css';
 const ProjectNav = () => {
 	const pathname = usePathname();
 	const params = useParams();
-	useEffect(() => {
-		console.log('useParams', params);
-	}, [params]);
 
 	const isMatch = (name: string) => {
 		return pathname.indexOf(name) > -1;

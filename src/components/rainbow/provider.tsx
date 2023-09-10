@@ -21,7 +21,7 @@ const Chains = isProd ? [mainnet, optimism] : [mainnet, goerli, optimismGoerli];
 const AlchemyApiKey = isProd
 	? process.env.NEXT_PUBLIC_ALCHEMY_ID_PROD
 	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
-const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string;
+const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string;
 
 // @ts-ignore
 const { chains, publicClient, webSocketPublicClient } = configureChains(Chains, [

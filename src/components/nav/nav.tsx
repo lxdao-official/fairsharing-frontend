@@ -1,28 +1,70 @@
 'use client';
 
 import { styled, Typography } from '@mui/material';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
-import { useProjectStore } from '@/store/project';
+import { useAccount } from 'wagmi';
+
+import { Img3 } from '@lxdao/img3';
+
+import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
+import { getUserInfo, signup } from '@/services/user';
+import { setUser } from '@/store/user';
+import { getProjectList } from '@/services/project';
 
 export default function Nav() {
-	const { currentProject, projectList } = useProjectStore();
+	const { currentProjectId, userProjectList } = useProjectStore();
 	const pathname = usePathname();
+	const { address: myAddress } = useAccount();
+
 	useEffect(() => {
-		console.log('pathname', pathname);
+		if (pathname.indexOf('project') < 0) {
+			setCurrentProjectId('');
+		}
+		if (pathname.indexOf('create')) {
+			setCurrentProjectId('');
+		}
 	}, [pathname]);
+
+	useEffect(() => {
+		if (myAddress) {
+			fetchUserProjectList();
+		}
+	}, [myAddress]);
+
+	const fetchUserProjectList = async () => {
+		try {
+			const params = {
+				currentPage: 1,
+				pageSize: 50,
+			};
+			let myInfo = await getUserInfo(myAddress as string);
+			if (!myInfo) {
+				myInfo = await signup(myAddress as string);
+			}
+			setUser(myInfo);
+			console.log('myInfo', myInfo);
+			Object.assign(params, { userId: myInfo.id });
+			const { list } = await getProjectList(params);
+			console.log('UserProjectList', list);
+			setUserProjectList(list || []);
+		} catch (err) {
+			console.error('fetchUserProjectList error', err);
+		}
+	};
+
 	return (
 		<NavContainer>
 			<Item href={'/'} image={'/images/home.png'} isActive={pathname === '/'} />
-			{projectList.map((project, idx) => (
+			{userProjectList.map((project, idx) => (
 				<Item
 					href={`/project/${project.id}/contribution`}
 					key={project.id}
 					name={project.name}
-					isActive={pathname.indexOf(`/project/${project.id}`) > -1}
+					isActive={currentProjectId === project.id}
+					image={project.logo}
 				/>
 			))}
 			<Item
@@ -40,19 +82,28 @@ const Item = ({
 	image,
 	name,
 	isActive,
-	prefetch
+	prefetch,
 }: {
 	href: string;
 	image?: string;
 	isActive?: boolean;
 	name?: string;
-	prefetch?: boolean
+	prefetch?: boolean;
 }) => {
 	return (
 		<Link href={href} prefetch={!!prefetch}>
 			<NavItem active={!!isActive}>
+				{/*TODO avatar hover效果*/}
 				{image ? (
-					<Image src={image} width={56} height={56} alt={'new'} />
+					<Img3
+						src={image}
+						style={{
+							width: '56px',
+							height: '56px',
+							borderRadius: '56px',
+							border: isActive ? '1px solid rgba(0, 0, 0, 1)' : '0.5px solid #CBD5E1',
+						}}
+					/>
 				) : (
 					<Typography variant={'h4'}>{name || 'Project'}</Typography>
 				)}

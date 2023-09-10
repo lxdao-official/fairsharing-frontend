@@ -24,93 +24,41 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { useAccount, useContractRead } from 'wagmi';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-
-import { ethers } from 'ethers';
-
-import { TransactionResponse } from '@ethersproject/abstract-provider';
-
-import { useEthersSigner } from '@/common/ether';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
-// @ts-ignore
-import project_register_abi = require('../../../../abi/project_register_abi.json');
+import { Contributor, PermissionEnum } from '@/services/project';
 
 export interface IStepContributorProps extends IStepBaseProps {}
 
-export interface FromContributor {}
-
 export interface StepContributorRef {
 	getFormData: () => {
-		contributors: FromContributor[];
+		contributors: Contributor[];
 	};
 }
 
-const roles: string[] = ['Admin', 'User', 'Guest'];
-
-export enum PermissionEnum {
-	Admin = 'Admin',
-	Contributor = 'Contributor',
-}
-
-export interface IContributor {
-	name: string;
-	walletAddress: string;
-	permission: PermissionEnum;
-	role: string;
-}
-
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep } = props;
+	const { step, setActiveStep, onCreateProject } = props;
+	const { address: myAddress } = useAccount();
 
-	const [contributors, setContributors] = useState<IContributor[]>([
+	const [contributors, setContributors] = useState<Contributor[]>([
 		{
-			name: '',
-			walletAddress: '',
-			role: '',
-			permission: PermissionEnum.Contributor,
+			nickName: 'LGC',
+			wallet: myAddress || '',
+			role: 'Developer',
+			permission: PermissionEnum.Owner,
 		},
 	]);
 
-	const signer = useEthersSigner();
-	const { address: myAddress } = useAccount();
-
-	// todo: test
-	useContractRead({
-		address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
-		abi: project_register_abi,
-		functionName: 'owner',
-		onSuccess(data) {
-			console.log('get project register owner:', data);
-		},
-	});
-
-	// const {
-	// 	data: registerResult,
-	// 	isLoading,
-	// 	isSuccess,
-	// 	write,
-	// } = useContractWrite({
-	// 	address: '0x5C0340AD34f7284f9272E784FF76638E8dDb5dE4',
-	// 	abi: project_register_abi,
-	// 	functionName: 'register',
-	// });
-	//
-	// const waitForTransaction = useWaitForTransaction({
-	// 	hash: registerResult?.hash,
-	// });
-
 	const handleNameChange = (index: number, value: string) => {
 		const newData = [...contributors];
-		newData[index].name = value;
+		newData[index].nickName = value;
 		setContributors(newData);
 	};
 
 	const handleWalletAddressChange = (index: number, value: string) => {
 		const newData = [...contributors];
-		newData[index].walletAddress = value;
+		newData[index].wallet = value;
 		setContributors(newData);
 	};
 
@@ -129,7 +77,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const handleAddRow = () => {
 		setContributors([
 			...contributors,
-			{ name: '', walletAddress: '', role: '', permission: PermissionEnum.Contributor },
+			{ nickName: '', wallet: '', role: '', permission: PermissionEnum.Contributor },
 		]);
 	};
 
@@ -145,47 +93,6 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		}),
 		[contributors],
 	);
-
-	const handleCreateProject = async () => {
-		console.log('handleCreateProject', contributors);
-		// TODO 合约调用生成 project -> 后端生成
-		// 需要考虑 合约调用成功, 但后端调用失败的问题, 需要做好数据同步.
-		const owner = myAddress;
-		const members = [
-			'0x9324AD72F155974dfB412aB6078e1801C79A8b78',
-			'0x314eFc96F7c6eCfF50D7A75aB2cde9531D81cbe4',
-			'0x6Aa6dC80405d10b0e1386EB34D1A68cB2934c5f3',
-			'0x3E6Ee4C5846978de53d25375c94A5c5574222Bb8',
-		];
-		const symbol = 'tokenSymbol';
-
-		const contract = new ethers.Contract(
-			`${process.env.NEXT_PUBLIC_CONTRACT}`,
-			project_register_abi,
-			signer,
-		);
-
-		const tx: TransactionResponse = await contract.create(owner, members, symbol);
-		const response = await tx.wait(1);
-		if (response.status === 1) {
-			const result = await contract.create.staticCallResult(owner, members, symbol);
-			const projectContract = result[0];
-			const pid = result[1];
-			console.log('callStatic projectContract:', projectContract, 'pid:', pid);
-		}
-
-		// sync to backend
-		// const params: CreateProjectParams = {
-		// 	logo: '',
-		// 	name: '',
-		// 	intro: '',
-		// 	symbol: '',
-		// 	network: 1,
-		// 	votePeriod: 1,
-		// 	contributors: [],
-		// };
-		// const result = await createProject(params);
-	};
 
 	return (
 		<>
@@ -211,14 +118,14 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 								<TableCell>
 									<TextField
 										size="small"
-										value={row.name}
+										value={row.nickName}
 										onChange={(e) => handleNameChange(index, e.target.value)}
 									/>
 								</TableCell>
 								<TableCell>
 									<TextField
 										size="small"
-										value={row.walletAddress}
+										value={row.wallet}
 										onChange={(e) =>
 											handleWalletAddressChange(index, e.target.value)
 										}
@@ -236,6 +143,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 												)
 											}
 										>
+											<MenuItem value={PermissionEnum.Owner}>Owner</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
 											<MenuItem value={PermissionEnum.Contributor}>
 												Contributor
@@ -281,11 +189,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				>
 					Back
 				</Button>
-				<Button
-					variant={'contained'}
-					sx={{ marginLeft: '16px' }}
-					onClick={handleCreateProject}
-				>
+				<Button variant={'contained'} sx={{ marginLeft: '16px' }} onClick={onCreateProject}>
 					Create
 				</Button>
 			</StyledFlexBox>

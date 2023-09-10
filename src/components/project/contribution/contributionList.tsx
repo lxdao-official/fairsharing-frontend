@@ -1,4 +1,5 @@
 'use client';
+
 import {
 	Button,
 	Dialog,
@@ -11,7 +12,7 @@ import {
 	SelectChangeEvent,
 	Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 
@@ -19,80 +20,62 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { IContribution } from '@/services/types';
+import { IContribution, IContributor, IProject } from '@/services/types';
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
+import { EasAttestation } from '@/services/eas';
+
+export enum IVoteValueEnum {
+	FOR = 1,
+	AGAINST = 2,
+	ABSTAIN = 3,
+}
+
+export interface IVoteParams {
+	contributionId: number;
+	value: IVoteValueEnum;
+	uId: string;
+}
+
+export interface IClaimParams {
+	contributionId: number;
+	uId: string;
+	token: number;
+	voters: string[];
+	voteValues: number[];
+}
 
 export interface IContributionListProps {
 	projectId: string;
+	contributionList: IContribution[];
+	projectDetail: IProject;
+	onVote: (params: IVoteParams) => void;
+	onClaim: (params: IClaimParams) => void;
+	easVoteMap: Record<string, EasAttestation[]>;
+	contributorList: IContributor[];
 }
 
-const FakeContributionList: IContribution[] = [
-	{
-		id: '1',
-		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
-		proof: 'https://github.com',
-		credit: 120,
-		toIds: ['123', '234'],
-		status: 0,
-		agree: 2,
-		disagree: 1,
-		ownerId: '123',
-		projectId: '1',
-		MintRecord: [],
-		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
-	},
-	{
-		id: '2',
-		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
-		proof: 'https://github.com',
-		credit: 120,
-		toIds: ['123', '234'],
-		status: 1,
-		agree: 2,
-		disagree: 1,
-		ownerId: '123',
-		projectId: '1',
-		MintRecord: [],
-		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
-	},
-	{
-		id: '3',
-		detail: 'I walked several new users through how to I walked several new users through. I walked several new users through how to I walked several new users through.I walked several new users new users through.Cc@Michael @Will',
-		proof: 'https://github.com',
-		credit: 120,
-		toIds: ['123', '234'],
-		status: 2,
-		agree: 2,
-		disagree: 1,
-		ownerId: '123',
-		projectId: '1',
-		MintRecord: [],
-		deleted: false,
-		avatar: 'https://nftstorage.link/ipfs/bafkreia6koxbcthmyrqqwy2jhmfuj4vaxgkcmdvxf3v5z7k2xtxaf2eauu',
-	},
-];
-
-const ContributionList = (props: IContributionListProps) => {
+const ContributionList = ({
+	contributionList,
+	projectDetail,
+	onVote,
+	onClaim,
+	easVoteMap,
+	contributorList,
+}: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
-	const [showFilter, setShowFilter] = useState(true);
-	const [showSelect, setShowSelect] = useState(true);
+	const [showFilter, setShowFilter] = useState(false);
+	const [showSelect, setShowSelect] = useState(false);
 
-	const [period, setPeriod] = useState('1');
-	const [voteStatus, setVoteStatus] = useState('1');
-	const [contributor, setContributor] = useState('1');
+	const [period, setPeriod] = useState('ALL');
+	const [voteStatus, setVoteStatus] = useState('ALL');
+	const [contributor, setContributor] = useState('ALL');
 
-	const [selected, setSelected] = useState<Array<string>>([]);
-	const [list, setList] = useState<IContribution[]>(FakeContributionList);
+	const [selected, setSelected] = useState<Array<number>>([]);
 
 	const [showDialog, setShowDialog] = useState(false);
 
-	const getClaim = () => {
-		// 	TODO: get cliam after login
-	};
 
 	const handleHideSelect = () => {
 		setShowSelect(false);
@@ -119,16 +102,22 @@ const ContributionList = (props: IContributionListProps) => {
 		setShowSelect((pre) => !pre);
 	};
 
+	const handleRest = () => {
+		setVoteStatus('ALL');
+		setPeriod('ALL');
+		setContributor('ALL');
+	};
+
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
 		console.log('type', type);
 		if (type === 'All') {
-			setSelected(list.map((item, idx) => String(item.id)));
+			setSelected(contributionList.map((item, idx) => item.id));
 		} else {
 			setSelected([]);
 		}
 	};
 
-	const onSelect = (idList: string[]) => {
+	const onSelect = (idList: number[]) => {
 		setSelected(idList);
 	};
 
@@ -141,10 +130,8 @@ const ContributionList = (props: IContributionListProps) => {
 
 	return (
 		<>
-			<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
-				<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
-					Contributions
-				</Typography>
+			<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
+				<Typography typography={'h3'}>Contributions</Typography>
 				<StyledFlexBox sx={{ cursor: 'pointer' }}>
 					<Image
 						src={'/images/claim.png'}
@@ -153,11 +140,12 @@ const ContributionList = (props: IContributionListProps) => {
 						alt={'claim'}
 						onClick={onClickFilterBtn}
 					/>
-					<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
-						Claim({claimTotal})
-					</Button>
+					{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
+					{/*	Claim({claimTotal})*/}
+					{/*</Button>*/}
 				</StyledFlexBox>
 			</StyledFlexBox>
+			{/*TODO 更新filter条件*/}
 			{showFilter ? (
 				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
 					<StyledFlexBox>
@@ -169,7 +157,7 @@ const ContributionList = (props: IContributionListProps) => {
 							sx={{ width: '160px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All time</MenuItem>
+							<MenuItem value={'ALL'}>All time</MenuItem>
 							<MenuItem value={'2'}>This week</MenuItem>
 							<MenuItem value={'3'}>This month</MenuItem>
 							<MenuItem value={'4'}>This season</MenuItem>
@@ -183,7 +171,7 @@ const ContributionList = (props: IContributionListProps) => {
 							sx={{ width: '200px', margin: '0 16px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All status</MenuItem>
+							<MenuItem value={'ALL'}>All status</MenuItem>
 							<MenuItem value={'2'}>Voted by me</MenuItem>
 							<MenuItem value={'3'}>Unvoted by me</MenuItem>
 							<MenuItem value={'4'}>voted ended</MenuItem>
@@ -196,12 +184,14 @@ const ContributionList = (props: IContributionListProps) => {
 							sx={{ width: '200px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All contributors</MenuItem>
-							<MenuItem value={'2'}>Jack</MenuItem>
-							<MenuItem value={'3'}>Mike</MenuItem>
-							<MenuItem value={'4'}>Zed</MenuItem>
+							<MenuItem value={'ALL'}>All contributors</MenuItem>
+							{contributorList.map((contributor) => (
+								<MenuItem key={contributor.wallet} value={contributor.wallet}>
+									{contributor.nickName}
+								</MenuItem>
+							))}
 						</Select>
-						<Button variant={'text'} sx={{ marginLeft: '16px' }}>
+						<Button variant={'text'} sx={{ marginLeft: '16px' }} onClick={handleRest}>
 							Reset
 						</Button>
 					</StyledFlexBox>
@@ -222,7 +212,7 @@ const ContributionList = (props: IContributionListProps) => {
 					<StyledFlexBox>
 						{/* TODO use native checkbox */}
 						<Checkbox
-							total={list.length}
+							total={contributionList.length}
 							selected={selected.length}
 							onChange={onClickSelectParent}
 						/>
@@ -269,7 +259,7 @@ const ContributionList = (props: IContributionListProps) => {
 				</StyledFlexBox>
 			) : null}
 
-			{list.map((contribution, idx) => (
+			{contributionList.map((contribution, idx) => (
 				<ContributionItem
 					key={contribution.id}
 					contribution={contribution}
@@ -277,10 +267,14 @@ const ContributionList = (props: IContributionListProps) => {
 					selected={selected}
 					onSelect={onSelect}
 					showDeleteDialog={showDeleteDialog}
+					projectDetail={projectDetail}
+					onVote={onVote}
+					onClaim={onClaim}
+					easVoteList={easVoteMap[contribution.uId as string]}
+					contributorList={contributorList}
 				/>
 			))}
 
-			{/*TODO 确认是revok还是delete*/}
 			<Dialog
 				open={showDialog}
 				onClose={onCloseDialog}

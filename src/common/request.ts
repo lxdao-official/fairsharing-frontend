@@ -19,8 +19,6 @@ export const client = axios.create({
 
 client.interceptors.request.use(
 	(config) => {
-		// TODO auth
-
 		return config;
 	},
 	(error) => {

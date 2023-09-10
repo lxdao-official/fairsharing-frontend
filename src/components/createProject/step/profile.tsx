@@ -11,23 +11,27 @@ export interface StepProfileRef {
 	getFormData: () => {
 		name: string;
 		intro: string;
+		avatar: string;
 	};
 }
 
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 	(props: IStepProfileProps, ref) => {
 		const { step, setActiveStep } = props;
-		const [name, setName] = useState('Default Name');
-		const [intro, setIntro] = useState('Default Intro');
+		const [name, setName] = useState('Jack');
+		const [intro, setIntro] = useState('Web3 Builder');
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
+		const [avatar, setAvatar] = useState(
+			'https://nftstorage.link/ipfs/bafkreihz3ibqbfxwkjpz5fuhvolrn45s2umjarm7wu4r4wtacupic3wa6m',
+		);
 
 		useImperativeHandle(
 			ref,
 			() => ({
-				getFormData: () => ({ name, intro }),
+				getFormData: () => ({ name, intro, avatar }),
 			}),
-			[name, intro],
+			[name, intro, avatar],
 		);
 
 		const handleNameInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,9 +58,13 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			setActiveStep(step + 1);
 		};
 
+		const uploadSuccess = (url: string) => {
+			setAvatar(url);
+		};
+
 		return (
 			<>
-				<UploadImage />
+				<UploadImage uploadSuccess={uploadSuccess} />
 
 				<TextField
 					required
@@ -66,7 +74,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					onChange={handleNameInputChange}
 					sx={{ display: 'block', marginTop: '40px' }}
 					error={nameError}
-					helperText={'Name is required'}
 				/>
 				<TextField
 					required
@@ -77,7 +84,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					sx={{ display: 'block', marginTop: '40px' }}
 					fullWidth={true}
 					error={introError}
-					helperText={'Intro is required'}
 				/>
 				<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={handleSubmit}>
 					Next
