@@ -9,11 +9,7 @@ import { useAccount } from 'wagmi';
 
 import { Img3 } from '@lxdao/img3';
 
-import {
-	setCurrentProjectId,
-	setUserProjectList,
-	useProjectStore,
-} from '@/store/project';
+import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectList } from '@/services/project';

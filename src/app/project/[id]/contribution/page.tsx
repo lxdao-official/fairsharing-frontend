@@ -21,6 +21,8 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 import { readContract } from '@wagmi/core';
 
+import useSWR from 'swr';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
@@ -29,8 +31,7 @@ import ContributionList, {
 	IClaimParams,
 	IVoteParams,
 } from '@/components/project/contribution/contributionList';
-import { EAS_CHAIN_CONFIGS, EasSchemaUidMap, ProjectABI, ProjectRegisterABI } from '@/constant/eas';
-import { IContribution, IContributor, IProject } from '@/services/types';
+import { EAS_CHAIN_CONFIGS, EasSchemaUidMap, ProjectABI } from '@/constant/eas';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
@@ -80,22 +81,31 @@ export default function Page({ params }: { params: { id: string } }) {
 	const queryParams = useParams();
 	const { openConnectModal } = useConnectModal();
 
-	const pid = useMemo(() => {
-		return params.id;
-	}, [params]);
-
-	const [projectDetail, setProjectDetail] = useState<IProject>();
-	const [contributorList, setContributorList] = useState<IContributor[]>([]);
-	const [contributionList, setContributionList] = useState<IContribution[]>([]);
+	const { data: projectDetail } = useSWR(
+		['project/detail', params.id],
+		() => getProjectDetail(params.id),
+		{
+			onSuccess: (data) => console.log('getProjectDetail', data),
+		},
+	);
+	const { data: contributorList } = useSWR(
+		['contributor/list', params.id],
+		() => getContributorList(params.id),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('getContributorList', data),
+		},
+	);
+	const { data: contributionList } = useSWR(
+		['contribution/list', params.id],
+		() => fetchContributionList(),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('fetchContributionList', data),
+		},
+	);
 	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
 	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
-
-	const checkLogin = () => {
-		if (!myAddress) {
-			openConnectModal?.();
-			return false;
-		}
-	};
 
 	const contributionUIds = useMemo(() => {
 		return contributionList
@@ -121,11 +131,26 @@ export default function Page({ params }: { params: { id: string } }) {
 		return map;
 	}, [easVoteList, contributionUIds]);
 
+	const operatorId = useMemo(() => {
+		if (contributorList.length === 0 || !myInfo) {
+			return '';
+		}
+		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorList, myInfo]);
+
+	const eas = useMemo(() => {
+		const activeChainConfig =
+			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
+			EAS_CHAIN_CONFIGS[2];
+		const EASContractAddress = activeChainConfig?.contractAddress;
+		if (!signer) {
+			return new EAS(EASContractAddress);
+		}
+		return new EAS(EASContractAddress, { signerOrProvider: signer });
+	}, [network, signer]);
+
 	useEffect(() => {
 		setCurrentProjectId(queryParams.id as string);
-		fetchProjectDetail();
-		fetchContributorList();
-		fetchContributionList();
 	}, []);
 
 	useEffect(() => {
@@ -134,6 +159,26 @@ export default function Page({ params }: { params: { id: string } }) {
 			fetchEasVoteList(contributionUIds);
 		}
 	}, [contributionUIds]);
+
+	const checkLogin = () => {
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
+	};
+
+	const fetchContributionList = async () => {
+		try {
+			const { list } = await getContributionList({
+				pageSize: 50,
+				currentPage: 1,
+				projectId: params.id,
+			});
+			return list;
+		} catch (err) {
+			return Promise.reject(err);
+		}
+	};
 
 	const fetchEasContributionList = async (uIds: string[]) => {
 		const { attestations } = await getEASContributionList(uIds, network.chain?.id);
@@ -163,49 +208,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			.catch((e) => console.error('getEASVoteRecord error', e));
 	};
 
-	const fetchProjectDetail = async () => {
-		const res = await getProjectDetail(params.id);
-		console.log('fetchProjectDetail', res);
-		setProjectDetail(res);
-		return res;
-	};
-	const fetchContributorList = async () => {
-		const list = await getContributorList(params.id);
-		console.log('fetchContributorList list', list);
-		setContributorList(list);
-		return list;
-	};
-	const fetchContributionList = async () => {
-		const { list } = await getContributionList({
-			pageSize: 50,
-			currentPage: 1,
-			projectId: params.id,
-		});
-		console.log('fetchContributionList list', list);
-		setContributionList(list);
-		return list;
-	};
-
-	const operatorId = useMemo(() => {
-		if (contributorList.length === 0 || !myInfo) {
-			return '';
-		}
-		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
-	}, [contributorList, myInfo]);
-
-	const eas = useMemo(() => {
-		const activeChainConfig =
-			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
-			EAS_CHAIN_CONFIGS[2];
-		const EASContractAddress = activeChainConfig?.contractAddress;
-		if (!signer) {
-			// TODO deal with eas.connect(signer);
-			return new EAS(EASContractAddress);
-		}
-		return new EAS(EASContractAddress, { signerOrProvider: signer });
-	}, [network, signer]);
-
-	const getBASEURL = () => {
+	const getEasScanURL = () => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
 			(config) => config.chainId === network.chain?.id,
 		);
@@ -214,7 +217,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
-		const baseURL = getBASEURL();
+		const baseURL = getEasScanURL();
 
 		console.log('baseURL:', baseURL);
 
@@ -239,7 +242,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			try {
 				openGlobalLoading();
 				const contribution = await createContribution({
-					projectId: pid,
+					projectId: params.id,
 					operatorId: operatorId as string,
 					...postData,
 					credit: Number(postData.credit),
@@ -254,7 +257,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					'address projectAddress, uint64 cid, string title, string detail, string poc, uint64 token',
 				);
 				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: pid, type: 'address' },
+					{ name: 'projectAddress', value: params.id, type: 'address' },
 					{ name: 'cid', value: contribution.id, type: 'uint64' },
 					{ name: 'title', value: 'first contribution title', type: 'string' },
 					{ name: 'detail', value: postData.detail, type: 'string' },
@@ -290,7 +293,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					console.error('submitSignedAttestation fail', res.data);
 					throw new Error(res.data.error);
 				}
-				const baseURL = getBASEURL();
+				const baseURL = getEasScanURL();
 				// Update ENS names
 				const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 				console.log('getENSRes', getENSRes);
@@ -307,7 +310,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				closeGlobalLoading();
 			}
 		},
-		[myInfo, pid, operatorId, signer, provider, eas],
+		[myInfo, params.id, operatorId, signer, provider, eas],
 	);
 
 	const onVote = useCallback(
@@ -326,7 +329,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					'address projectAddress, uint64 cid, uint8 value, string reason',
 				);
 				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: pid, type: 'address' },
+					{ name: 'projectAddress', value: params.id, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
 					{ name: 'value', value: value, type: 'uint8' },
 					{ name: 'reason', value: 'good contribution', type: 'string' },
@@ -360,7 +363,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					console.error('vote submitSignedAttestation fail', res.data);
 					throw new Error(res.data.error);
 				}
-				const baseURL = getBASEURL();
+				const baseURL = getEasScanURL();
 				// Update ENS names
 				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 				const list = await fetchContributionList();
@@ -374,7 +377,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				closeGlobalLoading();
 			}
 		},
-		[pid, signer, myAddress, eas],
+		[params.id, signer, myAddress, eas],
 	);
 
 	const onClaim = useCallback(
@@ -400,7 +403,8 @@ export default function Page({ params }: { params: { id: string } }) {
 				);
 				console.log('schemaEncoder', schemaEncoder);
 				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: pid, type: 'address' },
+					// @ts-ignore
+					{ name: 'projectAddress', value: params.id, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
 					{
 						name: 'voters',
@@ -438,7 +442,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				closeGlobalLoading();
 			}
 		},
-		[myAddress, pid, eas, network],
+		[myAddress, params.id, eas, network],
 	);
 
 	const readProjectContract = async (cid: number) => {
