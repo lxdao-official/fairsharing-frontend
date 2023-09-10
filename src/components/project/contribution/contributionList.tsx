@@ -31,6 +31,7 @@ export enum IVoteValueEnum {
 	AGAINST = 2,
 	ABSTAIN = 3,
 }
+
 export interface IVoteParams {
 	contributionId: number;
 	value: IVoteValueEnum;
@@ -52,6 +53,7 @@ export interface IContributionListProps {
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
 	easVoteMap: Record<string, EasAttestation[]>;
+	contributorList: IContributor[];
 }
 
 const ContributionList = ({
@@ -60,14 +62,15 @@ const ContributionList = ({
 	onVote,
 	onClaim,
 	easVoteMap,
+	contributorList,
 }: IContributionListProps) => {
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
 	const [showSelect, setShowSelect] = useState(false);
 
-	const [period, setPeriod] = useState('1');
-	const [voteStatus, setVoteStatus] = useState('1');
-	const [contributor, setContributor] = useState('1');
+	const [period, setPeriod] = useState('ALL');
+	const [voteStatus, setVoteStatus] = useState('ALL');
+	const [contributor, setContributor] = useState('ALL');
 
 	const [selected, setSelected] = useState<Array<number>>([]);
 
@@ -102,6 +105,12 @@ const ContributionList = ({
 		setShowSelect((pre) => !pre);
 	};
 
+	const handleRest = () => {
+		setVoteStatus('ALL');
+		setPeriod('ALL');
+		setContributor('ALL');
+	};
+
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
 		console.log('type', type);
 		if (type === 'All') {
@@ -134,9 +143,9 @@ const ContributionList = ({
 						alt={'claim'}
 						onClick={onClickFilterBtn}
 					/>
-					<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
-						Claim({claimTotal})
-					</Button>
+					{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
+					{/*	Claim({claimTotal})*/}
+					{/*</Button>*/}
 				</StyledFlexBox>
 			</StyledFlexBox>
 			{/*TODO 更新filter条件*/}
@@ -151,7 +160,7 @@ const ContributionList = ({
 							sx={{ width: '160px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All time</MenuItem>
+							<MenuItem value={'ALL'}>All time</MenuItem>
 							<MenuItem value={'2'}>This week</MenuItem>
 							<MenuItem value={'3'}>This month</MenuItem>
 							<MenuItem value={'4'}>This season</MenuItem>
@@ -165,7 +174,7 @@ const ContributionList = ({
 							sx={{ width: '200px', margin: '0 16px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All status</MenuItem>
+							<MenuItem value={'ALL'}>All status</MenuItem>
 							<MenuItem value={'2'}>Voted by me</MenuItem>
 							<MenuItem value={'3'}>Unvoted by me</MenuItem>
 							<MenuItem value={'4'}>voted ended</MenuItem>
@@ -178,12 +187,14 @@ const ContributionList = ({
 							sx={{ width: '200px' }}
 							size={'small'}
 						>
-							<MenuItem value={'1'}>All contributors</MenuItem>
-							<MenuItem value={'2'}>Jack</MenuItem>
-							<MenuItem value={'3'}>Mike</MenuItem>
-							<MenuItem value={'4'}>Zed</MenuItem>
+							<MenuItem value={'ALL'}>All contributors</MenuItem>
+							{contributorList.map((contributor) => (
+								<MenuItem key={contributor.wallet} value={contributor.wallet}>
+									{contributor.nickName}
+								</MenuItem>
+							))}
 						</Select>
-						<Button variant={'text'} sx={{ marginLeft: '16px' }}>
+						<Button variant={'text'} sx={{ marginLeft: '16px' }} onClick={handleRest}>
 							Reset
 						</Button>
 					</StyledFlexBox>
@@ -263,10 +274,10 @@ const ContributionList = ({
 					onVote={onVote}
 					onClaim={onClaim}
 					easVoteList={easVoteMap[contribution.uId as string]}
+					contributorList={contributorList}
 				/>
 			))}
 
-			{/*TODO 确认是revok还是delete*/}
 			<Dialog
 				open={showDialog}
 				onClose={onCloseDialog}

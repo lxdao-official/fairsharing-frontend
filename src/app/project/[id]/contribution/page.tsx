@@ -488,6 +488,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					onVote={onVote}
 					onClaim={onClaim}
 					easVoteMap={easVoteMap}
+					contributorList={contributorList}
 				/>
 			) : null}
 		</div>

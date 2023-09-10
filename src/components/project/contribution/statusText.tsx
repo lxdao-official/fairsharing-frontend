@@ -1,11 +1,14 @@
 import { Typography } from '@mui/material';
 import { useMemo } from 'react';
 
+import { formatDistanceToNow, isFuture } from 'date-fns';
+
 import { IContribution, Status } from '@/services/types';
 
 export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
+	period: string;
 }
 
 const StatusColor = {
@@ -20,7 +23,7 @@ const CursorStatus = {
 	[Status.CLAIM]: 'not-allowed',
 };
 
-const StatusText = ({ contribution, onClaim }: IStatusTextProps) => {
+const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 	const { status } = contribution;
 
 	const text = useMemo(() => {
@@ -29,10 +32,14 @@ const StatusText = ({ contribution, onClaim }: IStatusTextProps) => {
 		} else if (status === Status.READY) {
 			return 'To be claimed';
 		} else {
-			// TODO 时间限制
-			return 'Vote ends in 6d 20h';
+			if (isFuture(Number(period))) {
+				const distance = formatDistanceToNow(Number(period));
+				return `Vote ends in ${distance}`;
+			} else {
+				return 'Out of Date';
+			}
 		}
-	}, [status]);
+	}, [status, period]);
 
 	return (
 		<Typography

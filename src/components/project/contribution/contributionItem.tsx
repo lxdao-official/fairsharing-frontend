@@ -21,10 +21,12 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 import Link from 'next/link';
 import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
 
+import { useNetwork } from 'wagmi';
+
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution, IProject } from '@/services/types';
+import { IContribution, IContributor, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 import {
@@ -33,6 +35,7 @@ import {
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
+import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -44,6 +47,7 @@ export interface IContributionItemProps {
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
 	easVoteList: EasAttestation[];
+	contributorList: IContributor[];
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -55,7 +59,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		showDeleteDialog,
 		projectDetail,
 		easVoteList,
+		contributorList,
 	} = props;
+
+	const { chain } = useNetwork();
 
 	const voteInfoMap = useMemo(() => {
 		let For = 0,
@@ -83,6 +90,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 		return { For, Against, Abstain, voters, voterValues };
 	}, [easVoteList]);
+
+	const EasLink = useMemo(() => {
+		const activeChainConfig =
+			EAS_CHAIN_CONFIGS.find((config) => config.chainId === chain?.id) ||
+			EAS_CHAIN_CONFIGS[2];
+		return `${activeChainConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
+	}, [contribution, chain]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -182,15 +196,21 @@ const ContributionItem = (props: IContributionItemProps) => {
 							</Typography>
 						</StyledFlexBox>
 						<StyledFlexBox>
-							<StatusText contribution={contribution} onClaim={handleClaim} />
+							<StatusText
+								contribution={contribution}
+								onClaim={handleClaim}
+								period={projectDetail.votePeriod}
+							/>
 							<Tooltip title="View on chain" placement="top">
-								<Image
-									src={'/images/eas_logo.png'}
-									width={52}
-									height={24}
-									alt={'eas'}
-									style={{ cursor: 'pointer', margin: '0 24px' }}
-								/>
+								<Link href={EasLink} target={'_blank'}>
+									<Image
+										src={'/images/eas_logo.png'}
+										width={52}
+										height={24}
+										alt={'eas'}
+										style={{ cursor: 'pointer', margin: '0 24px' }}
+									/>
+								</Link>
 							</Tooltip>
 
 							<div>
@@ -326,7 +346,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 			</StyledFlexBox>
 
 			{showEdit ? (
-				<PostContribution contribution={contribution} onCancel={onCancel} onPost={onPost} />
+				<PostContribution
+					contribution={contribution}
+					onCancel={onCancel}
+					onPost={onPost}
+					contributorList={contributorList}
+				/>
 			) : null}
 		</>
 	);
