@@ -36,6 +36,7 @@ import {
 } from '@/components/project/contribution/contributionList';
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
 import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { showToast } from '@/store/utils';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -98,6 +99,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return `${activeChainConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
 	}, [contribution, chain]);
 
+	const toContributors = useMemo(() => {
+		const list = contributorList.filter(item => contribution.toIds.includes(item.wallet));
+		return list.reduce((pre, cur, currentIndex) => {
+			return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
+		}, '');
+	}, [contributorList, contribution]);
+
+
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
@@ -123,6 +132,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const handleClaim = () => {
+		const { For, Against, Abstain } = voteInfoMap;
+		if (For === 0 && Against === 0 && Abstain === 0) {
+			showToast('No votes have been recorded for this contribution', 'error');
+			return false;
+		}
 		props.onClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
@@ -291,7 +305,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*contributors*/}
 
 							<>
-								{/*TODO API contributors */}
 								<BorderOutline
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenContributorPopover}
@@ -300,7 +313,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 										variant={'body2'}
 										sx={{ fontWeight: 'bold', color: '#475569' }}
 									>
-										@ Mike,Bruce, +8
+										@{toContributors}
 									</Typography>
 								</BorderOutline>
 								<Popover

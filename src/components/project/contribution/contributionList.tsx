@@ -76,9 +76,6 @@ const ContributionList = ({
 
 	const [showDialog, setShowDialog] = useState(false);
 
-	const getClaim = () => {
-		// 	TODO: get cliam after login
-	};
 
 	const handleHideSelect = () => {
 		setShowSelect(false);
