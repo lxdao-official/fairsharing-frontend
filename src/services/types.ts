@@ -38,7 +38,7 @@ export enum Status {
 
 export interface IContributor {
 	id: string;
-	nickname: string;
+	nickName: string;
 	wallet: string;
 	user: IUser;
 	userId: string;

@@ -42,7 +42,7 @@ import {
 } from '@/services/contribution';
 import { useUserStore } from '@/store/user';
 import { getContributorList } from '@/services/contributor';
-import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import {
 	EasAttestation,
 	EasAttestationData,
@@ -302,6 +302,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					type: 'ready',
 					uId: res.data.offchainAttestationId as string,
 				});
+				showToast('Create contribution success', 'success');
 				console.log('updateStatus', updateStatus);
 				fetchContributionList();
 			} catch (err) {
@@ -363,6 +364,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					console.error('vote submitSignedAttestation fail', res.data);
 					throw new Error(res.data.error);
 				}
+				showToast('Vote success', 'success');
 				const baseURL = getEasScanURL();
 				// Update ENS names
 				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
@@ -381,8 +383,8 @@ export default function Page({ params }: { params: { id: string } }) {
 	);
 
 	const onClaim = useCallback(
-		async (params: IClaimParams) => {
-			const { contributionId, uId, token, voters, voteValues } = params;
+		async (claimParams: IClaimParams) => {
+			const { contributionId, uId, token, voters, voteValues } = claimParams;
 			const claimAddress = await readProjectContract(contributionId);
 			if (claimAddress === myAddress) {
 				console.log('已经claim过了');
@@ -403,7 +405,6 @@ export default function Page({ params }: { params: { id: string } }) {
 				);
 				console.log('schemaEncoder', schemaEncoder);
 				const encodedData = schemaEncoder.encodeData([
-					// @ts-ignore
 					{ name: 'projectAddress', value: params.id, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
 					{
@@ -434,15 +435,17 @@ export default function Page({ params }: { params: { id: string } }) {
 					type: 'claim',
 					uId: uId,
 				});
+				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
 				fetchContributionList();
+				// 	TODO update data by SWR
 			} catch (err) {
 				console.error('onClaim error', err);
 			} finally {
 				closeGlobalLoading();
 			}
 		},
-		[myAddress, params.id, eas, network],
+		[params.id, myAddress, eas, network],
 	);
 
 	const readProjectContract = async (cid: number) => {
@@ -471,7 +474,11 @@ export default function Page({ params }: { params: { id: string } }) {
 				/>
 			</StyledFlexBox>
 
-			<PostContribution onPost={onPostContribution} confirmText={'Post'} />
+			<PostContribution
+				onPost={onPostContribution}
+				confirmText={'Post'}
+				contributorList={contributorList}
+			/>
 
 			{projectDetail && contributionList.length > 0 ? (
 				<ContributionList

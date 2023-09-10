@@ -124,10 +124,8 @@ const ContributionList = ({
 
 	return (
 		<>
-			<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
-				<Typography typography={'h3'} sx={{ marginTop: '16px' }}>
-					Contributions
-				</Typography>
+			<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
+				<Typography typography={'h3'}>Contributions</Typography>
 				<StyledFlexBox sx={{ cursor: 'pointer' }}>
 					<Image
 						src={'/images/claim.png'}
@@ -141,6 +139,7 @@ const ContributionList = ({
 					</Button>
 				</StyledFlexBox>
 			</StyledFlexBox>
+			{/*TODO 更新filter条件*/}
 			{showFilter ? (
 				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
 					<StyledFlexBox>
