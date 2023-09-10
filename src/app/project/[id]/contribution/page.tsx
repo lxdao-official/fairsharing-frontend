@@ -1,7 +1,5 @@
 'use client';
 
-import process from 'process';
-
 import { Typography } from '@mui/material';
 import { useAccount, useNetwork } from 'wagmi';
 
@@ -39,7 +37,6 @@ import PostContribution, { PostData } from '@/components/project/contribution/po
 import {
 	createContribution,
 	getContributionList,
-	ICreateContributionParams,
 	updateContributionStatus,
 } from '@/services/contribution';
 import { useUserStore } from '@/store/user';

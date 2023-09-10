@@ -74,7 +74,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					onChange={handleNameInputChange}
 					sx={{ display: 'block', marginTop: '40px' }}
 					error={nameError}
-					helperText={'Name is required'}
 				/>
 				<TextField
 					required
@@ -85,7 +84,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					sx={{ display: 'block', marginTop: '40px' }}
 					fullWidth={true}
 					error={introError}
-					helperText={'Intro is required'}
 				/>
 				<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={handleSubmit}>
 					Next

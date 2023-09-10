@@ -3,10 +3,10 @@
 import React from 'react';
 import { Backdrop, Button, CircularProgress } from '@mui/material';
 
-import { closeGlobalLoading, openGlobalLoading, useUserStore } from '@/store/utils';
+import { closeGlobalLoading, openGlobalLoading, useUtilsStore } from '@/store/utils';
 
 export default function SimpleGlobalLoading() {
-	const { open } = useUserStore();
+	const { open } = useUtilsStore();
 	const handleClose = () => {
 		closeGlobalLoading();
 	};

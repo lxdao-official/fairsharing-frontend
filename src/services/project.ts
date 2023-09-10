@@ -5,7 +5,7 @@ import { IContributor, IProject } from '@/services/types';
 export interface CreateProjectParams {
 	name: string;
 	/**
-	 * project 合约地址
+	 * project合约地址
 	 */
 	address: string;
 	// TODO symbol含义？

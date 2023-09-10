@@ -25,12 +25,11 @@ import { useEthersSigner } from '@/common/ether';
 
 import { createProject, CreateProjectParams, getProjectList } from '@/services/project';
 
-import { closeGlobalLoading, openGlobalLoading } from '@/store/utils';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
 import { getUserInfo } from '@/services/user';
 import { setUserProjectList } from '@/store/project';
 
-// @ts-ignore
 import { ProjectRegisterABI } from '@/constant/eas';
 
 const steps = [
@@ -75,7 +74,6 @@ export default function Page() {
 		const { avatar, name, intro } = profileFormData;
 		const { symbol, token, period, network } = strategyFormData;
 		const { contributors } = contributorFormData;
-		// TODO 需要考虑 合约调用成功, 但后端调用失败的问题, 需要做好数据同步.
 		const owner = myAddress;
 		const members = contributors.map((contributor) => contributor.wallet);
 		openGlobalLoading();
@@ -108,22 +106,27 @@ export default function Page() {
 			closeGlobalLoading();
 		}
 
-		const params: CreateProjectParams = {
-			logo: avatar,
-			address: contractRes?.projectContract,
-			pointConsensus: token,
-			name: name,
-			intro: intro,
-			symbol: symbol,
-			network: network,
-			votePeriod: period,
-			contributors: contributors,
-		};
+		if (!contractRes?.projectContract) {
+			closeGlobalLoading();
+			throw new Error(' projectContract not found');
+		}
 		try {
+			const params: CreateProjectParams = {
+				logo: avatar,
+				address: contractRes?.projectContract,
+				pointConsensus: token,
+				name: name,
+				intro: intro,
+				symbol: symbol,
+				network: network,
+				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
+				contributors: contributors,
+			};
+
 			console.log('CreateProjectParams', params);
 			const result = await createProject(params);
 			console.log('createProject res', result);
-
+			showToast('Project Created', 'success');
 			await getUserProjectList();
 
 			const { id } = result;
