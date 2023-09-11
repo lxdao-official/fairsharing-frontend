@@ -41,12 +41,20 @@ const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 		}
 	}, [status, period]);
 
+	const handleClaim = () => {
+		if (status === Status.READY) {
+			onClaim()
+		} else {
+			console.log('not in claim status')
+		}
+	}
+
 	return (
 		<Typography
 			variant={'body2'}
 			color={StatusColor[status]}
 			sx={{ cursor: CursorStatus[status] }}
-			onClick={onClaim}
+			onClick={handleClaim}
 		>
 			{text}
 		</Typography>
