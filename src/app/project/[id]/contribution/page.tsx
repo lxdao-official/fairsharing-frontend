@@ -88,7 +88,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			onSuccess: (data) => console.log('getProjectDetail', data),
 		},
 	);
-	const { data: contributorList } = useSWR(
+	const { data: contributorList, mutate: mutateContributorList } = useSWR(
 		['contributor/list', params.id],
 		() => getContributorList(params.id),
 		{
@@ -96,7 +96,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			onSuccess: (data) => console.log('getContributorList', data),
 		},
 	);
-	const { data: contributionList } = useSWR(
+	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		['contribution/list', params.id],
 		() => fetchContributionList(),
 		{
@@ -304,7 +304,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 				showToast('Create contribution success', 'success');
 				console.log('updateStatus', updateStatus);
-				fetchContributionList();
+				await mutateContributionList();
 			} catch (err) {
 				console.error(err);
 			} finally {
@@ -386,11 +386,11 @@ export default function Page({ params }: { params: { id: string } }) {
 	const onClaim = useCallback(
 		async (claimParams: IClaimParams) => {
 			const { contributionId, uId, token, voters, voteValues } = claimParams;
-			const claimAddress = await readProjectContract(contributionId);
-			if (claimAddress === myAddress) {
-				console.log('已经claim过了');
-				return false;
-			}
+			// const claimAddress = await readProjectContract(contributionId);
+			// if (claimAddress === myAddress) {
+			// 	console.log('已经claim过了');
+			// 	return false;
+			// }
 			console.log('onClaim params', params);
 			try {
 				openGlobalLoading();
@@ -438,7 +438,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
-				fetchContributionList();
+				mutateContributionList()
 				// 	TODO update data by SWR
 			} catch (err) {
 				console.error('onClaim error', err);
