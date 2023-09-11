@@ -36,7 +36,7 @@ const { wallets } = getDefaultWallets({
 });
 
 const demoAppInfo = {
-	appName: process.env.WALLET_CONNECT_NAME as string,
+	appName: process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string,
 };
 
 const connectors = connectorsForWallets([
