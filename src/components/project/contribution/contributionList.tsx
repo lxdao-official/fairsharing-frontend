@@ -76,7 +76,6 @@ const ContributionList = ({
 
 	const [showDialog, setShowDialog] = useState(false);
 
-
 	const handleHideSelect = () => {
 		setShowSelect(false);
 	};

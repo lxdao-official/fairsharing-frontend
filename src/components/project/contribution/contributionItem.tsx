@@ -100,12 +100,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [contribution, chain]);
 
 	const toContributors = useMemo(() => {
-		const list = contributorList.filter(item => contribution.toIds.includes(item.wallet));
+		const list = contributorList.filter((item) => contribution.toIds.includes(item.wallet));
 		return list.reduce((pre, cur, currentIndex) => {
 			return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
 		}, '');
 	}, [contributorList, contribution]);
-
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
