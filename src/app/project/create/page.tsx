@@ -197,13 +197,6 @@ export default function Page() {
 							onCreateProject={handleCreateProject}
 						/>
 					</StepContent>
-					<Button
-						variant={'contained'}
-						onClick={handleGetFormData}
-						sx={{ marginTop: '40px' }}
-					>
-						console form data
-					</Button>
 				</Box>
 			</Container>
 		</Img3Provider>

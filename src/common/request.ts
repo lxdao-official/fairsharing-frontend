@@ -126,7 +126,7 @@ function getHost() {
 }
 
 export function getRequestUrl(api: string, version: number | string = 1): string {
-	return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${api}`;
+	return `${process.env.NEXT_PUBLIC_API_BASE_URL}${api}`;
 }
 
 export function getAPIUrl(api: string, version: number | string = 1): string {
