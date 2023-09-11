@@ -372,7 +372,8 @@ export default function Page({ params }: { params: { id: string } }) {
 				const cids = list
 					.filter((contribution) => !!contribution.uId)
 					.map((item) => item.uId);
-				fetchEasContributionList(cids as string[]);
+				await fetchEasContributionList(cids as string[]);
+				await fetchEasVoteList(contributionUIds)
 			} catch (e) {
 				console.error('onVote error', e);
 			} finally {
