@@ -1,6 +1,6 @@
 import process from 'process';
 
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
 	Button,
@@ -28,6 +28,7 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
 import { Contributor, PermissionEnum } from '@/services/project';
+import { showToast } from '@/store/utils';
 
 export interface IStepContributorProps extends IStepBaseProps {}
 
@@ -49,6 +50,20 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			permission: PermissionEnum.Owner,
 		},
 	]);
+
+	const handleSubmit = () => {
+		if (isContributorRepeat) {
+			showToast('Repeated wallet address', 'error');
+			return false;
+		}
+		onCreateProject?.();
+	};
+
+	const isContributorRepeat = useMemo(() => {
+		const wallets = contributors.map((item) => item.wallet);
+		const unique = Array.from(new Set(wallets));
+		return unique.length !== contributors.length;
+	}, [contributors]);
 
 	const handleNameChange = (index: number, value: string) => {
 		const newData = [...contributors];
@@ -167,9 +182,6 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 						))}
 					</TableBody>
 				</Table>
-				{/*<Button variant="outlined" onClick={handleAddRow}>*/}
-				{/*	Add IContributor*/}
-				{/*</Button>*/}
 				<StyledFlexBox
 					sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
 					onClick={handleAddRow}
@@ -189,7 +201,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				>
 					Back
 				</Button>
-				<Button variant={'contained'} sx={{ marginLeft: '16px' }} onClick={onCreateProject}>
+				<Button variant={'contained'} sx={{ marginLeft: '16px' }} onClick={handleSubmit}>
 					Create
 				</Button>
 			</StyledFlexBox>
