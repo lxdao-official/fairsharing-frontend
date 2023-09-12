@@ -76,16 +76,22 @@ export default function Page() {
 		const { contributors } = contributorFormData;
 		const owner = myAddress;
 		const members = contributors.map((contributor) => contributor.wallet);
-		openGlobalLoading();
-		const contract = new ethers.Contract(
-			`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
-			ProjectRegisterABI,
-			signer,
-		);
-		let contractRes;
 		try {
+			openGlobalLoading();
+			const contract = new ethers.Contract(
+				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
+				ProjectRegisterABI,
+				signer,
+			);
+
 			const votingContract = `${process.env.NEXT_PUBLIC_DEFAULT_VOTING_STRATEGY}`;
-			console.log('create project params', owner, members, symbol, votingContract);
+			console.log(
+				'【Contract】create project params',
+				owner,
+				members,
+				symbol,
+				votingContract,
+			);
 			const tx: TransactionResponse = await contract.create(
 				owner,
 				members,
@@ -93,27 +99,21 @@ export default function Page() {
 				votingContract,
 			);
 			const response = await tx.wait(1);
-			if (response.status === 1) {
-				const count: bigint = await contract.projectsCount();
-				const projectAddress = await contract.getOwnerLatestProject(
-					owner,
-					0,
-					Number(count) - 1,
-				);
-				contractRes = { projectContract: projectAddress };
+			if (response.status !== 1) {
+				throw new Error('【Contract】projectContract not found');
 			}
-		} catch (e) {
-			closeGlobalLoading();
-		}
-
-		if (!contractRes?.projectContract) {
-			closeGlobalLoading();
-			throw new Error(' projectContract not found');
-		}
-		try {
+			const count: bigint = await contract.projectsCount();
+			const projectAddress = await contract.getOwnerLatestProject(
+				owner,
+				0,
+				Number(count) - 1,
+			);
+			if (!projectAddress) {
+				throw new Error('【Contract】 projectAddress not found');
+			}
 			const params: CreateProjectParams = {
 				logo: avatar,
-				address: contractRes?.projectContract,
+				address: projectAddress,
 				pointConsensus: token,
 				name: name,
 				intro: intro,
@@ -122,17 +122,14 @@ export default function Page() {
 				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
 				contributors: contributors,
 			};
-
-			console.log('CreateProjectParams', params);
+			console.log('【BE】CreateProjectParams', params);
 			const result = await createProject(params);
-			console.log('createProject res', result);
+			console.log('【BE】createProject res', result);
 			showToast('Project Created', 'success');
 			await getUserProjectList();
-
-			const { id } = result;
-			router.push(`/project/${id}/contribution`);
+			router.push(`/project/${result.id}/contribution`);
 		} catch (e) {
-			console.error('createProject error', e);
+			console.error('createProject', e);
 		} finally {
 			closeGlobalLoading();
 		}

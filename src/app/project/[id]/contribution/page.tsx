@@ -373,7 +373,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					.filter((contribution) => !!contribution.uId)
 					.map((item) => item.uId);
 				await fetchEasContributionList(cids as string[]);
-				await fetchEasVoteList(contributionUIds)
+				await fetchEasVoteList(contributionUIds);
 			} catch (e) {
 				console.error('onVote error', e);
 			} finally {
@@ -438,7 +438,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
-				mutateContributionList()
+				mutateContributionList();
 				// 	TODO update data by SWR
 			} catch (err) {
 				console.error('onClaim error', err);

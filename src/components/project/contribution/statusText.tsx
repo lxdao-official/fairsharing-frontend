@@ -43,11 +43,11 @@ const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 
 	const handleClaim = () => {
 		if (status === Status.READY) {
-			onClaim()
+			onClaim();
 		} else {
-			console.log('not in claim status')
+			console.log('not in claim status');
 		}
-	}
+	};
 
 	return (
 		<Typography

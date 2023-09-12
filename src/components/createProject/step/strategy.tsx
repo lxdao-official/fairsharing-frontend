@@ -14,6 +14,7 @@ import {
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
+import { showToast } from '@/store/utils';
 
 export interface IStepStrategyProps extends IStepBaseProps {}
 
@@ -69,12 +70,20 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			setTokenError(true);
 			return;
 		}
+		if (!Number(token)) {
+			setTokenError(true);
+			showToast('Token must be number', 'error');
+			return;
+		}
 		if (!period) {
 			setPeriodError(true);
 			return;
 		}
-
-		// 在这里执行提交逻辑
+		if (!Number(period)) {
+			setPeriodError(true);
+			showToast('Vote period must be number', 'error');
+			return;
+		}
 		setActiveStep(action === 'BACK' ? step - 1 : step + 1);
 	};
 
