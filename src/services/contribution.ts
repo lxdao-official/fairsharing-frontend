@@ -20,6 +20,7 @@ export interface ICreateContributionParams extends IAuthBody {
 export interface IUpdateContributionParams {
 	type: 'claim' | 'ready';
 	uId?: string;
+	operatorId?: string;
 }
 
 export const createContribution = (params: ICreateContributionParams) => {

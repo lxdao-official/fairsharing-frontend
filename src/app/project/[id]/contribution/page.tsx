@@ -435,11 +435,11 @@ export default function Page({ params }: { params: { id: string } }) {
 				const updateStatus = await updateContributionStatus(contributionId, {
 					type: 'claim',
 					uId: uId,
+					operatorId: operatorId,
 				});
 				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
-				mutateContributionList();
-				// 	TODO update data by SWR
+				await mutateContributionList();
 			} catch (err) {
 				console.error('onClaim error', err);
 			} finally {
@@ -463,7 +463,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	};
 
 	return (
-		<div style={{ flex: '1' }}>
+		<div style={{ flex: '1', minWidth: '600px' }}>
 			<StyledFlexBox>
 				<Typography typography={'h3'}>Post your contribution</Typography>
 				<Image
