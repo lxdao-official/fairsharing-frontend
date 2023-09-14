@@ -23,6 +23,7 @@
     "@lxdao/uploader3-connector": "^1.0.1",
     "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.3",
+    "@mui/x-data-grid": "^6.13.0",
     "@rainbow-me/rainbowkit": "^1.0.8",
     "@tanstack/react-query": "^4.32.6",
     "@types/node": "20.4.8",
