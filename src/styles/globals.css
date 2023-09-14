@@ -84,3 +84,7 @@ article, aside, details, footer, header, nav, section {
 ol, ul {
     list-style: none
 }
+
+.MuiDataGrid-root .MuiDataGrid-cell:focus-within {
+    outline: none !important;
+}

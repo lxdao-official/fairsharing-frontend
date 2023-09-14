@@ -2,13 +2,16 @@
 
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { Avatar, Typography, styled, TextField } from '@mui/material';
+import Image from 'next/image';
+import { useCallback, useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { StyledFlexBox } from '@/components/styledComponents';
+import { IContributor } from '@/services/types';
 import { getContributorList } from '@/services/contributor';
 import { PermissionEnum } from '@/services/project';
 import { formatWalletAddress } from '@/utils/wallet';
-import { Avatar, Typography, styled, TextField } from '@mui/material';
-import { StyledFlexBox } from '@/components/styledComponents';
-import { useCallback, useState } from 'react';
-import { IContributor } from '@/services/types';
+import { showToast } from '@/store/utils';
 
 const PermissionWrapper = styled('div')`
 	display: flex;
@@ -42,7 +45,20 @@ const columns: GridColDef[] = [
 		sortable: false,
 		width: 200,
 		renderCell: (item) => {
-			return <Typography variant="body1">{formatWalletAddress(item.value)}</Typography>;
+			return (
+				<StyledFlexBox sx={{ gap: '4px' }}>
+					<Typography variant="body1">{formatWalletAddress(item.value)}</Typography>
+					<CopyToClipboard text={item.value} onCopy={() => showToast('Copy success!')}>
+						<Image
+							src="/images/copy.png"
+							width={24}
+							height={24}
+							alt="copy"
+							style={{ cursor: 'pointer' }}
+						/>
+					</CopyToClipboard>
+				</StyledFlexBox>
+			);
 		},
 	},
 	{
