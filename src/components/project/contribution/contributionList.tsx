@@ -6,13 +6,12 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogContentText,
-	DialogTitle,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
 	Typography,
 } from '@mui/material';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
 import Image from 'next/image';
 
