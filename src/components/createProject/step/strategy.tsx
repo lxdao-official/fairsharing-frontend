@@ -21,7 +21,6 @@ export interface IStepStrategyProps extends IStepBaseProps {}
 export interface StepStrategyRef {
 	getFormData: () => {
 		symbol: string;
-		token: string;
 		network: number;
 		period: string;
 	};
@@ -29,23 +28,16 @@ export interface StepStrategyRef {
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep } = props;
-	const [symbol, setSymbol] = useState('Token Symbol');
-	const [token, setToken] = useState('1200');
+	const [symbol, setSymbol] = useState('');
 	const [network, setNetwork] = useState(420);
-	const [period, setPeriod] = useState('365');
+	const [period, setPeriod] = useState('');
 
 	const [symbolError, setSymbolError] = useState(false);
-	const [tokenError, setTokenError] = useState(false);
 	const [periodError, setPeriodError] = useState(false);
 
 	const handleSymbolInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setSymbol(event.target.value);
 		setSymbolError(false);
-	};
-
-	const handleTokenInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setToken(event.target.value);
-		setTokenError(false);
 	};
 
 	const handleNetworkChange = (event: SelectChangeEvent) => {
@@ -60,21 +52,12 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	useImperativeHandle(
 		ref,
 		() => ({
-			getFormData: () => ({ token, network, period, symbol }),
+			getFormData: () => ({ network, period, symbol }),
 		}),
-		[token, network, period, symbol],
+		[network, period, symbol],
 	);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
-		if (!token) {
-			setTokenError(true);
-			return;
-		}
-		if (!Number(token)) {
-			setTokenError(true);
-			showToast('Token must be number', 'error');
-			return;
-		}
 		if (!period) {
 			setPeriodError(true);
 			return;
@@ -99,17 +82,6 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				error={symbolError}
 			/>
 
-			<TextField
-				required
-				label="Token"
-				value={token}
-				placeholder={'Pizza slice token *'}
-				onChange={handleTokenInputChange}
-				sx={{ display: 'block', minWidth: '', marginTop: '32px' }}
-				error={tokenError}
-			/>
-
-			{/*<InputLabel id="network-select-label">Network</InputLabel>*/}
 			<Select
 				labelId="network-select-label"
 				id="network-select"
