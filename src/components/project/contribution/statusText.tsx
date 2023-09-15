@@ -1,9 +1,10 @@
 import { Typography } from '@mui/material';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { formatDistanceToNow, isFuture } from 'date-fns';
 
 import { IContribution, Status } from '@/services/types';
+import useCountdown from '@/hooks/useCountdown';
 
 export interface IStatusTextProps {
 	contribution: IContribution;
@@ -12,7 +13,7 @@ export interface IStatusTextProps {
 }
 
 const StatusColor = {
-	[Status.UNREADY]: '#D32F2F',
+	[Status.UNREADY]: '#64748B',
 	[Status.READY]: '#0A9B80',
 	[Status.CLAIM]: '#64748B',
 };
@@ -25,6 +26,12 @@ const CursorStatus = {
 
 const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 	const { status } = contribution;
+	const { days, hours, minutes, seconds } = useCountdown(Number(period));
+	const [countdownText, setCountdownText] = useState('');
+
+	useEffect(() => {
+		setCountdownText(getCountDownText(days, hours, minutes, seconds));
+	}, [days, hours, minutes, seconds]);
 
 	const text = useMemo(() => {
 		if (status === Status.CLAIM) {
@@ -32,20 +39,28 @@ const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 		} else if (status === Status.READY) {
 			return 'To be claimed';
 		} else {
-			if (isFuture(Number(period))) {
-				const distance = formatDistanceToNow(Number(period));
-				return `Vote ends in ${distance}`;
-			} else {
-				return 'Out of Date';
-			}
+			return countdownText;
 		}
-	}, [status, period]);
+	}, [status, period, countdownText]);
+
+	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
+		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
+			return 'Vote ended';
+		}
+		if (days > 0) {
+			return `Vote ends in ${days}d ${hours}h`;
+		} else if (hours > 0) {
+			return `Vote ends in ${hours}h ${minutes}m`;
+		} else if (minutes > 0) {
+			return `Vote ends in ${minutes}m ${seconds}s`;
+		} else {
+			return `Vote ends in ${seconds}s`;
+		}
+	};
 
 	const handleClaim = () => {
 		if (status === Status.READY) {
 			onClaim();
-		} else {
-			console.log('not in claim status');
 		}
 	};
 

@@ -6,6 +6,7 @@ import { Avatar, Typography, styled, TextField } from '@mui/material';
 import Image from 'next/image';
 import { useCallback, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContributor } from '@/services/types';
 import { getContributorList } from '@/services/contributor';
