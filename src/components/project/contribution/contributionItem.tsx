@@ -15,7 +15,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { format } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
@@ -204,8 +204,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
 							<Typography variant={'subtitle1'}>{projectDetail.name}</Typography>
-							<Typography sx={{ marginLeft: '12px' }}>
-								{format(new Date(contribution.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+							<Typography
+								variant={'body2'}
+								sx={{ marginLeft: '12px', color: '#64748B' }}
+							>
+								{formatDistance(new Date(contribution.createAt), new Date(), {
+									includeSeconds: false,
+									addSuffix: true,
+								})}
 							</Typography>
 						</StyledFlexBox>
 						<StyledFlexBox>
