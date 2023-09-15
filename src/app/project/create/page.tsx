@@ -114,7 +114,7 @@ export default function Page() {
 			const params: CreateProjectParams = {
 				logo: avatar,
 				address: projectAddress,
-				pointConsensus: '', // token不传
+				pointConsensus: '999999',
 				name: name,
 				intro: intro,
 				symbol: symbol,

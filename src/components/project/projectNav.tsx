@@ -23,7 +23,7 @@ const ProjectNav = () => {
 				variant={'subtitle1'}
 				style={{ borderBottom: '1px solid rgba(15, 23, 42, 0.16)', padding: '8px 16px' }}
 			>
-				Project Name
+				Project
 			</Typography>
 			<NavItem
 				href={`/project/${params.id}/contribution`}

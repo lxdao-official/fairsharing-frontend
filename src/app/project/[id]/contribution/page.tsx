@@ -303,7 +303,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				const updateStatus = await updateContributionStatus(contribution.id, {
 					type: 'ready',
 					uId: res.data.offchainAttestationId as string,
-					operatorId: operatorId
+					operatorId: operatorId,
 				});
 				showToast('Create contribution success', 'success');
 				console.log('updateStatus', updateStatus);
