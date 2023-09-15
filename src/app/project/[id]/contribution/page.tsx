@@ -23,6 +23,8 @@ import { readContract } from '@wagmi/core';
 
 import useSWR from 'swr';
 
+import { ethers } from 'ethers';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
@@ -301,6 +303,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				const updateStatus = await updateContributionStatus(contribution.id, {
 					type: 'ready',
 					uId: res.data.offchainAttestationId as string,
+					operatorId: operatorId
 				});
 				showToast('Create contribution success', 'success');
 				console.log('updateStatus', updateStatus);
@@ -404,7 +407,6 @@ export default function Page({ params }: { params: { id: string } }) {
 				const schemaEncoder = new SchemaEncoder(
 					'address projectAddress, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
 				);
-				console.log('schemaEncoder', schemaEncoder);
 				const encodedData = schemaEncoder.encodeData([
 					{ name: 'projectAddress', value: params.id, type: 'address' },
 					{ name: 'cid', value: contributionId, type: 'uint64' },
@@ -414,7 +416,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						type: 'address[]',
 					},
 					{ name: 'values', value: voteValues, type: 'uint8[]' },
-					{ name: 'token', value: token, type: 'uint64' },
+					{ name: 'token', value: ethers.parseUnits(String(token), 18), type: 'uint64' },
 					{ name: 'signature', value: signature, type: 'bytes' },
 				]);
 
