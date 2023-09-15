@@ -58,6 +58,10 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
+		if (!symbol) {
+			setSymbolError(true);
+			return;
+		}
 		if (!period) {
 			setPeriodError(true);
 			return;

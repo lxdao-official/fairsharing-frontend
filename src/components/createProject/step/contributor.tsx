@@ -44,14 +44,17 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const [contributors, setContributors] = useState<Contributor[]>([
 		{
-			nickName: 'LGC',
-			wallet: myAddress || '',
-			role: 'Developer',
+			nickName: '',
+			wallet: '',
+			role: '',
 			permission: PermissionEnum.Owner,
 		},
 	]);
 
 	const handleSubmit = () => {
+		if (!validContributors()) {
+			return false;
+		}
 		if (isContributorRepeat) {
 			showToast('Repeated wallet address', 'error');
 			return false;
@@ -64,6 +67,24 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		const unique = Array.from(new Set(wallets));
 		return unique.length !== contributors.length;
 	}, [contributors]);
+
+	const validContributors = () => {
+		let valid = true;
+		contributors.forEach((item) => {
+			const { nickName, wallet } = item;
+			if (!nickName) {
+				showToast('Empty Nickname', 'error');
+				valid = false;
+				return false;
+			}
+			if (!wallet) {
+				valid = false;
+				showToast('Empty wallet address', 'error');
+				return false;
+			}
+		});
+		return valid;
+	};
 
 	const handleNameChange = (index: number, value: string) => {
 		const newData = [...contributors];
@@ -124,7 +145,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 							<TableCell width={300}>Wallet Address*</TableCell>
 							<TableCell width={160}>Permission</TableCell>
 							<TableCell width={230}>Role</TableCell>
-							<TableCell>Action</TableCell>
+							{contributors.length > 1 ? <TableCell>Action</TableCell> : null}
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -173,11 +194,13 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
 								</TableCell>
-								<TableCell>
-									<IconButton onClick={() => handleDeleteRow(index)}>
-										<DeleteIcon />
-									</IconButton>
-								</TableCell>
+								{contributors.length > 1 ? (
+									<TableCell>
+										<IconButton onClick={() => handleDeleteRow(index)}>
+											<DeleteIcon />
+										</IconButton>
+									</TableCell>
+								) : null}
 							</TableRow>
 						))}
 					</TableBody>

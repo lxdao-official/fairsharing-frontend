@@ -6,6 +6,7 @@ import { Button, styled, TextField, Typography } from '@mui/material';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import MultipleContributorSelector from '@/components/project/contribution/contributorSelector';
+import { showToast } from '@/store/utils';
 
 export interface IPostContributionProps {
 	onPost: (data: PostData) => void;
@@ -29,10 +30,10 @@ const PostContribution = ({
 	confirmText,
 	contributorList,
 }: IPostContributionProps) => {
-	const [detail, setDetail] = useState(contribution?.detail || 'contribution detail');
-	const [proof, setProof] = useState(contribution?.proof || 'https://google.com');
+	const [detail, setDetail] = useState(contribution?.detail || '');
+	const [proof, setProof] = useState(contribution?.proof || '');
 	const [contributors, setContributors] = useState<string[]>([]);
-	const [credit, setCredit] = useState(String(contribution?.credit || '9'));
+	const [credit, setCredit] = useState(String(contribution?.credit || ''));
 
 	useEffect(() => {
 		if (contributorList.length > 0) {
@@ -56,6 +57,22 @@ const PostContribution = ({
 	};
 
 	const onSubmit = () => {
+		if (!detail) {
+			showToast('Contribution detail is required', 'error');
+			return;
+		}
+		if (!proof) {
+			showToast('Contribution proof is required', 'error');
+			return;
+		}
+		if (contributors.length === 0) {
+			showToast('Contributor is required', 'error');
+			return;
+		}
+		if (!credit || Number(credit) <= 0) {
+			showToast('Contribution credit should be a positive integer', 'error');
+			return;
+		}
 		const params: PostData = { detail, proof, contributors, credit };
 		onPost(params);
 	};
