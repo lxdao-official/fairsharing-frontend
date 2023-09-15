@@ -45,20 +45,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							enableColorOnDark={true}
 						>
 							<Toolbar>
-								<Link href={'/'}>
+								<Link
+									href={'/'}
+									style={{ display: 'flex', flex: 1, alignItems: 'center' }}
+								>
 									<Image
 										src={'/images/FS_logo.png'}
 										width={28}
 										height={28}
 										alt={'FS'}
 									/>
+
+									<Typography
+										variant="h4"
+										sx={{ flexGrow: 1, fontWeight: 'bold', marginLeft: '8px' }}
+									>
+										FairSharing
+									</Typography>
 								</Link>
-								<Typography
-									variant="h4"
-									sx={{ flexGrow: 1, fontWeight: 'bold', marginLeft: '8px' }}
-								>
-									FairSharing
-								</Typography>
 								<div style={{ fontSize: '12px' }}>
 									<ConnectButton />
 								</div>

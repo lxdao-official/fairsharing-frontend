@@ -114,6 +114,7 @@ const Item = ({
 
 const NavContainer = styled('nav')({
 	width: '80px',
+	minWidth: '80px',
 	height: '100%',
 	paddingBottom: '40px',
 	borderRight: '0.5px solid #CBD5E1',
