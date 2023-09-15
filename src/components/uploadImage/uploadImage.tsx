@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { CroppedFile, SelectedFile, Uploader3, UploadFile, UploadResult } from '@lxdao/uploader3';
-import { Icon } from '@iconify/react';
 
 import { createConnector } from '@lxdao/uploader3-connector';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import { Typography } from '@mui/material';
 
-import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 import { Img3 } from '@lxdao/img3';
+
+import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 
 export interface IUploadImageProps {
 	uploadSuccess?: (url: string) => void;
-	defaultAvatar: string
+	defaultAvatar: string;
 }
 
 export default function UploadImage(props: IUploadImageProps) {
@@ -54,7 +53,11 @@ export default function UploadImage(props: IUploadImageProps) {
 					{file ? (
 						<PreviewFile file={file} />
 					) : (
-						<Img3 style={{ maxHeight: '100%', maxWidth: '100%' }} src={props.defaultAvatar} alt={'FS'} />
+						<Img3
+							style={{ maxHeight: '100%', maxWidth: '100%' }}
+							src={props.defaultAvatar}
+							alt={'FS'}
+						/>
 					)}
 				</PreviewWrapper>
 			</Uploader3>

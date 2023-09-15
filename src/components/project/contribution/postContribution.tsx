@@ -52,8 +52,8 @@ const PostContribution = ({
 		setCredit(event.target.value);
 	};
 
-	const handleContributorChange = (wallets: string[]) => {
-		setContributors(wallets);
+	const handleContributorChange = (values: string[]) => {
+		setContributors(values);
 	};
 
 	const onSubmit = () => {

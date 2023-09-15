@@ -8,14 +8,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import styles from '@/styles/project.module.css';
+import { useProjectStore } from '@/store/project';
 
 const ProjectNav = () => {
 	const pathname = usePathname();
 	const params = useParams();
+	const { currentProjectId, userProjectList } = useProjectStore();
 
 	const isMatch = (name: string) => {
 		return pathname.indexOf(name) > -1;
 	};
+
+	const projectName = useMemo(() => {
+		return userProjectList.find((item) => item.id === currentProjectId)?.name;
+	}, [currentProjectId, userProjectList]);
 
 	return (
 		<div className={styles.projectNavContainer}>
@@ -23,7 +29,7 @@ const ProjectNav = () => {
 				variant={'subtitle1'}
 				style={{ borderBottom: '1px solid rgba(15, 23, 42, 0.16)', padding: '8px 16px' }}
 			>
-				Project
+				{projectName || 'Project'}
 			</Typography>
 			<NavItem
 				href={`/project/${params.id}/contribution`}

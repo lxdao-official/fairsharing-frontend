@@ -57,7 +57,12 @@ export default function Nav() {
 
 	return (
 		<NavContainer>
-			<Item href={'/'} image={'/images/home.png'} isActive={pathname === '/'} />
+			<Item
+				href={'/'}
+				image={'/images/home.png'}
+				noBorder={pathname !== '/'}
+				isActive={pathname === '/'}
+			/>
 			{userProjectList.map((project, idx) => (
 				<Item
 					href={`/project/${project.id}/contribution`}
@@ -72,6 +77,7 @@ export default function Nav() {
 				image={'/images/new.png'}
 				isActive={pathname === '/project/create'}
 				prefetch={true}
+				noBorder={pathname !== '/project/create'}
 			/>
 		</NavContainer>
 	);
@@ -83,12 +89,14 @@ const Item = ({
 	name,
 	isActive,
 	prefetch,
+	noBorder,
 }: {
 	href: string;
 	image?: string;
 	isActive?: boolean;
 	name?: string;
 	prefetch?: boolean;
+	noBorder?: boolean;
 }) => {
 	return (
 		<Link href={href} prefetch={!!prefetch}>
@@ -101,7 +109,11 @@ const Item = ({
 							width: '56px',
 							height: '56px',
 							borderRadius: '56px',
-							border: isActive ? '1px solid rgba(0, 0, 0, 1)' : '0.5px solid #CBD5E1',
+							border: noBorder
+								? 'none'
+								: isActive
+								? '1px solid rgba(0, 0, 0, 1)'
+								: '0.5px solid #CBD5E1',
 						}}
 					/>
 				) : (
@@ -114,11 +126,12 @@ const Item = ({
 
 const NavContainer = styled('nav')({
 	width: '80px',
+	minWidth: '80px',
 	height: '100%',
 	paddingBottom: '40px',
 	borderRight: '0.5px solid #CBD5E1',
 	background: '#fff',
-	overflowY: 'scroll'
+	overflowY: 'scroll',
 });
 
 const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({
