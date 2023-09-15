@@ -118,7 +118,7 @@ const NavContainer = styled('nav')({
 	paddingBottom: '40px',
 	borderRight: '0.5px solid #CBD5E1',
 	background: '#fff',
-	overflowY: 'scroll'
+	overflowY: 'scroll',
 });
 
 const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({

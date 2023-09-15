@@ -59,7 +59,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								>
 									FairSharing
 								</Typography>
-								<ConnectButton />
+								<div style={{ fontSize: '12px' }}>
+									<ConnectButton />
+								</div>
 							</Toolbar>
 						</AppBar>
 						<div className={styles.main}>
