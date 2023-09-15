@@ -39,14 +39,13 @@ export default function MultipleContributorSelector(props: IContributorSelectorP
 		const {
 			target: { value },
 		} = event;
-		console.log('value', value);
 		setSelectedValue(value as string[]);
 		onChange(value as string[]);
 	};
 
 	const findName = useCallback(
-		(wallet: string) => {
-			const name = contributorList.find((item) => item.wallet === wallet)?.nickName;
+		(id: string) => {
+			const name = contributorList.find((item) => item.id === id)?.nickName;
 			return `@${name}`;
 		},
 		[contributorList],
@@ -75,8 +74,8 @@ export default function MultipleContributorSelector(props: IContributorSelectorP
 					size={'small'}
 				>
 					{contributorList.map((contributor) => (
-						<MenuItem key={contributor.id} value={contributor.wallet}>
-							<Checkbox checked={selectedValue.includes(contributor.wallet)} />
+						<MenuItem key={contributor.id} value={contributor.id}>
+							<Checkbox checked={selectedValue.includes(contributor.id)} />
 							<ListItemText primary={contributor.nickName} />
 						</MenuItem>
 					))}
