@@ -72,7 +72,7 @@ export default function Page() {
 			stepContributorRef.current as StepContributorRef
 		).getFormData();
 		const { avatar, name, intro } = profileFormData;
-		const { symbol, token, period, network } = strategyFormData;
+		const { symbol, period, network } = strategyFormData;
 		const { contributors } = contributorFormData;
 		const owner = myAddress;
 		const members = contributors.map((contributor) => contributor.wallet);
@@ -114,7 +114,7 @@ export default function Page() {
 			const params: CreateProjectParams = {
 				logo: avatar,
 				address: projectAddress,
-				pointConsensus: token,
+				pointConsensus: '999999',
 				name: name,
 				intro: intro,
 				symbol: symbol,

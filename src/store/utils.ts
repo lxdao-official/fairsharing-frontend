@@ -33,11 +33,11 @@ export function closeGlobalLoading() {
 	UtilsStore.open = false;
 }
 
-export function showToast(text: string, severity: AlertColor, duration?: number) {
+export function showToast(text: string, severity: AlertColor = 'success', duration?: number) {
 	UtilsStore.alert = {
 		open: true,
 		content: text,
-		severity: severity || 'success',
+		severity: severity,
 		autoHideDuration: duration || 5000,
 	};
 }

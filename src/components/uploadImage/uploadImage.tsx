@@ -8,9 +8,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { Typography } from '@mui/material';
 
 import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
+import { Img3 } from '@lxdao/img3';
 
 export interface IUploadImageProps {
 	uploadSuccess?: (url: string) => void;
+	defaultAvatar: string
 }
 
 export default function UploadImage(props: IUploadImageProps) {
@@ -52,9 +54,7 @@ export default function UploadImage(props: IUploadImageProps) {
 					{file ? (
 						<PreviewFile file={file} />
 					) : (
-						<span>
-							<AccountCircleIcon sx={{ color: '#94a3b8', fontSize: 200 }} />
-						</span>
+						<Img3 style={{ maxHeight: '100%', maxWidth: '100%' }} src={props.defaultAvatar} alt={'FS'} />
 					)}
 				</PreviewWrapper>
 			</Uploader3>

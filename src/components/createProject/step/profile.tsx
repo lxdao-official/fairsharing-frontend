@@ -18,12 +18,12 @@ export interface StepProfileRef {
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 	(props: IStepProfileProps, ref) => {
 		const { step, setActiveStep } = props;
-		const [name, setName] = useState('Jack');
-		const [intro, setIntro] = useState('Web3 Builder');
+		const [name, setName] = useState('');
+		const [intro, setIntro] = useState('');
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
 		const [avatar, setAvatar] = useState(
-			'https://nftstorage.link/ipfs/bafkreihz3ibqbfxwkjpz5fuhvolrn45s2umjarm7wu4r4wtacupic3wa6m',
+			'https://bafkreig4ikgldw4nnfkflakfq43r7inam2bi52na2tngm5sxluqwwdqcim.ipfs.nftstorage.link/',
 		);
 
 		useImperativeHandle(
@@ -52,9 +52,6 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 				setIntroError(true);
 				return;
 			}
-
-			// 在这里执行提交逻辑
-			console.log('Form submitted:', { name, intro });
 			setActiveStep(step + 1);
 		};
 
@@ -64,7 +61,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 
 		return (
 			<>
-				<UploadImage uploadSuccess={uploadSuccess} />
+				<UploadImage defaultAvatar={avatar} uploadSuccess={uploadSuccess} />
 
 				<TextField
 					required

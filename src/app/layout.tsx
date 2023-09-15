@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
 
-import { AppBar, Button, styled, Toolbar, Typography } from '@mui/material';
+import { AppBar, Toolbar, Typography } from '@mui/material';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import Image from 'next/image';
