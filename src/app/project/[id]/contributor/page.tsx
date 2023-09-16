@@ -2,17 +2,14 @@
 
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Avatar, Typography, styled, TextField } from '@mui/material';
-import Image from 'next/image';
+import { Typography, styled, TextField } from '@mui/material';
 import { useCallback, useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContributor } from '@/services/types';
 import { getContributorList } from '@/services/contributor';
 import { PermissionEnum } from '@/services/project';
-import { formatWalletAddress } from '@/utils/wallet';
-import { showToast } from '@/store/utils';
+import { nickNameCell, walletCell } from '@/components/table/cell';
 
 const PermissionWrapper = styled('div')`
 	display: flex;
@@ -24,44 +21,8 @@ const PermissionWrapper = styled('div')`
 `;
 
 const columns: GridColDef[] = [
-	{
-		field: 'nickName',
-		headerName: 'Name',
-		sortable: false,
-		width: 200,
-		renderCell: (item) => {
-			return (
-				<StyledFlexBox sx={{ gap: '8px' }}>
-					<Avatar alt={item.value} src={item.row.user?.avatar || ''} />
-					<Typography variant="subtitle2" fontSize={16}>
-						{item.value}
-					</Typography>
-				</StyledFlexBox>
-			);
-		},
-	},
-	{
-		field: 'wallet',
-		headerName: 'ETH Wallet',
-		sortable: false,
-		width: 200,
-		renderCell: (item) => {
-			return (
-				<StyledFlexBox sx={{ gap: '4px' }}>
-					<Typography variant="body1">{formatWalletAddress(item.value)}</Typography>
-					<CopyToClipboard text={item.value} onCopy={() => showToast('Copy success!')}>
-						<Image
-							src="/images/copy.png"
-							width={24}
-							height={24}
-							alt="copy"
-							style={{ cursor: 'pointer' }}
-						/>
-					</CopyToClipboard>
-				</StyledFlexBox>
-			);
-		},
-	},
+	nickNameCell,
+	walletCell,
 	{
 		field: 'permission',
 		headerName: 'Role',
