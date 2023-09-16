@@ -6,9 +6,7 @@ import { Typography, styled, TextField } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContributor } from '@/services/types';
-import { getContributorList } from '@/services/contributor';
-import { PermissionEnum } from '@/services/project';
+import { PermissionEnum, getContributorList, IContributor } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 
 const PermissionWrapper = styled('div')`
