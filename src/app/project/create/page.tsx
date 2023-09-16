@@ -3,7 +3,7 @@
 import process from 'process';
 
 import { Box, Button, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Img3Provider } from '@lxdao/img3';
 
@@ -23,12 +23,12 @@ import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
 
-import { createProject, CreateProjectParams, getProjectList } from '@/services/project';
+import { createProject, getProjectList } from '@/services/project';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
 import { getUserInfo } from '@/services/user';
-import { setUserProjectList } from '@/store/project';
+import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import { ProjectRegisterABI } from '@/constant/eas';
 
@@ -47,37 +47,77 @@ const steps = [
 	},
 ];
 
+const ProjectParamStorageKey = '__fairSharing_create_project_params__';
+
 export default function Page() {
 	const router = useRouter();
 	const signer = useEthersSigner();
 	const { address: myAddress } = useAccount();
+	const { userProjectList } = useProjectStore();
+	const [latestProjectAddress, setLatestProjectAddress] = useState('');
 
 	const [activeStep, setActiveStep] = useState(0);
 
 	const stepProfileRef = useRef<StepProfileRef | null>(null);
 	const stepStrategyRef = useRef<StepStrategyRef | null>(null);
 	const stepContributorRef = useRef<StepContributorRef | null>(null);
-	const handleGetFormData = () => {
-		const profileFormData = stepProfileRef.current?.getFormData();
-		const strategyFormData = stepStrategyRef.current?.getFormData();
-		const contributorFormData = stepContributorRef.current?.getFormData();
-		const data = { profileFormData, strategyFormData, contributorFormData };
-		console.log('create project Data:', data);
-	};
+
+	useEffect(() => {
+		if (myAddress && signer) {
+			getOwnerLatestProject();
+		}
+	}, [myAddress, signer]);
+
+	const isProjectClean = useMemo(() => {
+		if (!latestProjectAddress) return true;
+		const findItem = userProjectList.find((item) => item.id === latestProjectAddress);
+		if (!findItem && localStorage.getItem(ProjectParamStorageKey)) {
+			console.log(
+				'need to auto register project',
+				localStorage.getItem(ProjectParamStorageKey),
+			);
+			return false;
+		}
+		return true;
+	}, [userProjectList, latestProjectAddress]);
+
+	useEffect(() => {
+		if (!isProjectClean) {
+			const param = localStorage.getItem(ProjectParamStorageKey);
+			if (!param) return;
+			createProject({ ...JSON.parse(param!), address: latestProjectAddress })
+				.then(() => {
+					localStorage.removeItem(ProjectParamStorageKey);
+					getUserProjectList();
+				})
+				.catch((err) => {
+					console.error('createProject error', err);
+				});
+		}
+	}, [isProjectClean]);
 
 	const handleCreateProject = async () => {
-		const profileFormData = (stepProfileRef.current as StepProfileRef).getFormData();
-		const strategyFormData = (stepStrategyRef.current as StepStrategyRef).getFormData();
-		const contributorFormData = (
-			stepContributorRef.current as StepContributorRef
-		).getFormData();
-		const { avatar, name, intro } = profileFormData;
-		const { symbol, period, network } = strategyFormData;
-		const { contributors } = contributorFormData;
+		const { profileFormData, strategyFormData, contributorFormData } = handleGetFormData();
+		const { avatar, name, intro } = profileFormData!;
+		const { symbol, period, network } = strategyFormData!;
+		const { contributors } = contributorFormData!;
 		const owner = myAddress;
 		const members = contributors.map((contributor) => contributor.wallet);
 		try {
 			openGlobalLoading();
+
+			const baseParams = {
+				logo: avatar,
+				pointConsensus: '999999',
+				name: name,
+				intro: intro,
+				symbol: symbol,
+				network: network,
+				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
+				contributors: contributors,
+			};
+			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
+
 			const contract = new ethers.Contract(
 				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
 				ProjectRegisterABI,
@@ -111,21 +151,9 @@ export default function Page() {
 			if (!projectAddress) {
 				throw new Error('【Contract】 projectAddress not found');
 			}
-			const params: CreateProjectParams = {
-				logo: avatar,
-				address: projectAddress,
-				pointConsensus: '999999',
-				name: name,
-				intro: intro,
-				symbol: symbol,
-				network: network,
-				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
-				contributors: contributors,
-			};
-			console.log('【BE】CreateProjectParams', params);
-			const result = await createProject(params);
-			console.log('【BE】createProject res', result);
+			const result = await createProject({ ...baseParams, address: projectAddress });
 			showToast('Project Created', 'success');
+			localStorage.removeItem(ProjectParamStorageKey);
 			await getUserProjectList();
 			router.push(`/project/${result.id}/contribution`);
 		} catch (e) {
@@ -144,6 +172,35 @@ export default function Page() {
 		};
 		const { list } = await getProjectList(params);
 		setUserProjectList(list || []);
+	};
+
+	const getOwnerLatestProject = async () => {
+		try {
+			const contract = new ethers.Contract(
+				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
+				ProjectRegisterABI,
+				signer,
+			);
+			const count: bigint = await contract.projectsCount();
+			const projectAddress = await contract.getOwnerLatestProject(
+				myAddress,
+				0,
+				Number(count) - 1,
+			);
+			console.log('[contract] getOwnerLatestProject', projectAddress);
+			setLatestProjectAddress(projectAddress);
+			return projectAddress;
+		} catch (err) {
+			console.error('[contract error]: getOwnerLatestProject', err);
+			return Promise.reject(null);
+		}
+	};
+
+	const handleGetFormData = () => {
+		const profileFormData = stepProfileRef.current?.getFormData();
+		const strategyFormData = stepStrategyRef.current?.getFormData();
+		const contributorFormData = stepContributorRef.current?.getFormData();
+		return { profileFormData, strategyFormData, contributorFormData };
 	};
 
 	return (
