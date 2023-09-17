@@ -1,4 +1,4 @@
-import { PermissionEnum } from '@/services/project';
+import { Contributor, PermissionEnum } from '@/services/project';
 
 export interface IProject {
 	id: string;
@@ -57,4 +57,9 @@ export interface IUser {
 	wallet: string;
 	contributions?: IContribution[];
 	contributors?: IContributor[];
+}
+
+export interface IMintRecord {
+	credit: number;
+	contributor: IContributor;
 }

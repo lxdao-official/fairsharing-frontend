@@ -1,6 +1,6 @@
 import { request } from '@/common/request';
 import { PageListData, PageListParams } from '@/common/types';
-import { IContributor, IProject } from '@/services/types';
+import { IContributor, IMintRecord, IProject } from '@/services/types';
 
 export interface CreateProjectParams {
 	name: string;
@@ -52,4 +52,8 @@ export function getProjectList(
 
 export function getProjectDetail(projectId: string): Promise<IProject> {
 	return request(`project/${projectId}`, 1);
+}
+
+export function getMintRecord(projectId: string) {
+	return request<IMintRecord[]>(`project/${projectId}/mintRecord`, 1);
 }
