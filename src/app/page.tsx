@@ -26,7 +26,7 @@ export default function Home() {
 
 	return (
 		<main style={{ flex: 1, padding: '24px', overflowY: 'scroll' }}>
-			<Container maxWidth="lg">
+			<Container maxWidth="xl">
 				<Typography variant={'h4'}>All Projects({total})</Typography>
 				<StyledFlexBox sx={{ flexWrap: 'wrap', marginTop: '24px' }}>
 					{projectList.map((project, idx) => (
