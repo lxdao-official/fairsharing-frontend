@@ -416,7 +416,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						type: 'address[]',
 					},
 					{ name: 'values', value: voteValues, type: 'uint8[]' },
-					{ name: 'token', value: ethers.parseUnits(String(token), 18), type: 'uint64' },
+					{ name: 'token', value: ethers.getBigInt(token), type: 'uint64' },
 					{ name: 'signature', value: signature, type: 'bytes' },
 				]);
 
