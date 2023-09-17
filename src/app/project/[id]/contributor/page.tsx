@@ -79,6 +79,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				<TextField label="Search" size="small" onChange={handleSearch} />
 			</StyledFlexBox>
 			<DataGrid
+				autoHeight
 				loading={isLoading}
 				rows={contributorList || []}
 				columns={columns}
