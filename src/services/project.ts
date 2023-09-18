@@ -44,10 +44,14 @@ export function createProject(params: CreateProjectParams): Promise<IProject> {
 	return request.post('project/create', 1, params);
 }
 
-export function getProjectList(
-	params: PageListParams & { userId?: string },
-): Promise<PageListData<IProject>> {
+export function getProjectList(params: PageListParams): Promise<PageListData<IProject>> {
 	return request('project/list', 1, params);
+}
+
+export function getProjectListByWallet(wallet: string): Promise<IProject[]> {
+	return request('project/list', 1, {
+		wallet,
+	});
 }
 
 export function getProjectDetail(projectId: string): Promise<IProject> {
