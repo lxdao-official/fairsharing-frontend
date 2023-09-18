@@ -16,7 +16,7 @@ const ProjectItem = (props: IProjectItemProps) => {
 	const { project } = props;
 
 	return (
-		<Grid item xs={3}>
+		<Grid item lg={4} xl={3}>
 			<Link href={`/project/${project.id}/contribution`} prefetch={true}>
 				<Container>
 					<Img3
