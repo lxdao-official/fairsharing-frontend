@@ -101,6 +101,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				rows={recordList || []}
 				columns={columns}
 				rowHeight={72}
+				autoHeight
 				initialState={{
 					pagination: {
 						paginationModel: { page: 0, pageSize: 10 },

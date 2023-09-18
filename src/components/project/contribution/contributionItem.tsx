@@ -130,6 +130,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 	};
 
+	const hasVoted = useMemo(() => {
+		const { For, Against, Abstain } = voteInfoMap;
+		return !(For === 0 && Against === 0 && Abstain === 0);
+	}, [voteInfoMap]);
+
 	const handleClaim = () => {
 		const { For, Against, Abstain } = voteInfoMap;
 		if (For === 0 && Against === 0 && Abstain === 0) {
@@ -219,6 +224,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onClaim={handleClaim}
 								period={projectDetail.votePeriod}
+								hasVoted={hasVoted}
 							/>
 							<Tooltip title="View on chain" placement="top">
 								<Link href={EasLink} target={'_blank'}>
