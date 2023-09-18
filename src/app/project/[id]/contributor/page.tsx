@@ -53,7 +53,7 @@ const columns: GridColDef[] = [
 export default function Page({ params }: { params: { id: string } }) {
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
 	const { isLoading, data } = useSWR(
-		['contributor/list', params.id],
+		['getContributorList', params.id],
 		() => getContributorList(params.id),
 		{
 			fallbackData: [],
