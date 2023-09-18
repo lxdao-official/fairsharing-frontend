@@ -5,11 +5,13 @@ import { formatDistanceToNow, isFuture } from 'date-fns';
 
 import { IContribution, Status } from '@/services/types';
 import useCountdown from '@/hooks/useCountdown';
+import { showToast } from '@/store/utils';
 
 export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
 	period: string;
+	hasVoted: boolean;
 }
 
 const StatusColor = {
@@ -24,7 +26,7 @@ const CursorStatus = {
 	[Status.CLAIM]: 'not-allowed',
 };
 
-const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
+const StatusText = ({ contribution, onClaim, period, hasVoted }: IStatusTextProps) => {
 	const { status } = contribution;
 	const { days, hours, minutes, seconds } = useCountdown(Number(period));
 	const [countdownText, setCountdownText] = useState('');
@@ -37,11 +39,16 @@ const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 		if (status === Status.CLAIM) {
 			return 'Claimed';
 		} else if (status === Status.READY) {
-			return 'To be claimed';
+			// TODO 投过票后才设置为claim
+			if (!hasVoted) {
+				return countdownText;
+			} else {
+				return 'To be claimed';
+			}
 		} else {
 			return countdownText;
 		}
-	}, [status, period, countdownText]);
+	}, [status, period, countdownText, hasVoted]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
 		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
@@ -59,6 +66,10 @@ const StatusText = ({ contribution, onClaim, period }: IStatusTextProps) => {
 	};
 
 	const handleClaim = () => {
+		if (!hasVoted) {
+			showToast('No votes have been recorded for this contribution', 'error');
+			return false;
+		}
 		if (status === Status.READY) {
 			onClaim();
 		}
