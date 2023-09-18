@@ -1,6 +1,6 @@
 'use client';
 
-import { Container, Typography } from '@mui/material';
+import { Container, Grid, Typography } from '@mui/material';
 
 import useSWR from 'swr';
 
@@ -26,14 +26,16 @@ export default function Home() {
 
 	return (
 		<main style={{ flex: 1, padding: '24px', overflowY: 'scroll' }}>
-			<Container maxWidth="xl">
-				<Typography variant={'h4'}>All Projects({total})</Typography>
-				<StyledFlexBox sx={{ flexWrap: 'wrap', marginTop: '24px' }}>
+			<Container maxWidth="lg">
+				<Typography variant={'h4'} sx={{ marginBottom: '24px' }}>
+					All Projects({total})
+				</Typography>
+				<Grid container spacing={5}>
 					{projectList.map((project, idx) => (
 						// @ts-ignore
 						<ProjectItem key={idx} project={project} />
 					))}
-				</StyledFlexBox>
+				</Grid>
 			</Container>
 		</main>
 	);
