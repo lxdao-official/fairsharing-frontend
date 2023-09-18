@@ -12,7 +12,7 @@ import { Img3 } from '@lxdao/img3';
 import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
-import { getProjectList } from '@/services/project';
+import { getProjectList, getProjectListByWallet } from '@/services/project';
 
 export default function Nav() {
 	const { currentProjectId, userProjectList } = useProjectStore();
@@ -36,18 +36,13 @@ export default function Nav() {
 
 	const fetchUserProjectList = async () => {
 		try {
-			const params = {
-				currentPage: 1,
-				pageSize: 50,
-			};
 			let myInfo = await getUserInfo(myAddress as string);
 			if (!myInfo) {
 				myInfo = await signup(myAddress as string);
 			}
 			setUser(myInfo);
 			console.log('myInfo', myInfo);
-			Object.assign(params, { userId: myInfo.id });
-			const { list } = await getProjectList(params);
+			const list = await getProjectListByWallet(myInfo.wallet);
 			console.log('UserProjectList', list);
 			setUserProjectList(list || []);
 		} catch (err) {

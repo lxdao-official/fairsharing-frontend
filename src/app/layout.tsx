@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
+import NextTopLoader from 'nextjs-toploader';
 
 import { AppBar, Toolbar, Typography } from '@mui/material';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<html lang="en">
 			<body className={inter.className}>
+				<NextTopLoader />
 				<ThemeRegistry>
 					<RainbowProvider>
 						<AppBar
@@ -41,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								height: '64px',
 								borderBottom: '0.5px solid #CBD5E1',
 								boxShadow: 'none',
+								zIndex: 1000,
 							}}
 							enableColorOnDark={true}
 						>

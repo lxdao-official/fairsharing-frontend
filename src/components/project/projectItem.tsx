@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, styled, Typography } from '@mui/material';
+import { Box, Grid, styled, Typography } from '@mui/material';
 
 import { Img3 } from '@lxdao/img3';
 import React from 'react';
@@ -16,29 +16,31 @@ const ProjectItem = (props: IProjectItemProps) => {
 	const { project } = props;
 
 	return (
-		<Link href={`/project/${project.id}/contribution`} prefetch={true}>
-			<Container>
-				<Img3
-					src={project.logo as string}
-					style={{
-						width: '88px',
-						height: '88px',
-						borderRadius: '88px',
-						border: '0.5px solid #CBD5E1',
-					}}
-				/>
-				<Typography
-					variant={'h3'}
-					sx={{ marginTop: '16px', fontSize: '24px', color: '#0F172A' }}
-				>
-					{project.name}
-				</Typography>
-				{/*TODO BE API project/list 无contributions字段 需要单独拉getContributionList接口才知道 */}
-				<Typography variant={'body1'} sx={{ marginTop: '8px', color: '#64748B' }}>
-					{project.contributions?.length} contributions
-				</Typography>
-			</Container>
-		</Link>
+		<Grid item lg={4} xl={3}>
+			<Link href={`/project/${project.id}/contribution`} prefetch={true}>
+				<Container>
+					<Img3
+						src={project.logo as string}
+						style={{
+							width: '88px',
+							height: '88px',
+							borderRadius: '88px',
+							border: '0.5px solid #CBD5E1',
+						}}
+					/>
+					<Typography
+						variant={'h3'}
+						sx={{ marginTop: '16px', fontSize: '24px', color: '#0F172A' }}
+					>
+						{project.name}
+					</Typography>
+					{/*TODO BE API project/list 无contributions字段 需要单独拉getContributionList接口才知道 */}
+					<Typography variant={'body1'} sx={{ marginTop: '8px', color: '#64748B' }}>
+						{project.contributions?.length} contributions
+					</Typography>
+				</Container>
+			</Link>
+		</Grid>
 	);
 };
 
@@ -50,7 +52,7 @@ const Container = styled(Box)({
 	border: '1px solid #0F172A29',
 	borderRadius: '8px',
 	cursor: 'pointer',
-	margin: '0 24px 24px 0',
+	// margin: '0 24px 24px 0',
 	'&:hover': {
 		opacity: [0.9, 0.8, 0.7],
 		boxShadow: '0px 4px 18px 3px #0000000A',
