@@ -264,7 +264,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					{ name: 'title', value: 'first contribution title', type: 'string' },
 					{ name: 'detail', value: postData.detail, type: 'string' },
 					{ name: 'poc', value: postData.proof, type: 'string' },
-					{ name: 'token', value: Number(postData.credit), type: 'uint64' },
+					{ name: 'token', value: ethers.parseUnits(postData.credit.toString()), type: 'uint64' },
 				]);
 
 				const block = await provider.getBlock('latest');
@@ -416,7 +416,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						type: 'address[]',
 					},
 					{ name: 'values', value: voteValues, type: 'uint8[]' },
-					{ name: 'token', value: ethers.getBigInt(token), type: 'uint64' },
+					{ name: 'token', value: ethers.parseUnits(token.toString()), type: 'uint64' },
 					{ name: 'signature', value: signature, type: 'bytes' },
 				]);
 
