@@ -233,7 +233,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const onPostContribution = useCallback(
 		async (postData: PostData) => {
-			if (!myInfo) {
+			if (!myAddress) {
 				openConnectModal?.();
 				return false;
 			}
@@ -314,11 +314,15 @@ export default function Page({ params }: { params: { id: string } }) {
 				closeGlobalLoading();
 			}
 		},
-		[myInfo, params.id, operatorId, signer, provider, eas],
+		[myAddress, params.id, operatorId, signer, provider, eas],
 	);
 
 	const onVote = useCallback(
 		async ({ contributionId, value, uId }: IVoteParams) => {
+			if (!myAddress) {
+				openConnectModal?.();
+				return false;
+			}
 			console.log('vote params', contributionId, value, uId);
 			if (!uId) {
 				console.error('uId not exist');
@@ -395,6 +399,11 @@ export default function Page({ params }: { params: { id: string } }) {
 			// 	return false;
 			// }
 			console.log('onClaim params', params);
+			if (!myAddress) {
+				openConnectModal?.();
+				return false;
+			}
+
 			try {
 				openGlobalLoading();
 				const claimSchemaUid = EasSchemaUidMap.claim;
