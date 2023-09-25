@@ -225,7 +225,7 @@ export default function Page() {
 						))}
 					</Stepper>
 				</Box>
-				<Box sx={{ flex: 1, maxWidth: '860px', minWidth: '400px', marginLeft: '40px' }}>
+				<Box sx={{ flex: 1, maxWidth: '860px', minWidth: '400px', marginLeft: '40px', height: '100%', overflowY: 'scroll' }}>
 					<Typography variant={'h2'} style={{ fontWeight: 'bold', marginBottom: '32px' }}>
 						Create a project
 					</Typography>
