@@ -34,10 +34,6 @@ const ProjectItem = (props: IProjectItemProps) => {
 					>
 						{project.name}
 					</Typography>
-					{/*TODO BE API project/list 无contributions字段 需要单独拉getContributionList接口才知道 */}
-					<Typography variant={'body1'} sx={{ marginTop: '8px', color: '#64748B' }}>
-						{project.contributions?.length} contributions
-					</Typography>
 				</Container>
 			</Link>
 		</Grid>
