@@ -91,7 +91,7 @@ const theme = createTheme({
 				{
 					props: { variant: 'contained' },
 					style: {
-						minWith: '128px',
+						minWidth: '128px',
 						backgroundColor: '#1DE9B6',
 						color: '#0F172A',
 						fontWeight: 'bold',
@@ -100,6 +100,16 @@ const theme = createTheme({
 							background: 'rgba(29, 233, 182, .8)',
 							boxShadow: 'none',
 						},
+					},
+				},
+				{
+					props: { variant: 'outlined' },
+					style: {
+						minWidth: '128px',
+						color: '#0F172A',
+						fontWeight: 'bold',
+						boxShadow: 'none',
+						borderColor: 'rgba(15, 23, 42, 0.2)',
 					},
 				},
 			],
@@ -130,6 +140,13 @@ const theme = createTheme({
 					fill: '#CBD5E1',
 					fontSize: '16px',
 					fontWeight: 'bold',
+				},
+			},
+		},
+		MuiTabs: {
+			styleOverrides: {
+				indicator: {
+					backgroundColor: '#0F172A',
 				},
 			},
 		},
