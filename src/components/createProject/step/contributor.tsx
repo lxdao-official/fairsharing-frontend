@@ -56,7 +56,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			return false;
 		}
 		if (isContributorRepeat) {
-			showToast('Repeated wallet address', 'error');
+			showToast('Repeated [wallet] address', 'error');
 			return false;
 		}
 		onCreateProject?.();
@@ -79,7 +79,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			}
 			if (!wallet) {
 				valid = false;
-				showToast('Empty wallet address', 'error');
+				showToast('Empty [wallet] address', 'error');
 				return false;
 			}
 		});

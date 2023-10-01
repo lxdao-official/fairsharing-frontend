@@ -88,7 +88,7 @@ const PostContribution = ({
 					value={detail}
 					size={'small'}
 					onChange={handleDetailInputChange}
-					placeholder={'I developed sign in with wallet feature'}
+					placeholder={'I developed sign in with [wallet] feature'}
 				/>
 			</StyledFlexBox>
 
