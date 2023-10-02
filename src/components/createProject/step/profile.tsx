@@ -1,11 +1,17 @@
-import { Button, TextField, Typography } from '@mui/material';
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { Button, Stack, TextField, Typography } from '@mui/material';
+import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
-import { IStepBaseProps, IStepStartProps } from '@/components/createProject/step/start';
+import { IStepBaseProps } from '@/components/createProject/step/start';
 
 import UploadImage from '@/components/uploadImage/uploadImage';
+import { CreateProjectParams } from '@/services';
+import { Img3 } from '@lxdao/img3';
 
-export interface IStepProfileProps extends IStepBaseProps {}
+export interface IStepProfileProps extends Partial<IStepBaseProps> {
+	data?: Pick<CreateProjectParams, 'intro' | 'logo' | 'name'>;
+	onSave?: () => void;
+	canEdit?: boolean;
+}
 
 export interface StepProfileRef {
 	getFormData: () => {
@@ -17,14 +23,18 @@ export interface StepProfileRef {
 
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 	(props: IStepProfileProps, ref) => {
-		const { step, setActiveStep } = props;
-		const [name, setName] = useState('');
-		const [intro, setIntro] = useState('');
+		const { step, setActiveStep, data, onSave, canEdit = true } = props;
+		const [name, setName] = useState(data?.name ?? '');
+		const [intro, setIntro] = useState(data?.intro ?? '');
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
 		const [avatar, setAvatar] = useState(
-			'https://bafkreig4ikgldw4nnfkflakfq43r7inam2bi52na2tngm5sxluqwwdqcim.ipfs.nftstorage.link/',
+			data?.logo ??
+				'https://bafkreig4ikgldw4nnfkflakfq43r7inam2bi52na2tngm5sxluqwwdqcim.ipfs.nftstorage.link/',
 		);
+		const [isEdited, setIsEdited] = useState(false);
+
+		const isSettingPage = !!data;
 
 		useImperativeHandle(
 			ref,
@@ -35,10 +45,12 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 		);
 
 		const handleNameInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+			setIsEdited(true);
 			setName(event.target.value);
 			setNameError(false);
 		};
 		const handleIntroInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+			setIsEdited(true);
 			setIntro(event.target.value);
 			setIntroError(false);
 		};
@@ -52,16 +64,40 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 				setIntroError(true);
 				return;
 			}
-			setActiveStep(step + 1);
+			if (isSettingPage) {
+				onSave!();
+				handleCancel();
+			} else {
+				setActiveStep!(step! + 1);
+			}
 		};
 
 		const uploadSuccess = (url: string) => {
+			setIsEdited(true);
 			setAvatar(url);
 		};
 
+		const handleCancel = useCallback(() => {
+			setIsEdited(false);
+			setName(data?.name ?? '');
+			setIntro(data?.intro ?? '');
+			setAvatar(data?.logo ?? '');
+		}, []);
+
 		return (
 			<>
-				<UploadImage defaultAvatar={avatar} uploadSuccess={uploadSuccess} />
+				{!canEdit ? (
+					<>
+						<Typography>Avatar</Typography>
+						<Img3
+							src={avatar}
+							alt="logo"
+							style={{ width: 80, height: 80, marginTop: 16 }}
+						/>
+					</>
+				) : (
+					<UploadImage defaultAvatar={avatar} uploadSuccess={uploadSuccess} />
+				)}
 
 				<TextField
 					required
@@ -69,8 +105,9 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					value={name}
 					placeholder={''}
 					onChange={handleNameInputChange}
-					sx={{ display: 'block', marginTop: '40px' }}
+					sx={{ display: 'block', marginTop: '32px' }}
 					error={nameError}
+					disabled={!canEdit}
 				/>
 				<TextField
 					required
@@ -78,13 +115,27 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					value={intro}
 					placeholder={''}
 					onChange={handleIntroInputChange}
-					sx={{ display: 'block', marginTop: '40px' }}
+					sx={{ display: 'block', marginTop: '32px' }}
 					fullWidth={true}
 					error={introError}
+					disabled={!canEdit}
 				/>
-				<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={handleSubmit}>
-					Next
-				</Button>
+				{canEdit ? (
+					<Stack direction="row" spacing={2} sx={{ marginTop: '40px' }}>
+						<Button
+							variant={'contained'}
+							onClick={handleSubmit}
+							disabled={!isSettingPage ? false : !isEdited}
+						>
+							{isSettingPage ? 'Save' : 'Next'}
+						</Button>
+						{isSettingPage && isEdited ? (
+							<Button variant="outlined" onClick={handleCancel}>
+								Cancel
+							</Button>
+						) : null}
+					</Stack>
+				) : null}
 			</>
 		);
 	},
