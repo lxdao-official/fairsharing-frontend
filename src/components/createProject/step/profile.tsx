@@ -66,7 +66,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			}
 			if (isSettingPage) {
 				onSave!();
-				handleCancel();
+				setIsEdited(false);
 			} else {
 				setActiveStep!(step! + 1);
 			}
