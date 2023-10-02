@@ -1,4 +1,4 @@
-import { Button, Stack, TextField, Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
@@ -6,6 +6,7 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 import UploadImage from '@/components/uploadImage/uploadImage';
 import { CreateProjectParams } from '@/services';
 import { Img3 } from '@lxdao/img3';
+import ButtonGroup from '@/components/createProject/step/buttonGroup';
 
 export interface IStepProfileProps extends Partial<IStepBaseProps> {
 	data?: Pick<CreateProjectParams, 'intro' | 'logo' | 'name'>;
@@ -55,7 +56,11 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			setIntroError(false);
 		};
 
-		const handleSubmit = () => {
+		const handleSubmit = (action: 'BACK' | 'NEXT') => {
+			if (action === 'BACK') {
+				setActiveStep!(step! - 1);
+				return;
+			}
 			if (!name) {
 				setNameError(true);
 				return;
@@ -77,12 +82,23 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			setAvatar(url);
 		};
 
-		const handleCancel = useCallback(() => {
-			setIsEdited(false);
-			setName(data?.name ?? '');
-			setIntro(data?.intro ?? '');
-			setAvatar(data?.logo ?? '');
-		}, []);
+		const handleClick = useCallback(
+			(type: 'primary' | 'secondary') => {
+				if (isSettingPage) {
+					if (type === 'primary') {
+						handleSubmit('NEXT');
+					} else {
+						setIsEdited(false);
+						setName(data?.name ?? '');
+						setIntro(data?.intro ?? '');
+						setAvatar(data?.logo ?? '');
+					}
+				} else {
+					handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+				}
+			},
+			[isSettingPage],
+		);
 
 		return (
 			<>
@@ -120,22 +136,13 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					error={introError}
 					disabled={!canEdit}
 				/>
-				{canEdit ? (
-					<Stack direction="row" spacing={2} sx={{ marginTop: '40px' }}>
-						<Button
-							variant={'contained'}
-							onClick={handleSubmit}
-							disabled={!isSettingPage ? false : !isEdited}
-						>
-							{isSettingPage ? 'Save' : 'Next'}
-						</Button>
-						{isSettingPage && isEdited ? (
-							<Button variant="outlined" onClick={handleCancel}>
-								Cancel
-							</Button>
-						) : null}
-					</Stack>
-				) : null}
+				<ButtonGroup
+					canEdit={canEdit}
+					isEdited={isEdited}
+					isSettingPage={isSettingPage}
+					handlePrimary={() => handleClick('primary')}
+					handleSecondary={() => handleClick('secondary')}
+				/>
 			</>
 		);
 	},
