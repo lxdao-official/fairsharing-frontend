@@ -82,23 +82,20 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			setAvatar(url);
 		};
 
-		const handleClick = useCallback(
-			(type: 'primary' | 'secondary') => {
-				if (isSettingPage) {
-					if (type === 'primary') {
-						handleSubmit('NEXT');
-					} else {
-						setIsEdited(false);
-						setName(data?.name ?? '');
-						setIntro(data?.intro ?? '');
-						setAvatar(data?.logo ?? '');
-					}
+		const handleClick = (type: 'primary' | 'secondary') => {
+			if (isSettingPage) {
+				if (type === 'primary') {
+					handleSubmit('NEXT');
 				} else {
-					handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+					setIsEdited(false);
+					setName(data?.name ?? '');
+					setIntro(data?.intro ?? '');
+					setAvatar(data?.logo ?? '');
 				}
-			},
-			[isSettingPage],
-		);
+			} else {
+				handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+			}
+		};
 
 		return (
 			<>

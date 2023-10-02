@@ -85,27 +85,24 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		setActiveStep!(step! + 1);
 	};
 
-	const handleClick = useCallback(
-		(type: 'primary' | 'secondary') => {
-			if (!isSettingPage) {
-				handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+	const handleClick = (type: 'primary' | 'secondary') => {
+		if (!isSettingPage) {
+			handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+			return;
+		}
+		if (type === 'primary') {
+			if (!Number(period)) {
+				setPeriodError(true);
+				showToast('Vote period must be number', 'error');
 				return;
 			}
-			if (type === 'primary') {
-				if (!Number(period)) {
-					setPeriodError(true);
-					showToast('Vote period must be number', 'error');
-					return;
-				}
-				onSave!();
-				setIsEdited(false);
-			} else {
-				setIsEdited(false);
-				setPeriod(data?.votePeriod ?? '');
-			}
-		},
-		[isSettingPage, data],
-	);
+			onSave!();
+			setIsEdited(false);
+		} else {
+			setIsEdited(false);
+			setPeriod(data?.votePeriod ?? '');
+		}
+	};
 
 	return (
 		<>
