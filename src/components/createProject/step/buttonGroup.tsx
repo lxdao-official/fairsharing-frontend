@@ -5,12 +5,20 @@ interface IButtonGroupProps {
 	canEdit: boolean;
 	isEdited: boolean;
 	isSettingPage: boolean;
+	isLatest?: boolean;
 	handlePrimary: () => void;
 	handleSecondary: () => void;
 }
 
 export default function ButtonGroup(props: IButtonGroupProps) {
-	const { canEdit, isEdited, isSettingPage, handleSecondary, handlePrimary } = props;
+	const {
+		canEdit,
+		isEdited,
+		isSettingPage,
+		isLatest = false,
+		handleSecondary,
+		handlePrimary,
+	} = props;
 
 	const content = useMemo(() => {
 		if (!isSettingPage) {
@@ -43,7 +51,7 @@ export default function ButtonGroup(props: IButtonGroupProps) {
 						onClick={handlePrimary}
 						disabled={!isSettingPage ? false : !isEdited}
 					>
-						{isSettingPage ? 'Save' : 'Next'}
+						{isSettingPage ? 'Save' : isLatest ? 'Create' : 'Next'}
 					</Button>
 					{content}
 				</Stack>

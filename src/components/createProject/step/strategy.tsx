@@ -140,6 +140,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					placeholder={'Voting period *'}
 					onChange={handlePeriodInputChange}
 					error={periodError}
+					disabled={!canEdit}
 				/>
 				<span style={{ marginLeft: '12px' }}>days</span>
 			</div>

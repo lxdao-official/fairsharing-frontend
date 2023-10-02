@@ -6,11 +6,18 @@ import { Typography, Tabs, Tab, Skeleton, Stack, Alert } from '@mui/material';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { useCallback, useMemo, useState } from 'react';
 import StepProfile from '@/components/createProject/step/profile';
-import { editProject, getContributorList, getProjectDetail } from '@/services';
+import {
+	editContributorList,
+	editProject,
+	getContributorList,
+	getProjectDetail,
+	IContributor,
+} from '@/services';
 import { useAccount } from 'wagmi';
 import { showToast } from '@/store/utils';
 import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
+import StepContributor from '@/components/createProject/step/contributor';
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -20,13 +27,13 @@ export default function Setting({ params }: { params: { id: string } }) {
 		data,
 		mutate,
 	} = useSWR(['getProjectDetail', params.id], () => getProjectDetail(params.id));
-	const { isLoading: contributorsLoading, data: contributorsData } = useSWR(
-		['getContributorList', params.id],
-		() => getContributorList(params.id),
-		{
-			fallbackData: [],
-		},
-	);
+	const {
+		isLoading: contributorsLoading,
+		data: contributorsData,
+		mutate: contributorMutate,
+	} = useSWR(['getContributorList', params.id], () => getContributorList(params.id), {
+		fallbackData: [],
+	});
 
 	const { address } = useAccount();
 
@@ -72,6 +79,18 @@ export default function Setting({ params }: { params: { id: string } }) {
 		[data],
 	);
 
+	const handleContributorSubmit = useCallback(async () => {
+		const formData = stepContributorRef.current?.getFormData();
+		if (formData?.contributors) {
+			await editContributorList({
+				projectId: params.id,
+				contributors: formData.contributors as IContributor[],
+			});
+			showToast(`Contributors updated successfully`);
+			await contributorMutate();
+		}
+	}, []);
+
 	const tabContent = useMemo(() => {
 		switch (activeTab) {
 			case 'profile':
@@ -93,11 +112,18 @@ export default function Setting({ params }: { params: { id: string } }) {
 					/>
 				);
 			case 'contributors':
-				return <div>Contributors</div>;
+				return (
+					<StepContributor
+						ref={stepContributorRef}
+						data={contributorsData}
+						canEdit={isContributor}
+						onSave={handleContributorSubmit}
+					/>
+				);
 			default:
 				return null;
 		}
-	}, [data, activeTab, isContributor, handleProjectInfoSubmit]);
+	}, [data, activeTab, isContributor, handleProjectInfoSubmit, contributorsData]);
 
 	return (
 		<div>

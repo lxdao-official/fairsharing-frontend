@@ -3,7 +3,7 @@
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Typography, styled, TextField } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { PermissionEnum, getContributorList, IContributor } from '@/services';
@@ -57,9 +57,12 @@ export default function Page({ params }: { params: { id: string } }) {
 		() => getContributorList(params.id),
 		{
 			fallbackData: [],
-			onSuccess: (data) => setContributorList(data),
 		},
 	);
+
+	useEffect(() => {
+		setContributorList(data);
+	}, [data]);
 
 	const handleSearch = useCallback(
 		(e: any) => {
