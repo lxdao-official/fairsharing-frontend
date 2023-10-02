@@ -4,14 +4,16 @@ import useSWR from 'swr';
 import { Typography, Tabs, Tab, Skeleton, Stack, Alert } from '@mui/material';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
-import { editProject, getContributorList, getMintRecord, getProjectDetail } from '@/services';
+import { useCallback, useMemo, useState } from 'react';
+import StepProfile from '@/components/createProject/step/profile';
+import { editProject, getContributorList, getProjectDetail } from '@/services';
 import { useAccount } from 'wagmi';
 import { showToast } from '@/store/utils';
+import StepStrategy from '@/components/createProject/step/strategy';
+import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 
 export default function Setting({ params }: { params: { id: string } }) {
-	const stepProfileRef = useRef<StepProfileRef | null>(null);
+	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 
 	const {
 		isLoading: detailLoading,
@@ -39,21 +41,63 @@ export default function Setting({ params }: { params: { id: string } }) {
 		setActiveTab(value);
 	}, []);
 
-	const handleProfileSubmit = useCallback(async () => {
-		const formData = stepProfileRef.current?.getFormData();
-		if (formData) {
-			const { name, intro, avatar } = formData;
-			await editProject({
-				id: params.id,
-				name,
-				intro,
-				logo: avatar,
-				votePeriod: data!.votePeriod,
-			});
-			showToast('Project profile updated successfully');
+	const handleProjectInfoSubmit = useCallback(
+		async (type: 'profile' | 'strategy') => {
+			const formData = stepProfileRef.current?.getFormData();
+			const strategyData = stepStrategyRef.current?.getFormData();
+			if (type === 'profile' && formData) {
+				const { name, intro, avatar } = formData;
+				await editProject({
+					id: params.id,
+					name,
+					intro,
+					logo: avatar,
+					votePeriod: data!.votePeriod,
+				});
+			}
+			if (type === 'strategy' && strategyData) {
+				const { period } = strategyData;
+				const { name, intro, logo } = data!;
+				await editProject({
+					id: params.id,
+					name,
+					intro,
+					logo,
+					votePeriod: period,
+				});
+			}
+			showToast(`Project ${type} updated successfully`);
 			await mutate();
+		},
+		[data],
+	);
+
+	const tabContent = useMemo(() => {
+		switch (activeTab) {
+			case 'profile':
+				return (
+					<StepProfile
+						ref={stepProfileRef}
+						data={data}
+						canEdit={isContributor}
+						onSave={() => handleProjectInfoSubmit('profile')}
+					/>
+				);
+			case 'strategy':
+				return (
+					<StepStrategy
+						ref={stepStrategyRef}
+						data={data}
+						canEdit={isContributor}
+						onSave={() => handleProjectInfoSubmit('strategy')}
+					/>
+				);
+			case 'contributors':
+				return <div>Contributors</div>;
+			default:
+				return null;
 		}
-	}, [data]);
+	}, [data, activeTab, isContributor, handleProjectInfoSubmit]);
 
 	return (
 		<div>
@@ -98,12 +142,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 								an admin wallet.
 							</Alert>
 						) : null}
-						<StepProfile
-							ref={stepProfileRef}
-							data={data}
-							canEdit={isContributor}
-							onSave={handleProfileSubmit}
-						/>
+						{tabContent}
 					</>
 				)}
 			</div>

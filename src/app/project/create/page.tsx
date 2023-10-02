@@ -2,8 +2,8 @@
 
 import process from 'process';
 
-import { Box, Button, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { Img3Provider } from '@lxdao/img3';
 
@@ -11,14 +11,14 @@ import { ethers } from 'ethers';
 
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 
-import { useAccount, useContractRead } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { useRouter } from 'next/navigation';
 
 import StepStart from '@/components/createProject/step/start';
-import StepStrategy, { StepStrategyRef } from '@/components/createProject/step/strategy';
-import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
-import StepContributor, { StepContributorRef } from '@/components/createProject/step/contributor';
+import StepStrategy from '@/components/createProject/step/strategy';
+import StepProfile from '@/components/createProject/step/profile';
+import StepContributor from '@/components/createProject/step/contributor';
 import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
@@ -31,6 +31,7 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import { ProjectRegisterABI } from '@/constant/eas';
+import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 
 const steps = [
 	{
@@ -57,10 +58,7 @@ export default function Page() {
 	const [latestProjectAddress, setLatestProjectAddress] = useState('');
 
 	const [activeStep, setActiveStep] = useState(0);
-
-	const stepProfileRef = useRef<StepProfileRef | null>(null);
-	const stepStrategyRef = useRef<StepStrategyRef | null>(null);
-	const stepContributorRef = useRef<StepContributorRef | null>(null);
+	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 
 	useEffect(() => {
 		if (myAddress && signer) {
@@ -225,7 +223,16 @@ export default function Page() {
 						))}
 					</Stepper>
 				</Box>
-				<Box sx={{ flex: 1, maxWidth: '860px', minWidth: '400px', marginLeft: '40px', height: '100%', overflowY: 'scroll' }}>
+				<Box
+					sx={{
+						flex: 1,
+						maxWidth: '860px',
+						minWidth: '400px',
+						marginLeft: '40px',
+						height: '100%',
+						overflowY: 'scroll',
+					}}
+				>
 					<Typography variant={'h2'} style={{ fontWeight: 'bold', marginBottom: '32px' }}>
 						Create a project
 					</Typography>
