@@ -6,6 +6,10 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import useSWR from 'swr';
 import { getProjectListByWallet, getUserInfo } from '@/services';
 import { useAccount } from 'wagmi';
+import { showToast } from '@/store/utils';
+import Image from 'next/image';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { WalletCell } from '@/components/table/cell';
 
 const Container = styled('div')(() => ({
 	minWidth: '1000px',
@@ -86,15 +90,12 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 							<Typography variant="h3" gutterBottom>
 								{userInfoData?.name || 'No name'}
 							</Typography>
-							<StyledFlexBox sx={{ marginBottom: '22px' }}>
-								<Typography variant="body1" color="#475569">
-									{userInfoData?.wallet || ''}
-								</Typography>
-								<IconButton size="small">
-									<CopyAll fontSize="small" />
-								</IconButton>
-							</StyledFlexBox>
-							<Typography variant="h6" sx={{ marginBottom: '8px' }}>
+							<WalletCell
+								wallet={userInfoData?.wallet || ''}
+								needFormat={false}
+								color="#475569"
+							/>
+							<Typography variant="h6" sx={{ margin: '24px 0 8px' }}>
 								Intro
 							</Typography>
 							<Typography
