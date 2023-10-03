@@ -21,7 +21,7 @@
     "@lxdao/img3": "^1.1.0",
     "@lxdao/uploader3": "^1.2.2",
     "@lxdao/uploader3-connector": "^1.0.1",
-    "@mui/icons-material": "^5.14.3",
+    "@mui/icons-material": "^5.14.11",
     "@mui/material": "^5.14.3",
     "@mui/x-data-grid": "^6.13.0",
     "@rainbow-me/rainbowkit": "^1.0.8",
