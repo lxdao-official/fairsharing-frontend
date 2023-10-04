@@ -11,6 +11,7 @@ import { PreviewFile, PreviewWrapper } from '@/components/uploadImage/preview';
 
 export interface IUploadImageProps {
 	uploadSuccess?: (url: string) => void;
+	uploading?: () => void;
 	defaultAvatar: string;
 }
 
@@ -34,6 +35,7 @@ export default function UploadImage(props: IUploadImageProps) {
 				}}
 				onUpload={(file) => {
 					setFile(file);
+					props.uploading?.();
 				}}
 				onComplete={(file) => {
 					setFile(file);
