@@ -11,5 +11,5 @@ export const getUserInfo = (wallet: string) => {
 
 export type EditUserParams = Pick<IUser, 'avatar' | 'bio' | 'name'>;
 export const editUser = (userId: string, params: EditUserParams) => {
-	return request.put(`${userId}/edit`, 1, params);
+	return request.put(`user/${userId}/edit`, 1, params);
 };
