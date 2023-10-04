@@ -1,15 +1,13 @@
 'use client';
-import { Avatar, Grid, IconButton, Skeleton, Stack, styled, Typography } from '@mui/material';
-import { CopyAll } from '@mui/icons-material';
-import React from 'react';
+import { Avatar, Button, Grid, Skeleton, Stack, styled, Typography } from '@mui/material';
+import React, { useCallback } from 'react';
 import { StyledFlexBox } from '@/components/styledComponents';
 import useSWR from 'swr';
 import { getProjectListByWallet, getUserInfo } from '@/services';
 import { useAccount } from 'wagmi';
-import { showToast } from '@/store/utils';
-import Image from 'next/image';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { WalletCell } from '@/components/table/cell';
+import EditDialog from '@/components/profile/editDialog';
+import EditIcon from '@mui/icons-material/Edit';
 
 const Container = styled('div')(() => ({
 	minWidth: '1000px',
@@ -55,29 +53,53 @@ const ProjectItem = styled('span')(({ color }: { color: keyof typeof colors }) =
 }));
 
 export default function Profile({ params }: { params: { wallet: string } }) {
-	const { data: userInfoData, isLoading: userInfoLoading } = useSWR(
-		['getUserInfo', params.wallet],
-		() => getUserInfo(params.wallet),
-	);
+	const {
+		data: userInfoData,
+		isLoading: userInfoLoading,
+		mutate,
+	} = useSWR(['getUserInfo', params.wallet], () => getUserInfo(params.wallet));
 	const { data: projectData, isLoading: projectLoading } = useSWR(
 		['getProjectListByWallet', params.wallet],
 		() => getProjectListByWallet(params.wallet),
 	);
 
+	const [open, setOpen] = React.useState(false);
+
 	const { address } = useAccount();
+
+	const handleEdit = useCallback(() => {
+		setOpen((v) => !v);
+		mutate();
+	}, []);
 
 	return (
 		<Container>
+			{open ? (
+				<EditDialog
+					onClose={() => setOpen((v) => !v)}
+					onConfirm={handleEdit}
+					data={userInfoData!}
+				/>
+			) : null}
 			<UserInfoContainer>
 				{userInfoLoading ? (
 					<Skeleton variant="rounded" width={144} height={144} />
 				) : (
-					<Avatar variant="rounded" style={{ width: 144, height: 144 }}>
+					<Avatar
+						variant="rounded"
+						style={{ width: 144, height: 144 }}
+						src={userInfoData?.avatar}
+					>
 						{userInfoData?.avatar || userInfoData?.name || ''}
 					</Avatar>
 				)}
 				<StyledFlexBox
-					style={{ flexDirection: 'column', alignItems: 'start', paddingTop: '16px' }}
+					style={{
+						flexDirection: 'column',
+						alignItems: 'start',
+						paddingTop: '16px',
+						width: '100%',
+					}}
 				>
 					{userInfoLoading || projectLoading ? (
 						<Stack spacing={5}>
@@ -87,9 +109,29 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 						</Stack>
 					) : (
 						<>
-							<Typography variant="h3" gutterBottom>
-								{userInfoData?.name || 'No name'}
-							</Typography>
+							<StyledFlexBox
+								style={{
+									justifyContent: 'space-between',
+									width: '100%',
+									alignItems: 'flex-start',
+									marginBottom: '8px',
+								}}
+							>
+								<Typography variant="h3">
+									{userInfoData?.name || 'No name'}
+								</Typography>
+								{address === params.wallet ? (
+									<Button
+										variant="outlined"
+										size="small"
+										startIcon={<EditIcon fontSize="small" />}
+										sx={{ minWidth: 'auto' }}
+										onClick={() => setOpen((v) => !v)}
+									>
+										Edit
+									</Button>
+								) : null}
+							</StyledFlexBox>
 							<WalletCell
 								wallet={userInfoData?.wallet || ''}
 								needFormat={false}
