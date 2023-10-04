@@ -101,13 +101,22 @@ export default function EditDialog(props: EditDialogProps) {
 					/>
 				</FormContainer>
 			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
+			<DialogActions sx={{ gap: '8px', paddingRight: '24px' }}>
+				<Button
+					variant="outlined"
+					size="small"
+					style={{ minWidth: 'auto' }}
+					onClick={onClose}
+				>
+					Cancel
+				</Button>
 				<LoadingButton
+					variant="contained"
+					size="small"
 					disabled={isUploading || !isDirty}
 					loading={isLoading}
 					onClick={handleSubmit(handleConfirm)}
-					autoFocus
+					style={{ minWidth: 'auto' }}
 				>
 					Confirm
 				</LoadingButton>
