@@ -12,16 +12,20 @@ const SimpleSnackbar = () => {
 	};
 
 	return (
-		<Snackbar
-			anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-			open={alert.open}
-			autoHideDuration={3000}
-			onClose={handleClose}
-		>
-			<Alert onClose={handleClose} severity={alert.severity} sx={{ width: '100%' }}>
-				{alert.content}
-			</Alert>
-		</Snackbar>
+		<>
+			{alert.open ? (
+				<Snackbar
+					anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+					open
+					autoHideDuration={3000}
+					onClose={handleClose}
+				>
+					<Alert onClose={handleClose} severity={alert.severity} sx={{ width: '100%' }}>
+						{alert.content}
+					</Alert>
+				</Snackbar>
+			) : null}
+		</>
 	);
 };
 
