@@ -1,13 +1,18 @@
 'use client';
 import { Avatar, Button, Grid, Skeleton, Stack, styled, Typography } from '@mui/material';
 import React, { useCallback } from 'react';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import useSWR from 'swr';
-import { getProjectListByWallet, getUserInfo } from '@/services';
+
 import { useAccount } from 'wagmi';
+
+import EditIcon from '@mui/icons-material/Edit';
+
+import { StyledFlexBox } from '@/components/styledComponents';
+import { getProjectListByWallet, getUserInfo } from '@/services';
+
 import { WalletCell } from '@/components/table/cell';
 import EditDialog from '@/components/profile/editDialog';
-import EditIcon from '@mui/icons-material/Edit';
 
 const Container = styled('div')(() => ({
 	minWidth: '1000px',
@@ -157,7 +162,7 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 										randomNum
 									] as keyof typeof colors;
 									return (
-										<Grid item>
+										<Grid item key={item.id}>
 											<ProjectItem key={item.id} color={color}>
 												{item.name}
 											</ProjectItem>

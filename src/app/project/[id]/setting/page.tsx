@@ -3,8 +3,11 @@
 import useSWR from 'swr';
 import { Typography, Tabs, Tab, Skeleton, Stack, Alert } from '@mui/material';
 
-import { StyledFlexBox } from '@/components/styledComponents';
 import { useCallback, useMemo, useState } from 'react';
+
+import { useAccount } from 'wagmi';
+
+import { StyledFlexBox } from '@/components/styledComponents';
 import StepProfile from '@/components/createProject/step/profile';
 import {
 	editContributorList,
@@ -13,7 +16,7 @@ import {
 	getProjectDetail,
 	IContributor,
 } from '@/services';
-import { useAccount } from 'wagmi';
+
 import { showToast } from '@/store/utils';
 import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';

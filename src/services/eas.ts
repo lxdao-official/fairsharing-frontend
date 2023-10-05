@@ -1,6 +1,6 @@
 import { request } from '@/common/request';
 import { fetchGraphqlData } from '@/common/graphql';
-import { EasSchemaUidMap } from '@/constant/eas';
+import { EasSchemaMap } from '@/constant/eas';
 
 export const getEasSignature = (params: { wallet: string; cId: number; chainId: number }) => {
 	return request<string>('eas/signature', 1, params);
@@ -54,7 +54,7 @@ export const getEASContributionList = async (ids: string[], chainId?: number) =>
 				]
 			  },
 			  schemaId: {
-			  	equals: "${EasSchemaUidMap.contribution}"
+			  	equals: "${EasSchemaMap.contribution}"
 			  }
 			}
 			take: 5
@@ -83,7 +83,7 @@ export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
 		  attestations(
 			where: {
 			  schemaId: {
-				equals: "${EasSchemaUidMap.vote}"
+				equals: "${EasSchemaMap.vote}"
 			  }
 			  refUID: { 
 			   	in: [

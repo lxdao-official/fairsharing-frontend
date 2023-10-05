@@ -30,8 +30,8 @@ import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils'
 import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
-import { ProjectRegisterABI } from '@/constant/eas';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
+import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
 
 const steps = [
 	{
@@ -116,32 +116,29 @@ export default function Page() {
 			};
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
 
-			const contract = new ethers.Contract(
-				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
+			const projectRegistryContract = new ethers.Contract(
+				ContractAddressMap.ProjectRegistry,
 				ProjectRegisterABI,
 				signer,
 			);
 
-			const votingContract = `${process.env.NEXT_PUBLIC_DEFAULT_VOTING_STRATEGY}`;
-			console.log(
-				'【Contract】create project params',
-				owner,
-				members,
-				symbol,
-				votingContract,
-			);
-			const tx: TransactionResponse = await contract.create(
-				owner,
-				members,
-				symbol,
-				votingContract,
-			);
+			const registerProjectContractParams = {
+				admin: owner,
+				members: members,
+				tokenName: name,
+				tokenSymbol: symbol,
+				voteStrategy: ContractAddressMap.VotingStrategy,
+				voteStrategyData: ethers.toUtf8Bytes(''),
+				votePassingRate: ethers.parseUnits('50'),
+			};
+			console.log('【Contract】create project params', registerProjectContractParams);
+			const tx: TransactionResponse = await projectRegistryContract.create(registerProjectContractParams);
 			const response = await tx.wait(1);
 			if (response.status !== 1) {
 				throw new Error('【Contract】projectContract not found');
 			}
-			const count: bigint = await contract.projectsCount();
-			const projectAddress = await contract.getOwnerLatestProject(
+			const count: bigint = await projectRegistryContract.projectsCount();
+			const projectAddress = await projectRegistryContract.getOwnerLatestProject(
 				owner,
 				0,
 				Number(count) - 1,

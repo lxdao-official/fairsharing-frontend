@@ -1,10 +1,14 @@
-import { StyledFlexBox } from '@/components/styledComponents';
 import { Avatar, Typography } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
-import { formatWalletAddress } from '@/utils/wallet';
+
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { showToast } from '@/store/utils';
+
 import Image from 'next/image';
+
+import { formatWalletAddress } from '@/utils/wallet';
+import { showToast } from '@/store/utils';
+
+import { StyledFlexBox } from '@/components/styledComponents';
 
 export const nickNameCell: GridColDef = {
 	field: 'nickName',

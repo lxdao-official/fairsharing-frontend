@@ -1,11 +1,12 @@
 import { TextField, Typography } from '@mui/material';
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
+import { Img3 } from '@lxdao/img3';
+
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
 import UploadImage from '@/components/uploadImage/uploadImage';
 import { CreateProjectParams } from '@/services';
-import { Img3 } from '@lxdao/img3';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 
 export interface IStepProfileProps extends Partial<IStepBaseProps> {

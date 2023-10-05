@@ -33,7 +33,7 @@ import ContributionList, {
 	IClaimParams,
 	IVoteParams,
 } from '@/components/project/contribution/contributionList';
-import { EAS_CHAIN_CONFIGS, EasSchemaUidMap, ProjectABI } from '@/constant/eas';
+import { EAS_CHAIN_CONFIGS, EasSchemaMap } from '@/constant/eas';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
@@ -53,6 +53,7 @@ import {
 	getEasSignature,
 	getEASVoteRecord,
 } from '@/services/eas';
+import { ProjectABI } from '@/constant/contract';
 
 type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -253,7 +254,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				console.log('createContribution res', contribution);
 
 				const offchain = await eas.getOffchain();
-				const contributionSchemaUid = EasSchemaUidMap.contribution;
+				const contributionSchemaUid = EasSchemaMap.contribution;
 				// Initialize SchemaEncoder with the schema string
 				const schemaEncoder = new SchemaEncoder(
 					'address projectAddress, uint64 cid, string title, string detail, string poc, uint64 token',
@@ -264,7 +265,11 @@ export default function Page({ params }: { params: { id: string } }) {
 					{ name: 'title', value: 'first contribution title', type: 'string' },
 					{ name: 'detail', value: postData.detail, type: 'string' },
 					{ name: 'poc', value: postData.proof, type: 'string' },
-					{ name: 'token', value: ethers.parseUnits(postData.credit.toString()), type: 'uint64' },
+					{
+						name: 'token',
+						value: ethers.parseUnits(postData.credit.toString()),
+						type: 'uint64',
+					},
 				]);
 
 				const block = await provider.getBlock('latest');
@@ -331,7 +336,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			try {
 				openGlobalLoading();
 				const offchain = await eas.getOffchain();
-				const voteSchemaUid = EasSchemaUidMap.vote;
+				const voteSchemaUid = EasSchemaMap.vote;
 
 				const schemaEncoder = new SchemaEncoder(
 					'address projectAddress, uint64 cid, uint8 value, string reason',
@@ -406,7 +411,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 			try {
 				openGlobalLoading();
-				const claimSchemaUid = EasSchemaUidMap.claim;
+				const claimSchemaUid = EasSchemaMap.claim;
 				const signature = await getEasSignature({
 					wallet: myAddress as string,
 					cId: contributionId,
