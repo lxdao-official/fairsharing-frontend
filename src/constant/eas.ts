@@ -53,9 +53,9 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 ];
 
 export const EasSchemaUidMap = {
-	contribution: '0x90538b4421272d54351d6c867fc4575d0cc46b319d191a2ea39ba1a4fd89aa39',
-	vote: '0x16798347274c3b96dce526092892afe07bb1e884a4a4208f976530ec97925780',
-	claim: '0x584ad6d7183d0f29c4faaadf11c99d217b16a6bccd385ce3a5f4dda4a7b39467',
+	contribution: '0xa7dca651e011d44363742bddfde1f72c5cec536858589b89778efc5bcdff868b',
+	vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
+	claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
 };
 
 export const ProjectRegisterABI = project_register_abi;
