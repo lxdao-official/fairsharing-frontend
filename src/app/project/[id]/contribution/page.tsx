@@ -253,6 +253,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					credit: Number(postData.credit),
 					toIds: postData.contributors,
 				});
+				// UNREADY 状态
 				console.log('createContribution res', contribution);
 
 				// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
@@ -306,7 +307,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				// Update ENS names
 				const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 				console.log('getENSRes', getENSRes);
-				// 传eas返回的uid, 更新status为claim
+				// 传eas返回的uid, 更新status为ready
 				const updateStatus = await updateContributionStatus(contribution.id, {
 					type: 'ready',
 					uId: res.data.offchainAttestationId as string,
