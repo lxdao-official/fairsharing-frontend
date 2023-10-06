@@ -187,31 +187,33 @@ const ContributionItem = (props: IContributionItemProps) => {
 			}
 		});
 		const voters: string[] = [];
-		const voteValues: number[] = [];
+		const voterValues: number[] = [];
 		for (const [signer, value] of Object.entries(voterMap)) {
 			const uniqueVoteValues = Array.from(new Set(value));
 			uniqueVoteValues.forEach(value => {
 				voters.push(signer);
-				voteValues.push(value);
+				voterValues.push(value);
 			});
 		}
-
-		console.log('voters', voters);
-		console.log('voteValues', voteValues);
 		return {
 			voters: voters,
-			voteValues: voteValues,
+			voterValues: voterValues,
 		};
 	};
 
 	const handleClaim = () => {
-		const { voters, voteValues } = getVoteResult();
+		// 原始投票数据
+		// const { voters, voterValues } = voteInfoMap;
+		// 过滤后的投票数据
+		const { voters, voterValues } = getVoteResult();
+		console.log('voters', voters)
+		console.log('voterValues', voterValues);
 		props.onClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
 			token: contribution.credit,
 			voters: voters,
-			voteValues: voteValues,
+			voteValues: voterValues,
 		});
 	};
 
