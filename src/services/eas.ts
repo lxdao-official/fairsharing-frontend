@@ -22,7 +22,7 @@ export type EasAttestation<K> = {
 	attester: string;
 	revocable: string;
 	revoked: string;
-}
+};
 
 export type EasAttestationDecodedData<T> = {
 	name: string;
@@ -33,7 +33,7 @@ export type EasAttestationDecodedData<T> = {
 		type: string;
 		value: string | number | { type: 'BigNumber'; hex: string };
 	};
-}
+};
 
 export interface EasAttestationData {
 	signer: string;
@@ -71,7 +71,10 @@ export const getEASContributionList = async (ids: string[], chainId?: number) =>
 		  }
 		}
 	`;
-	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaContributionKey>[] }>(chainId || 420, query);
+	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaContributionKey>[] }>(
+		chainId || 420,
+		query,
+	);
 };
 
 export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
@@ -104,5 +107,8 @@ export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
 		  }
 		}
 	`;
-	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaVoteKey>[] }>(chainId || 420, query);
+	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaVoteKey>[] }>(
+		chainId || 420,
+		query,
+	);
 };

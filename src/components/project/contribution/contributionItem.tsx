@@ -75,7 +75,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const voterValues: number[] = [];
 		easVoteList?.forEach((vote) => {
 			const attestationData = vote.data as EasAttestationData;
-			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
+			const decodedDataJson =
+				vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
 
 			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
 			if (voteValueItem) {
@@ -135,23 +136,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const [showEdit, setShowEdit] = useState(false);
 
-	const handleVote = (voteValue: IVoteValueEnum) => {
-		if (contribution.status === 'UNREADY') {
-			showToast(`Contribution is not ready!`, 'error');
-			return false;
-		}
-		if (contribution.status === 'CLAIM') {
-			showToast(`Can't vote after the contribution is claimed!`, 'error');
-			return false;
-		}
-		// TODO 同一个人是否能继续vote
-		props.onVote({
-			contributionId: contribution.id,
-			uId: contribution.uId as string,
-			value: voteValue,
-		});
-	};
-
 	const hasVoted = useMemo(() => {
 		const { For, Against, Abstain } = voteInfoMap;
 		return !(For === 0 && Against === 0 && Abstain === 0);
@@ -164,13 +148,31 @@ const ContributionItem = (props: IContributionItemProps) => {
 		);
 	}, [contribution.createAt, projectDetail.votePeriod]);
 
-	const handleClaim = () => {
-		// TODO 截止时间到了才可以claim
-		const { For, Against, Abstain } = voteInfoMap;
-		if (For === 0 && Against === 0 && Abstain === 0) {
-			showToast('No votes have been recorded for this contribution', 'error');
+	const handleVote = (voteValue: IVoteValueEnum) => {
+		if (contribution.status === 'UNREADY') {
+			showToast(`Contribution is not ready!`, 'error');
 			return false;
 		}
+		// 投票时间结束后，不允许继续Vote
+		if (Date.now() >= targetTime) {
+			showToast(`Vote ended, can't vote`, 'error');
+			return false;
+		}
+		if (contribution.status === 'CLAIM') {
+			showToast(`Can't vote after the contribution is claimed!`, 'error');
+			return false;
+		}
+
+		// TODO 同一个人是否能继续vote
+		props.onVote({
+			contributionId: contribution.id,
+			uId: contribution.uId as string,
+			value: voteValue,
+		});
+	};
+
+
+	const handleClaim = () => {
 		props.onClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
