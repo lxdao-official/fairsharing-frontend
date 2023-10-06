@@ -185,31 +185,36 @@ export default function Page({ params }: { params: { id: string } }) {
 	};
 
 	const fetchEasContributionList = async (uIds: string[]) => {
-		const { attestations } = await getEASContributionList(uIds, network.chain?.id);
-		const easList = attestations.map((item) => ({
-			...item,
-			decodedDataJson: JSON.parse(
-				item.decodedDataJson as string,
-			) as EasAttestationDecodedData[],
-			data: JSON.parse(item.data as string) as EasAttestationData,
-		}));
-		setEasContributionList(easList);
-		console.log('graphql -> EASContributionList: ', easList);
+		try {
+			const { attestations } = await getEASContributionList(uIds, network.chain?.id);
+			const easList = attestations.map((item) => ({
+				...item,
+				decodedDataJson: JSON.parse(
+					item.decodedDataJson as string,
+				) as EasAttestationDecodedData[],
+				data: JSON.parse(item.data as string) as EasAttestationData,
+			}));
+			setEasContributionList(easList);
+			console.log('EAS Data[graphql] -> ContributionList: ', easList);
+		} catch (err) {
+			console.error('EAS Data[graphql] -> getEASContributionList error', err);
+		}
 	};
 	const fetchEasVoteList = async (uIds: string[]) => {
-		getEASVoteRecord(uIds as string[], network.chain?.id)
-			.then(({ attestations }) => {
-				const easVoteList = attestations.map((item) => ({
-					...item,
-					decodedDataJson: JSON.parse(
-						item.decodedDataJson as string,
-					) as EasAttestationDecodedData[],
-					data: JSON.parse(item.data as string) as EasAttestationData,
-				}));
-				console.log('easVoteList', easVoteList);
-				setEasVoteList(easVoteList);
-			})
-			.catch((e) => console.error('getEASVoteRecord error', e));
+		try {
+			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
+			const easVoteList = attestations.map((item) => ({
+				...item,
+				decodedDataJson: JSON.parse(
+					item.decodedDataJson as string,
+				) as EasAttestationDecodedData[],
+				data: JSON.parse(item.data as string) as EasAttestationData,
+			}));
+			console.log('EAS Data[graphql] -> easVoteList', easVoteList);
+			setEasVoteList(easVoteList);
+		} catch (err) {
+			console.error('EAS Data[graphql] -> getEASVoteRecord error', err);
+		}
 	};
 
 	const getEasScanURL = () => {
