@@ -115,7 +115,9 @@ export default function Page({ params }: { params: { id: string } }) {
 			onSuccess: (data) => console.log('fetchContributionList', data),
 		},
 	);
-	const [easContributionList, setEasContributionList] = useState<EasAttestation<EasSchemaContributionKey>[]>([]);
+	const [easContributionList, setEasContributionList] = useState<
+		EasAttestation<EasSchemaContributionKey>[]
+	>([]);
 	const [easVoteList, setEasVoteList] = useState<EasAttestation<EasSchemaVoteKey>[]>([]);
 	const [postStatus, setPostStatus] = useState<'pending' | 'success' | 'fail'>('success');
 
@@ -282,11 +284,10 @@ export default function Page({ params }: { params: { id: string } }) {
 					{
 						name: 'Token',
 						value: ethers.parseUnits(postData.credit.toString()),
-						type: 'uint64',
+						type: 'uint256',
 					},
 				];
 				const encodedData = schemaEncoder.encodeData(data);
-
 				const block = await provider.getBlock('latest');
 				if (!signer) {
 					return;
@@ -440,7 +441,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					{ name: 'Voters', value: voters, type: 'address[]' },
 					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 					{ name: 'Recipient', value: myAddress, type: 'address' },
-					{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint64' },
+					{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
 					{ name: 'Signatures', value: signature, type: 'bytes' },
 				];
 				const encodedData = schemaEncoder.encodeData(data);
