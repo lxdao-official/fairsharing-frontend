@@ -10,10 +10,11 @@ import { showToast } from '@/store/utils';
 
 export interface IPostContributionProps {
 	onPost: (data: PostData) => void;
+	contributorList: IContributor[];
 	contribution?: IContribution;
 	onCancel?: () => void;
 	confirmText?: string;
-	contributorList: IContributor[];
+	postStatus?: 'pending' | 'success' | 'fail';
 }
 
 export interface PostData {
@@ -29,6 +30,7 @@ const PostContribution = ({
 	onCancel,
 	confirmText,
 	contributorList,
+	postStatus,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -40,6 +42,19 @@ const PostContribution = ({
 			console.log('props contributorList', contributorList);
 		}
 	}, [contributorList]);
+
+	useEffect(() => {
+		if (postStatus && postStatus === 'success') {
+			onClear();
+		}
+	}, [postStatus]);
+
+	const onClear = () => {
+		setDetail('');
+		setProof('');
+		setContributors([]);
+		setCredit('');
+	};
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -108,6 +123,7 @@ const PostContribution = ({
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
 				<MultipleContributorSelector
+					contributors={contributors}
 					contributorList={contributorList}
 					onChange={handleContributorChange}
 				/>

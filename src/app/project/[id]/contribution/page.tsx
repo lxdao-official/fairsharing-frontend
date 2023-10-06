@@ -109,6 +109,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	);
 	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
 	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
+	const [postStatus, setPostStatus] = useState<'pending' | 'success' | 'fail'>('success');
 
 	const contributionUIds = useMemo(() => {
 		return contributionList
@@ -244,6 +245,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			}
 			try {
 				openGlobalLoading();
+				setPostStatus('pending');
 				const contribution = await createContribution({
 					projectId: params.id,
 					operatorId: operatorId as string,
@@ -253,6 +255,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 				console.log('createContribution res', contribution);
 
+				// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
 				const offchain = await eas.getOffchain();
 				const contributionSchemaUid = EasSchemaMap.contribution;
 				// Initialize SchemaEncoder with the schema string
@@ -290,7 +293,6 @@ export default function Page({ params }: { params: { id: string } }) {
 					},
 					signer,
 				);
-
 				const res = await submitSignedAttestation({
 					signer: myAddress as string,
 					sig: offchainAttestation,
@@ -312,8 +314,10 @@ export default function Page({ params }: { params: { id: string } }) {
 				});
 				showToast('Create contribution success', 'success');
 				console.log('updateStatus', updateStatus);
+				setPostStatus('success');
 				await mutateContributionList();
 			} catch (err) {
+				setPostStatus('fail');
 				console.error(err);
 			} finally {
 				closeGlobalLoading();
@@ -492,6 +496,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			</StyledFlexBox>
 
 			<PostContribution
+				postStatus={postStatus}
 				onPost={onPostContribution}
 				confirmText={'Post'}
 				contributorList={contributorList}

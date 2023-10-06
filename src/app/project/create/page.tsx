@@ -132,7 +132,9 @@ export default function Page() {
 				votePassingRate: ethers.parseUnits('50'),
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
-			const tx: TransactionResponse = await projectRegistryContract.create(registerProjectContractParams);
+			const tx: TransactionResponse = await projectRegistryContract.create(
+				registerProjectContractParams,
+			);
 			const response = await tx.wait(1);
 			if (response.status !== 1) {
 				throw new Error('【Contract】projectContract not found');
