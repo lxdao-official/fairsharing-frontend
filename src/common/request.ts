@@ -34,13 +34,9 @@ client.interceptors.response.use(
 		if (data?.code === 0) {
 			return data?.data;
 		}
-
-		// TODO handle not login or other error case
-		if (status === 401 || data?.code === 4001) {
-			/* empty */
-		}
-
 		console.error('Request Error', data?.message, data);
+
+		return Promise.reject(data);
 	},
 	(error) => {
 		const { response } = error ?? {};

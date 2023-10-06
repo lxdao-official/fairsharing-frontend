@@ -25,7 +25,7 @@ import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
 import { useNetwork } from 'wagmi';
 
 import StatusText from '@/components/project/contribution/statusText';
-import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
+import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
@@ -431,10 +431,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			{showEdit ? (
 				<PostContribution
+					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
-					onPost={onPost}
-					contributorList={contributorList}
 				/>
 			) : null}
 		</>
