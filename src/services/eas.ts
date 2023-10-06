@@ -1,12 +1,12 @@
 import { request } from '@/common/request';
 import { fetchGraphqlData } from '@/common/graphql';
-import { EasSchemaMap } from '@/constant/eas';
+import { EasSchemaContributionKey, EasSchemaMap, EasSchemaVoteKey } from '@/constant/eas';
 
 export const getEasSignature = (params: { wallet: string; cId: number; chainId: number }) => {
 	return request<string>('eas/signature', 1, params);
 };
 
-export interface EasAttestation {
+export type EasAttestation<K> = {
 	id: string;
 	refUID: string;
 	ipfsHash: string;
@@ -14,7 +14,7 @@ export interface EasAttestation {
 	/**
 	 * can be JSON.parse
 	 */
-	decodedDataJson: string | EasAttestationDecodedData[];
+	decodedDataJson: string | EasAttestationDecodedData<K>[];
 	/**
 	 * can be JSON.parse
 	 */
@@ -24,12 +24,12 @@ export interface EasAttestation {
 	revoked: string;
 }
 
-export interface EasAttestationDecodedData {
+export type EasAttestationDecodedData<T> = {
 	name: string;
 	signature: string;
 	type: string;
 	value: {
-		name: string;
+		name: T;
 		type: string;
 		value: string | number | { type: 'BigNumber'; hex: string };
 	};
@@ -71,7 +71,7 @@ export const getEASContributionList = async (ids: string[], chainId?: number) =>
 		  }
 		}
 	`;
-	return fetchGraphqlData<{ attestations: EasAttestation[] }>(chainId || 420, query);
+	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaContributionKey>[] }>(chainId || 420, query);
 };
 
 export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
@@ -104,5 +104,5 @@ export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
 		  }
 		}
 	`;
-	return fetchGraphqlData<{ attestations: EasAttestation[] }>(chainId || 420, query);
+	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaVoteKey>[] }>(chainId || 420, query);
 };

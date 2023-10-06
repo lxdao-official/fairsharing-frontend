@@ -33,7 +33,15 @@ import ContributionList, {
 	IClaimParams,
 	IVoteParams,
 } from '@/components/project/contribution/contributionList';
-import { EAS_CHAIN_CONFIGS, EasSchemaMap } from '@/constant/eas';
+import {
+	EAS_CHAIN_CONFIGS,
+	EasSchemaClaimKey,
+	EasSchemaContributionKey,
+	EasSchemaData,
+	EasSchemaMap,
+	EasSchemaTemplateMap,
+	EasSchemaVoteKey,
+} from '@/constant/eas';
 import { getProjectDetail } from '@/services/project';
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution, { PostData } from '@/components/project/contribution/postContribution';
@@ -107,8 +115,8 @@ export default function Page({ params }: { params: { id: string } }) {
 			onSuccess: (data) => console.log('fetchContributionList', data),
 		},
 	);
-	const [easContributionList, setEasContributionList] = useState<EasAttestation[]>([]);
-	const [easVoteList, setEasVoteList] = useState<EasAttestation[]>([]);
+	const [easContributionList, setEasContributionList] = useState<EasAttestation<EasSchemaContributionKey>[]>([]);
+	const [easVoteList, setEasVoteList] = useState<EasAttestation<EasSchemaVoteKey>[]>([]);
 	const [postStatus, setPostStatus] = useState<'pending' | 'success' | 'fail'>('success');
 
 	const contributionUIds = useMemo(() => {
@@ -126,7 +134,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					[cur]: [],
 				};
 			},
-			{} as Record<string, EasAttestation[]>,
+			{} as Record<string, EasAttestation<EasSchemaVoteKey>[]>,
 		);
 		easVoteList.forEach((item) => {
 			map[item.refUID].push(item);
@@ -191,7 +199,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				...item,
 				decodedDataJson: JSON.parse(
 					item.decodedDataJson as string,
-				) as EasAttestationDecodedData[],
+				) as EasAttestationDecodedData<EasSchemaContributionKey>[],
 				data: JSON.parse(item.data as string) as EasAttestationData,
 			}));
 			setEasContributionList(easList);
@@ -207,7 +215,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				...item,
 				decodedDataJson: JSON.parse(
 					item.decodedDataJson as string,
-				) as EasAttestationDecodedData[],
+				) as EasAttestationDecodedData<EasSchemaVoteKey>[],
 				data: JSON.parse(item.data as string) as EasAttestationData,
 			}));
 			console.log('EAS Data[graphql] -> easVoteList', easVoteList);
@@ -264,22 +272,20 @@ export default function Page({ params }: { params: { id: string } }) {
 				// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
 				const offchain = await eas.getOffchain();
 				const contributionSchemaUid = EasSchemaMap.contribution;
-				// Initialize SchemaEncoder with the schema string
-				const schemaEncoder = new SchemaEncoder(
-					'address projectAddress, uint64 cid, string title, string detail, string poc, uint64 token',
-				);
-				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: params.id, type: 'address' },
-					{ name: 'cid', value: contribution.id, type: 'uint64' },
-					{ name: 'title', value: 'first contribution title', type: 'string' },
-					{ name: 'detail', value: postData.detail, type: 'string' },
-					{ name: 'poc', value: postData.proof, type: 'string' },
+				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
+				const data: EasSchemaData<EasSchemaContributionKey>[] = [
+					{ name: 'ProjectAddress', value: params.id, type: 'address' },
+					{ name: 'ContributionID', value: contribution.id, type: 'uint64' },
+					{ name: 'Detail', value: postData.detail, type: 'string' },
+					{ name: 'Type', value: 'default contribution type', type: 'string' },
+					{ name: 'Proof', value: postData.proof, type: 'string' },
 					{
-						name: 'token',
+						name: 'Token',
 						value: ethers.parseUnits(postData.credit.toString()),
 						type: 'uint64',
 					},
-				]);
+				];
+				const encodedData = schemaEncoder.encodeData(data);
 
 				const block = await provider.getBlock('latest');
 				if (!signer) {
@@ -348,15 +354,14 @@ export default function Page({ params }: { params: { id: string } }) {
 				const offchain = await eas.getOffchain();
 				const voteSchemaUid = EasSchemaMap.vote;
 
-				const schemaEncoder = new SchemaEncoder(
-					'address projectAddress, uint64 cid, uint8 value, string reason',
-				);
-				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: params.id, type: 'address' },
-					{ name: 'cid', value: contributionId, type: 'uint64' },
-					{ name: 'value', value: value, type: 'uint8' },
-					{ name: 'reason', value: 'good contribution', type: 'string' },
-				]);
+				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
+				const data: EasSchemaData<EasSchemaVoteKey>[] = [
+					{ name: 'ProjectAddress', value: params.id, type: 'address' },
+					{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+					{ name: 'VoteChoice', value: value, type: 'uint8' },
+					{ name: 'Comment', value: 'Good contribution', type: 'string' },
+				];
+				const encodedData = schemaEncoder.encodeData(data);
 				const block = await provider.getBlock('latest');
 				if (!signer) {
 					return;
@@ -428,21 +433,17 @@ export default function Page({ params }: { params: { id: string } }) {
 					chainId: network.chain?.id as number,
 				});
 
-				const schemaEncoder = new SchemaEncoder(
-					'address projectAddress, uint64 cid, address[] voters, uint8[] values, uint64 token, bytes signature',
-				);
-				const encodedData = schemaEncoder.encodeData([
-					{ name: 'projectAddress', value: params.id, type: 'address' },
-					{ name: 'cid', value: contributionId, type: 'uint64' },
-					{
-						name: 'voters',
-						value: voters,
-						type: 'address[]',
-					},
-					{ name: 'values', value: voteValues, type: 'uint8[]' },
-					{ name: 'token', value: ethers.parseUnits(token.toString()), type: 'uint64' },
-					{ name: 'signature', value: signature, type: 'bytes' },
-				]);
+				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
+				const data: EasSchemaData<EasSchemaClaimKey>[] = [
+					{ name: 'ProjectAddress', value: params.id, type: 'address' },
+					{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+					{ name: 'Voters', value: voters, type: 'address[]' },
+					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
+					{ name: 'Recipient', value: myAddress, type: 'address' },
+					{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint64' },
+					{ name: 'Signatures', value: signature, type: 'bytes' },
+				];
+				const encodedData = schemaEncoder.encodeData(data);
 
 				console.log('encodedData', encodedData);
 

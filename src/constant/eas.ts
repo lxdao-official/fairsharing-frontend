@@ -52,3 +52,33 @@ export const EasSchemaMap = {
 	vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
 	claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
 };
+
+export const EasSchemaTemplateMap = {
+	contribution:
+		'address ProjectAddress, uint64 ContributionID, string Detail, string Type, string Proof, uint256 Token',
+	vote: 'address ProjectAddress, uint64 ContributionID, uint8 VoteChoice, string Comment',
+	claim: 'address ProjectAddress, uint64 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 Token, bytes Signatures',
+};
+
+export type EasSchemaContributionKey =
+	| 'ProjectAddress'
+	| 'ContributionID'
+	| 'Detail'
+	| 'Type'
+	| 'Proof'
+	| 'Token';
+export type EasSchemaVoteKey = 'ProjectAddress' | 'ContributionID' | 'VoteChoice' | 'Comment';
+export type EasSchemaClaimKey =
+	| 'ProjectAddress'
+	| 'ContributionID'
+	| 'Voters'
+	| 'VoteChoices'
+	| 'Recipient'
+	| 'Token'
+	| 'Signatures';
+
+export type EasSchemaData<T> = {
+	name: T;
+	value: any;
+	type: string;
+};

@@ -24,6 +24,7 @@ import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import ContributionItem from '@/components/project/contribution/contributionItem';
 import { EasAttestation } from '@/services/eas';
+import { EasSchemaVoteKey } from '@/constant/eas';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -51,7 +52,7 @@ export interface IContributionListProps {
 	projectDetail: IProject;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
-	easVoteMap: Record<string, EasAttestation[]>;
+	easVoteMap: Record<string, EasAttestation<EasSchemaVoteKey>[]>;
 	contributorList: IContributor[];
 }
 

@@ -36,7 +36,7 @@ import {
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
-import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { EAS_CHAIN_CONFIGS, EasSchemaVoteKey } from '@/constant/eas';
 import { showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 
@@ -49,7 +49,7 @@ export interface IContributionItemProps {
 	showDeleteDialog: () => void;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
-	easVoteList: EasAttestation[];
+	easVoteList: EasAttestation<EasSchemaVoteKey>[];
 	contributorList: IContributor[];
 }
 
@@ -74,10 +74,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const voters: string[] = [];
 		const voterValues: number[] = [];
 		easVoteList?.forEach((vote) => {
-			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData[];
 			const attestationData = vote.data as EasAttestationData;
+			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
 
-			const voteValueItem = decodedDataJson.find((item) => item.name === 'value');
+			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
 			if (voteValueItem) {
 				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
 				voters.push(attestationData.signer);
