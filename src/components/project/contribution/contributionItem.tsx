@@ -67,33 +67,42 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const { chain } = useNetwork();
 
-	const voteInfoMap = useMemo(() => {
-		let For = 0,
-			Against = 0,
-			Abstain = 0;
-		const voters: string[] = [];
-		const voterValues: number[] = [];
+	const userVoteInfoMap = useMemo(() => {
+		const userVoterMap: Record<string, number[]> = {};
 		easVoteList?.forEach((vote) => {
-			const attestationData = vote.data as EasAttestationData;
+			const { signer } = vote.data as EasAttestationData;
 			const decodedDataJson =
 				vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
-
 			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
 			if (voteValueItem) {
 				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
-				voters.push(attestationData.signer);
-				voterValues.push(voteNumber);
-				if (voteNumber === IVoteValueEnum.FOR) {
-					For += 1;
-				} else if (voteNumber === IVoteValueEnum.AGAINST) {
-					Against += 1;
-				} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
-					Abstain += 1;
+				if (userVoterMap[signer]) {
+					userVoterMap[signer].push(voteNumber);
+				} else {
+					userVoterMap[signer] = [voteNumber];
 				}
 			}
 		});
-		return { For, Against, Abstain, voters, voterValues };
+		return userVoterMap;
 	}, [easVoteList]);
+
+	const voteNumbers = useMemo(() => {
+		let For = 0,
+			Against = 0,
+			Abstain = 0;
+		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+			// 同一用户取最新投票
+			const voteNumber = value[value.length - 1];
+			if (voteNumber === IVoteValueEnum.FOR) {
+				For += 1;
+			} else if (voteNumber === IVoteValueEnum.AGAINST) {
+				Against += 1;
+			} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
+				Abstain += 1;
+			}
+		}
+		return { For, Against, Abstain };
+	}, [userVoteInfoMap]);
 
 	const EasLink = useMemo(() => {
 		const activeChainConfig =
@@ -137,9 +146,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [showEdit, setShowEdit] = useState(false);
 
 	const hasVoted = useMemo(() => {
-		const { For, Against, Abstain } = voteInfoMap;
+		const { For, Against, Abstain } = voteNumbers;
 		return !(For === 0 && Against === 0 && Abstain === 0);
-	}, [voteInfoMap]);
+	}, [voteNumbers]);
 
 	const targetTime = useMemo(() => {
 		return (
@@ -172,28 +181,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const getVoteResult = () => {
-		const voterMap: Record<string, number[]> = {};
-		easVoteList?.forEach(vote => {
-			const { signer } = vote.data as EasAttestationData;
-			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
-			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
-			if (voteValueItem) {
-				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
-				if (voterMap[signer]) {
-					voterMap[signer].push(voteNumber);
-				} else {
-					voterMap[signer] = [voteNumber];
-				}
-			}
-		});
 		const voters: string[] = [];
 		const voterValues: number[] = [];
-		for (const [signer, value] of Object.entries(voterMap)) {
-			const uniqueVoteValues = Array.from(new Set(value));
-			uniqueVoteValues.forEach(value => {
-				voters.push(signer);
-				voterValues.push(value);
-			});
+		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+			voters.push(signer);
+			// 同一用户取最新投票
+			const lastVote = value[value.length - 1];
+			voterValues.push(lastVote);
 		}
 		return {
 			voters: voters,
@@ -202,11 +196,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const handleClaim = () => {
-		// 原始投票数据
-		// const { voters, voterValues } = voteInfoMap;
-		// 过滤后的投票数据
 		const { voters, voterValues } = getVoteResult();
-		console.log('voters', voters)
+		console.log('voters', voters);
 		console.log('voterValues', voterValues);
 		props.onClaim({
 			contributionId: contribution.id,
@@ -414,21 +405,21 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<VoteAction
 								type={VoteTypeEnum.FOR}
 								status={VoteStatus.DONE}
-								count={voteInfoMap.For}
+								count={voteNumbers.For}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
 								status={VoteStatus.NORMAL}
-								count={voteInfoMap.Against}
+								count={voteNumbers.Against}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
 								status={VoteStatus.DISABLED}
-								count={voteInfoMap.Abstain}
+								count={voteNumbers.Abstain}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 							/>
