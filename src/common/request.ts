@@ -87,13 +87,22 @@ request.post = function post<T = any>(
 	return request(api, version, data, { method: 'post', ...options });
 };
 
-request.put = function post<T = any>(
+request.put = function put<T = any>(
 	api: string,
 	version: number | string,
 	data: any,
-	options?: Omit<AxiosRequestConfig, 'put'>,
+	options?: Omit<AxiosRequestConfig, 'method'>,
 ): Promise<T> {
 	return request(api, version, data, { method: 'put', ...options });
+};
+
+request.delete = function deleteMethod<T = any>(
+	api: string,
+	version: number | string,
+	data: any,
+	options?: Omit<AxiosRequestConfig, 'method'>,
+): Promise<T> {
+	return request(api, version, data, { method: 'delete', ...options });
 };
 
 function removeEmptyParams(data: any) {

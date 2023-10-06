@@ -205,6 +205,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			token: contribution.credit,
 			voters: voters,
 			voteValues: voterValues,
+			toIds: contribution.toIds,
 		});
 	};
 

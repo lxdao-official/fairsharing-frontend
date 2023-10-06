@@ -59,6 +59,7 @@ import {
 	getContributionList,
 	getContributorList,
 	getProjectDetail,
+	prepareClaim,
 	updateContributionStatus,
 } from '@/services';
 
@@ -82,6 +83,7 @@ export interface IClaimParams {
 	token: number;
 	voters: string[];
 	voteValues: number[];
+	toIds: string[];
 }
 
 export interface IContributionListProps {
@@ -368,7 +370,7 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 
 	const handleClaim = useCallback(
 		async (claimParams: IClaimParams) => {
-			const { contributionId, uId, token, voters, voteValues } = claimParams;
+			const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
 			// const claimAddress = await readProjectContract(contributionId);
 			// if (claimAddress === myAddress) {
 			// 	console.log('已经claim过了');
@@ -383,11 +385,13 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 			try {
 				openGlobalLoading();
 				const claimSchemaUid = EasSchemaMap.claim;
-				const signature = await getEasSignature({
+				// TODO 默认选第一个
+				const signature = await prepareClaim(contributionId, {
 					wallet: myAddress as string,
-					cId: contributionId,
+					toWallet: toIds[0],
 					chainId: network.chain?.id as number,
 				});
+				console.log('signature', signature);
 
 				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 				const data: EasSchemaData<EasSchemaClaimKey>[] = [
@@ -423,8 +427,11 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
 				onUpdate?.();
-			} catch (err) {
+			} catch (err: any) {
 				console.error('onClaim error', err);
+				if (err.message) {
+					showToast(err.message, 'error');
+				}
 			} finally {
 				closeGlobalLoading();
 			}
@@ -565,20 +572,20 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 
 			{projectDetail && contributionList.length > 0
 				? contributionList.map((contribution, idx) => (
-						<ContributionItem
-							key={contribution.id}
-							contribution={contribution}
-							showSelect={showSelect}
-							selected={selected}
-							onSelect={onSelect}
-							showDeleteDialog={showDeleteDialog}
-							projectDetail={projectDetail}
-							onVote={handleVote}
-							onClaim={handleClaim}
-							easVoteList={easVoteMap[contribution.uId as string]}
-							contributorList={contributorList}
-						/>
-				  ))
+					<ContributionItem
+						key={contribution.id}
+						contribution={contribution}
+						showSelect={showSelect}
+						selected={selected}
+						onSelect={onSelect}
+						showDeleteDialog={showDeleteDialog}
+						projectDetail={projectDetail}
+						onVote={handleVote}
+						onClaim={handleClaim}
+						easVoteList={easVoteMap[contribution.uId as string]}
+						contributorList={contributorList}
+					/>
+				))
 				: null}
 
 			<Dialog
