@@ -15,7 +15,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { format, formatDistance } from 'date-fns';
+import { formatDistance } from 'date-fns';
 
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
@@ -135,6 +135,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return !(For === 0 && Against === 0 && Abstain === 0);
 	}, [voteInfoMap]);
 
+	const targetTime = useMemo(() => {
+		return (
+			new Date(contribution.createAt).getTime() +
+			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+		);
+	}, [contribution.createAt, projectDetail.votePeriod]);
+
 	const handleClaim = () => {
 		const { For, Against, Abstain } = voteInfoMap;
 		if (For === 0 && Against === 0 && Abstain === 0) {
@@ -223,7 +230,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<StatusText
 								contribution={contribution}
 								onClaim={handleClaim}
-								period={projectDetail.votePeriod}
+								targetTime={targetTime}
 								hasVoted={hasVoted}
 							/>
 							<Tooltip title="View on chain" placement="top">

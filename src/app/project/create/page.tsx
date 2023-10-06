@@ -111,7 +111,7 @@ export default function Page() {
 				intro: intro,
 				symbol: symbol,
 				network: network,
-				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
+				votePeriod: String(period),
 				contributors: contributors,
 			};
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));

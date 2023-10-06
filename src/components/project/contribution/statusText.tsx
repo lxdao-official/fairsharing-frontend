@@ -1,8 +1,6 @@
 import { Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
-import { formatDistanceToNow, isFuture } from 'date-fns';
-
 import { IContribution, Status } from '@/services/types';
 import useCountdown from '@/hooks/useCountdown';
 import { showToast } from '@/store/utils';
@@ -10,8 +8,8 @@ import { showToast } from '@/store/utils';
 export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
-	period: string;
 	hasVoted: boolean;
+	targetTime: number;
 }
 
 const StatusColor = {
@@ -26,9 +24,9 @@ const CursorStatus = {
 	[Status.CLAIM]: 'not-allowed',
 };
 
-const StatusText = ({ contribution, onClaim, period, hasVoted }: IStatusTextProps) => {
+const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusTextProps) => {
 	const { status } = contribution;
-	const { days, hours, minutes, seconds } = useCountdown(Number(period));
+	const { days, hours, minutes, seconds } = useCountdown(targetTime);
 	const [countdownText, setCountdownText] = useState('');
 
 	useEffect(() => {
@@ -48,7 +46,7 @@ const StatusText = ({ contribution, onClaim, period, hasVoted }: IStatusTextProp
 		} else {
 			return countdownText;
 		}
-	}, [status, period, countdownText, hasVoted]);
+	}, [status, countdownText, hasVoted]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
 		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
