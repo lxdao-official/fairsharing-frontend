@@ -163,7 +163,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			return false;
 		}
 
-		// TODO 同一个人是否能继续vote
+		// 同一用户允许继续vote
 		props.onVote({
 			contributionId: contribution.id,
 			uId: contribution.uId as string,
@@ -171,14 +171,47 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 	};
 
+	const getVoteResult = () => {
+		const voterMap: Record<string, number[]> = {};
+		easVoteList?.forEach(vote => {
+			const { signer } = vote.data as EasAttestationData;
+			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
+			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
+			if (voteValueItem) {
+				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
+				if (voterMap[signer]) {
+					voterMap[signer].push(voteNumber);
+				} else {
+					voterMap[signer] = [voteNumber];
+				}
+			}
+		});
+		const voters: string[] = [];
+		const voteValues: number[] = [];
+		for (const [signer, value] of Object.entries(voterMap)) {
+			const uniqueVoteValues = Array.from(new Set(value));
+			uniqueVoteValues.forEach(value => {
+				voters.push(signer);
+				voteValues.push(value);
+			});
+		}
+
+		console.log('voters', voters);
+		console.log('voteValues', voteValues);
+		return {
+			voters: voters,
+			voteValues: voteValues,
+		};
+	};
 
 	const handleClaim = () => {
+		const { voters, voteValues } = getVoteResult();
 		props.onClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
 			token: contribution.credit,
-			voters: voteInfoMap.voters,
-			voteValues: voteInfoMap.voterValues,
+			voters: voters,
+			voteValues: voteValues,
 		});
 	};
 

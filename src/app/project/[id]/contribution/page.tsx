@@ -419,7 +419,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			// 	console.log('已经claim过了');
 			// 	return false;
 			// }
-			console.log('onClaim params', params);
+			console.log('onClaim params', claimParams);
 			if (!myAddress) {
 				openConnectModal?.();
 				return false;
