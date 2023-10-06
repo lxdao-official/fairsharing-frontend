@@ -8,6 +8,7 @@ import {
 	ListItemButton,
 	Paper,
 	Popover,
+	styled,
 	Tooltip,
 	Typography,
 } from '@mui/material';
@@ -37,6 +38,7 @@ import {
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
 import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
 import { showToast } from '@/store/utils';
+import MiniContributorList from '@/components/project/contribution/miniContributorList';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -99,12 +101,23 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return `${activeChainConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
 	}, [contribution, chain]);
 
-	const toContributors = useMemo(() => {
-		const list = contributorList.filter((item) => contribution.toIds.includes(item.wallet));
-		return list.reduce((pre, cur, currentIndex) => {
-			return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
-		}, '');
+	const matchContributors = useMemo(() => {
+		return contributorList.filter((item) => contribution.toIds.includes(item.id));
 	}, [contributorList, contribution]);
+
+	const toContributors = useMemo(() => {
+		const maxNum = 2;
+		if (matchContributors.length > maxNum) {
+			const names = matchContributors.slice(0, maxNum).reduce((pre, cur, currentIndex) => {
+				return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
+			}, '');
+			return `${names}, +${matchContributors.length - maxNum}`;
+		} else {
+			return matchContributors.reduce((pre, cur, currentIndex) => {
+				return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
+			}, '');
+		}
+	}, [matchContributors]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -295,7 +308,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*proof*/}
 
 							<>
-								<BorderOutline
+								<CustomHoverButton
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenProofPopover}
 								>
@@ -309,7 +322,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									>
 										Proof
 									</Typography>
-								</BorderOutline>
+								</CustomHoverButton>
 								<Popover
 									id={'simple-popover-proof'}
 									open={openProof}
@@ -333,7 +346,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*contributors*/}
 
 							<>
-								<BorderOutline
+								<CustomHoverButton
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenContributorPopover}
 								>
@@ -343,7 +356,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									>
 										@{toContributors}
 									</Typography>
-								</BorderOutline>
+								</CustomHoverButton>
 								<Popover
 									id={'simple-popover-contributor'}
 									open={openContributor}
@@ -353,7 +366,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 									transformOrigin={{ vertical: 'top', horizontal: 'left' }}
 									disableRestoreFocus
 								>
-									<Paper sx={{ padding: '12px' }}>Contributor list</Paper>
+									<Paper sx={{ padding: '12px', maxWidth: '500px' }}>
+										<MiniContributorList contributorList={matchContributors} />
+									</Paper>
 								</Popover>
 							</>
 						</StyledFlexBox>
@@ -399,3 +414,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 };
 
 export default ContributionItem;
+
+export const CustomHoverButton = styled(StyledFlexBox)({
+	borderRadius: 4,
+	height: 28,
+	padding: '0 8px',
+	border: '0.5px solid rgba(15, 23, 42, 0.16)',
+	'&:hover': {
+		backgroundColor: 'rgba(203, 213, 225, .3)',
+	},
+});
