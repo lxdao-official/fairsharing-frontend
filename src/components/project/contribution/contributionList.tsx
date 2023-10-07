@@ -385,10 +385,13 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 			try {
 				openGlobalLoading();
 				const claimSchemaUid = EasSchemaMap.claim;
-				// TODO 默认选第一个
+
+				const toWallet = contributorList.find((item) => item.id === toIds[0])
+					?.wallet as string;
+				// TODO 待确认 默认选第一个To里面的人
 				const signature = await prepareClaim(contributionId, {
 					wallet: myAddress as string,
-					toWallet: toIds[0],
+					toWallet: toWallet,
 					chainId: network.chain?.id as number,
 				});
 				console.log('signature', signature);
@@ -404,8 +407,6 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 					{ name: 'Signatures', value: signature, type: 'bytes' },
 				];
 				const encodedData = schemaEncoder.encodeData(data);
-
-				console.log('encodedData', encodedData);
 
 				const attestation = await eas.attest({
 					schema: claimSchemaUid,
@@ -572,20 +573,20 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 
 			{projectDetail && contributionList.length > 0
 				? contributionList.map((contribution, idx) => (
-					<ContributionItem
-						key={contribution.id}
-						contribution={contribution}
-						showSelect={showSelect}
-						selected={selected}
-						onSelect={onSelect}
-						showDeleteDialog={showDeleteDialog}
-						projectDetail={projectDetail}
-						onVote={handleVote}
-						onClaim={handleClaim}
-						easVoteList={easVoteMap[contribution.uId as string]}
-						contributorList={contributorList}
-					/>
-				))
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							onVote={handleVote}
+							onClaim={handleClaim}
+							easVoteList={easVoteMap[contribution.uId as string]}
+							contributorList={contributorList}
+						/>
+				  ))
 				: null}
 
 			<Dialog

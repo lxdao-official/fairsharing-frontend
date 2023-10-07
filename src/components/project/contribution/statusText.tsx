@@ -30,7 +30,7 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 
 	useEffect(() => {
 		setCountdownText(getCountDownText(days, hours, minutes, seconds));
-		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
+		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
 			setVoteTimeEnd(true);
 		}
 	}, [days, hours, minutes, seconds]);
@@ -59,7 +59,7 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 	}, [status, hasVoted, voteTimeEnd, countdownText]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
-		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
+		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
 			return 'Vote ended';
 		}
 		if (days > 0) {
@@ -68,8 +68,10 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 			return `Vote ends in ${hours}h ${minutes}m`;
 		} else if (minutes > 0) {
 			return `Vote ends in ${minutes}m ${seconds}s`;
-		} else {
+		} else if (seconds > 0) {
 			return `Vote ends in ${seconds}s`;
+		} else {
+			return 'Vote ended';
 		}
 	};
 
