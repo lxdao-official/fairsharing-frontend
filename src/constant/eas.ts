@@ -1,8 +1,3 @@
-// @ts-ignore
-import project_register_abi = require('../../abi/project_register_abi.json');
-// @ts-ignore
-import project_abi = require('../../abi/project_abi.json');
-
 export interface EASChainConfig {
 	chainId: number;
 	chainName: string;
@@ -52,11 +47,38 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	},
 ];
 
-export const EasSchemaUidMap = {
-	contribution: '0x90538b4421272d54351d6c867fc4575d0cc46b319d191a2ea39ba1a4fd89aa39',
-	vote: '0x16798347274c3b96dce526092892afe07bb1e884a4a4208f976530ec97925780',
-	claim: '0x584ad6d7183d0f29c4faaadf11c99d217b16a6bccd385ce3a5f4dda4a7b39467',
+export const EasSchemaMap = {
+	contribution: '0xa7dca651e011d44363742bddfde1f72c5cec536858589b89778efc5bcdff868b',
+	vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
+	claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
 };
 
-export const ProjectRegisterABI = project_register_abi;
-export const ProjectABI = project_abi;
+export const EasSchemaTemplateMap = {
+	contribution:
+		'address ProjectAddress, uint64 ContributionID, string Detail, string Type, string Proof, uint256 Token',
+	vote: 'address ProjectAddress, uint64 ContributionID, uint8 VoteChoice, string Comment',
+	claim: 'address ProjectAddress, uint64 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 Token, bytes Signatures',
+};
+
+export type EasSchemaContributionKey =
+	| 'ProjectAddress'
+	| 'ContributionID'
+	| 'Detail'
+	| 'Type'
+	| 'Proof'
+	| 'Token';
+export type EasSchemaVoteKey = 'ProjectAddress' | 'ContributionID' | 'VoteChoice' | 'Comment';
+export type EasSchemaClaimKey =
+	| 'ProjectAddress'
+	| 'ContributionID'
+	| 'Voters'
+	| 'VoteChoices'
+	| 'Recipient'
+	| 'Token'
+	| 'Signatures';
+
+export type EasSchemaData<T> = {
+	name: T;
+	value: any;
+	type: string;
+};

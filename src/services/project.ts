@@ -22,6 +22,14 @@ export interface CreateProjectParams {
 	contributors: Contributor[];
 }
 
+export interface EditProjectParams {
+	id: string;
+	name: string;
+	logo: string;
+	intro: string;
+	votePeriod: string;
+}
+
 export interface Contributor {
 	nickName: string;
 	wallet: string;
@@ -42,6 +50,11 @@ export enum PermissionEnum {
  */
 export function createProject(params: CreateProjectParams): Promise<IProject> {
 	return request.post('project/create', 1, params);
+}
+
+export function editProject(params: EditProjectParams): Promise<IProject> {
+	const { id, ...data } = params;
+	return request.put(`project/${id}/edit`, 1, data);
 }
 
 export function getProjectList(params: PageListParams): Promise<PageListData<IProject>> {

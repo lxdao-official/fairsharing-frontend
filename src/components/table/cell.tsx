@@ -1,10 +1,14 @@
-import { StyledFlexBox } from '@/components/styledComponents';
 import { Avatar, Typography } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
-import { formatWalletAddress } from '@/utils/wallet';
+
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { showToast } from '@/store/utils';
+
 import Image from 'next/image';
+
+import { formatWalletAddress } from '@/utils/wallet';
+import { showToast } from '@/store/utils';
+
+import { StyledFlexBox } from '@/components/styledComponents';
 
 export const nickNameCell: GridColDef = {
 	field: 'nickName',
@@ -23,25 +27,40 @@ export const nickNameCell: GridColDef = {
 	},
 };
 
+export const WalletCell = ({
+	wallet,
+	needFormat = true,
+	color,
+}: {
+	wallet: string;
+	needFormat?: boolean;
+	color?: string;
+}) => {
+	const props = color ? { color } : {};
+	return (
+		<StyledFlexBox sx={{ gap: '4px' }}>
+			<Typography variant="body1" {...props}>
+				{needFormat ? formatWalletAddress(wallet) : wallet}
+			</Typography>
+			<CopyToClipboard text={wallet} onCopy={() => showToast('Copy success!')}>
+				<Image
+					src="/images/copy.png"
+					width={24}
+					height={24}
+					alt="copy"
+					style={{ cursor: 'pointer' }}
+				/>
+			</CopyToClipboard>
+		</StyledFlexBox>
+	);
+};
+
 export const walletCell: GridColDef = {
 	field: 'wallet',
 	headerName: 'ETH Wallet',
 	sortable: false,
 	width: 200,
 	renderCell: (item) => {
-		return (
-			<StyledFlexBox sx={{ gap: '4px' }}>
-				<Typography variant="body1">{formatWalletAddress(item.value)}</Typography>
-				<CopyToClipboard text={item.value} onCopy={() => showToast('Copy success!')}>
-					<Image
-						src="/images/copy.png"
-						width={24}
-						height={24}
-						alt="copy"
-						style={{ cursor: 'pointer' }}
-					/>
-				</CopyToClipboard>
-			</StyledFlexBox>
-		);
+		return <WalletCell wallet={item.value} />;
 	},
 };

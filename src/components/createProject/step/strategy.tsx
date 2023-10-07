@@ -1,13 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import {
 	Box,
 	Button,
-	FormControl,
-	InputLabel,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
-	styled,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -15,8 +12,14 @@ import {
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { showToast } from '@/store/utils';
+import { CreateProjectParams } from '@/services';
+import ButtonGroup from '@/components/createProject/step/buttonGroup';
 
-export interface IStepStrategyProps extends IStepBaseProps {}
+export interface IStepStrategyProps extends Partial<IStepBaseProps> {
+	data?: Pick<CreateProjectParams, 'network' | 'votePeriod' | 'symbol'>;
+	onSave?: () => void;
+	canEdit?: boolean;
+}
 
 export interface StepStrategyRef {
 	getFormData: () => {
@@ -27,13 +30,16 @@ export interface StepStrategyRef {
 }
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
-	const { step, setActiveStep } = props;
-	const [symbol, setSymbol] = useState('');
-	const [network, setNetwork] = useState(420);
-	const [period, setPeriod] = useState('');
+	const { step, setActiveStep, canEdit = true, onSave, data } = props;
+	const [symbol, setSymbol] = useState(data?.symbol ?? '');
+	const [network, setNetwork] = useState(data?.network ?? 420);
+	const [period, setPeriod] = useState(data?.votePeriod ?? '');
 
 	const [symbolError, setSymbolError] = useState(false);
 	const [periodError, setPeriodError] = useState(false);
+	const [isEdited, setIsEdited] = useState(false);
+
+	const isSettingPage = !!data;
 
 	const handleSymbolInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setSymbol(event.target.value);
@@ -45,6 +51,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	};
 
 	const handlePeriodInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setIsEdited(true);
 		setPeriod(event.target.value);
 		setPeriodError(false);
 	};
@@ -58,6 +65,10 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
+		if (action === 'BACK') {
+			setActiveStep!(step! - 1);
+			return;
+		}
 		if (!symbol) {
 			setSymbolError(true);
 			return;
@@ -71,7 +82,26 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			showToast('Vote period must be number', 'error');
 			return;
 		}
-		setActiveStep(action === 'BACK' ? step - 1 : step + 1);
+		setActiveStep!(step! + 1);
+	};
+
+	const handleClick = (type: 'primary' | 'secondary') => {
+		if (!isSettingPage) {
+			handleSubmit(type === 'primary' ? 'NEXT' : 'BACK');
+			return;
+		}
+		if (type === 'primary') {
+			if (!Number(period)) {
+				setPeriodError(true);
+				showToast('Vote period must be number', 'error');
+				return;
+			}
+			onSave!();
+			setIsEdited(false);
+		} else {
+			setIsEdited(false);
+			setPeriod(data?.votePeriod ?? '');
+		}
 	};
 
 	return (
@@ -84,6 +114,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				onChange={handleSymbolInputChange}
 				sx={{ display: 'block', minWidth: '' }}
 				error={symbolError}
+				disabled={isSettingPage}
 			/>
 
 			<Select
@@ -94,6 +125,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				onChange={handleNetworkChange}
 				placeholder={'Select network'}
 				sx={{ width: '320px', marginTop: '32px' }}
+				disabled={isSettingPage}
 			>
 				<MenuItem value={'5'}>MainNet</MenuItem>
 				<MenuItem value={'420'}>optimismGoerli</MenuItem>
@@ -108,6 +140,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					placeholder={'Voting period *'}
 					onChange={handlePeriodInputChange}
 					error={periodError}
+					disabled={!canEdit}
 				/>
 				<span style={{ marginLeft: '12px' }}>days</span>
 			</div>
@@ -134,22 +167,13 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				</StyledFlexBox>
 			</Box>
 
-			<StyledFlexBox sx={{ marginTop: '40px' }}>
-				<Button
-					variant={'outlined'}
-					sx={{ backgroundColor: 'transparent' }}
-					onClick={() => handleSubmit('BACK')}
-				>
-					Back
-				</Button>
-				<Button
-					variant={'contained'}
-					sx={{ marginLeft: '16px' }}
-					onClick={() => handleSubmit('NEXT')}
-				>
-					Next
-				</Button>
-			</StyledFlexBox>
+			<ButtonGroup
+				canEdit={canEdit}
+				isEdited={isEdited}
+				isSettingPage={isSettingPage}
+				handlePrimary={() => handleClick('primary')}
+				handleSecondary={() => handleClick('secondary')}
+			/>
 		</>
 	);
 });

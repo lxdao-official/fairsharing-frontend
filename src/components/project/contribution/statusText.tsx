@@ -1,8 +1,6 @@
 import { Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
-import { formatDistanceToNow, isFuture } from 'date-fns';
-
 import { IContribution, Status } from '@/services/types';
 import useCountdown from '@/hooks/useCountdown';
 import { showToast } from '@/store/utils';
@@ -10,48 +8,58 @@ import { showToast } from '@/store/utils';
 export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
-	period: string;
 	hasVoted: boolean;
+	targetTime: number;
 }
 
-const StatusColor = {
-	[Status.UNREADY]: '#64748B',
-	[Status.READY]: '#0A9B80',
-	[Status.CLAIM]: '#64748B',
-};
+enum StatusColorEnum {
+	GRAY = '#64748B',
+	GREEN = '#0A9B80',
+	RED = '#D32F2F',
+}
 
-const CursorStatus = {
-	[Status.UNREADY]: 'wait',
-	[Status.READY]: 'pointer',
-	[Status.CLAIM]: 'not-allowed',
-};
-
-const StatusText = ({ contribution, onClaim, period, hasVoted }: IStatusTextProps) => {
+const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusTextProps) => {
 	const { status } = contribution;
-	const { days, hours, minutes, seconds } = useCountdown(Number(period));
+	const { days, hours, minutes, seconds } = useCountdown(targetTime);
 	const [countdownText, setCountdownText] = useState('');
+	const [voteTimeEnd, setVoteTimeEnd] = useState(false);
+
+	const [showText, setShowText] = useState('');
+	const [color, setColor] = useState(StatusColorEnum.GRAY);
+	const [cursor, setCursor] = useState('wait');
 
 	useEffect(() => {
 		setCountdownText(getCountDownText(days, hours, minutes, seconds));
+		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
+			setVoteTimeEnd(true);
+		}
 	}, [days, hours, minutes, seconds]);
 
-	const text = useMemo(() => {
-		if (status === Status.CLAIM) {
-			return 'Claimed';
-		} else if (status === Status.READY) {
-			// TODO 投过票后才设置为claim
-			if (!hasVoted) {
-				return countdownText;
-			} else {
-				return 'To be claimed';
-			}
+	useEffect(() => {
+		if (status === Status.UNREADY) {
+			setShowText('UnReady');
+			setCursor('wait');
+			setColor(StatusColorEnum.GRAY);
+		} else if (status === Status.CLAIM) {
+			setShowText('Claimed');
+			setCursor('not-allowed');
+			setColor(StatusColorEnum.GRAY);
 		} else {
-			return countdownText;
+			if (hasVoted && voteTimeEnd) {
+				setShowText('To be claimed');
+				setCursor('pointer');
+				setColor(StatusColorEnum.GREEN);
+				// 	TODO 如果投票数不通过(同一个人只有一票)，直接红色
+			} else {
+				setShowText(countdownText);
+				setColor(StatusColorEnum.GRAY);
+				setCursor('not-allowed');
+			}
 		}
-	}, [status, period, countdownText, hasVoted]);
+	}, [status, hasVoted, voteTimeEnd, countdownText]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
-		if (days === 0 && hours === 0 && minutes === 0 && seconds === 0) {
+		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
 			return 'Vote ended';
 		}
 		if (days > 0) {
@@ -60,29 +68,31 @@ const StatusText = ({ contribution, onClaim, period, hasVoted }: IStatusTextProp
 			return `Vote ends in ${hours}h ${minutes}m`;
 		} else if (minutes > 0) {
 			return `Vote ends in ${minutes}m ${seconds}s`;
-		} else {
+		} else if (seconds > 0) {
 			return `Vote ends in ${seconds}s`;
+		} else {
+			return 'Vote ended';
 		}
 	};
 
 	const handleClaim = () => {
+		if (!voteTimeEnd) {
+			showToast(`Can't claim before the voting period has ended`, 'error');
+			return false;
+		}
 		if (!hasVoted) {
 			showToast('No votes have been recorded for this contribution', 'error');
 			return false;
 		}
+		// 	TODO 如果投票数不通过(同一个人只有一票)
 		if (status === Status.READY) {
 			onClaim();
 		}
 	};
 
 	return (
-		<Typography
-			variant={'body2'}
-			color={StatusColor[status]}
-			sx={{ cursor: CursorStatus[status] }}
-			onClick={handleClaim}
-		>
-			{text}
+		<Typography variant={'body2'} color={color} sx={{ cursor: cursor }} onClick={handleClaim}>
+			{showText}
 		</Typography>
 	);
 };

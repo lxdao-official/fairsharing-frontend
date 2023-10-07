@@ -1,24 +1,16 @@
 [
   {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_signer",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_projectTemplate",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_projectTokenTemplate",
-        "type": "address"
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "Initialized",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -142,24 +134,46 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address[]",
-        "name": "members",
-        "type": "address[]"
-      },
-      {
-        "internalType": "string",
-        "name": "tokenSymbol",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "voteStrategy",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "admin",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "members",
+            "type": "address[]"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenSymbol",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "voteStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "voteStrategyData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint256",
+            "name": "votePassingRate",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct CreateParams",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "create",
@@ -242,34 +256,36 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_signer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_projectTemplate",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_projectTokenTemplate",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "projectTemplate",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "projectTokenTemplate",
     "outputs": [
       {
         "internalType": "address",
@@ -317,19 +333,6 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "signer",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -382,6 +385,19 @@
     "name": "updateSigner",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   }
 ]

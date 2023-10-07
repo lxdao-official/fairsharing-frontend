@@ -44,3 +44,14 @@ export const updateContributionStatus = (cid: number, params: IUpdateContributio
 export const getContributionList = (params: PageListParams & { projectId: string }) => {
 	return request<PageListData<IContribution>>('contribution/list', 1, params);
 };
+
+export const prepareClaim = (
+	contributionId: number,
+	query: { wallet: string; toWallet: string; chainId: number },
+) => {
+	return request<string>(`contribution/${contributionId}/prepareClaim`, 1, query);
+};
+
+export const deleteContribution = (contributionId: number, operatorId: string) => {
+	return request.delete(`contribution/${contributionId}`, 1, { operatorId });
+};

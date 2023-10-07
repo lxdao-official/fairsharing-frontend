@@ -1,6 +1,4 @@
-import process from 'process';
-
-import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
 	Button,
@@ -22,15 +20,19 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
-import { useAccount, useContractRead } from 'wagmi';
-
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
 import { Contributor, PermissionEnum } from '@/services/project';
 import { showToast } from '@/store/utils';
+import { IContributor } from '@/services';
+import ButtonGroup from '@/components/createProject/step/buttonGroup';
 
-export interface IStepContributorProps extends IStepBaseProps {}
+export interface IStepContributorProps extends Partial<IStepBaseProps> {
+	data?: IContributor[];
+	onSave?: () => void;
+	canEdit?: boolean;
+}
 
 export interface StepContributorRef {
 	getFormData: () => {
@@ -39,27 +41,41 @@ export interface StepContributorRef {
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep, onCreateProject } = props;
-	const { address: myAddress } = useAccount();
+	const { step, setActiveStep, onCreateProject, data, onSave, canEdit = true } = props;
 
-	const [contributors, setContributors] = useState<Contributor[]>([
-		{
-			nickName: '',
-			wallet: '',
-			role: '',
-			permission: PermissionEnum.Owner,
-		},
-	]);
+	const [contributors, setContributors] = useState<Contributor[]>(
+		data ?? [
+			{
+				nickName: '',
+				wallet: '',
+				role: '',
+				permission: PermissionEnum.Owner,
+			},
+		],
+	);
 
-	const handleSubmit = () => {
+	const [isEdited, setIsEdited] = useState(false);
+
+	const isSettingPage = !!data;
+
+	const handleSubmit = (action: 'BACK' | 'NEXT') => {
+		if (action === 'BACK') {
+			setActiveStep!(step! - 1);
+			return;
+		}
 		if (!validContributors()) {
 			return false;
 		}
 		if (isContributorRepeat) {
-			showToast('Repeated wallet address', 'error');
+			showToast('Repeated [wallet] address', 'error');
 			return false;
 		}
-		onCreateProject?.();
+		if (isSettingPage) {
+			onSave?.();
+			setIsEdited(false);
+		} else {
+			onCreateProject?.();
+		}
 	};
 
 	const isContributorRepeat = useMemo(() => {
@@ -79,39 +95,44 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			}
 			if (!wallet) {
 				valid = false;
-				showToast('Empty wallet address', 'error');
+				showToast('Empty [wallet] address', 'error');
 				return false;
 			}
 		});
 		return valid;
 	};
 
+	const changeContributors = (newData: Contributor[]) => {
+		setIsEdited(true);
+		setContributors(newData);
+	};
+
 	const handleNameChange = (index: number, value: string) => {
 		const newData = [...contributors];
 		newData[index].nickName = value;
-		setContributors(newData);
+		changeContributors(newData);
 	};
 
 	const handleWalletAddressChange = (index: number, value: string) => {
 		const newData = [...contributors];
 		newData[index].wallet = value;
-		setContributors(newData);
+		changeContributors(newData);
 	};
 
 	const handleRoleChange = (index: number, value: string) => {
 		const newData = [...contributors];
 		newData[index].role = value;
-		setContributors(newData);
+		changeContributors(newData);
 	};
 
 	const handlePermissionChange = (index: number, value: PermissionEnum) => {
 		const newData = [...contributors];
 		newData[index].permission = value;
-		setContributors(newData);
+		changeContributors(newData);
 	};
 
 	const handleAddRow = () => {
-		setContributors([
+		changeContributors([
 			...contributors,
 			{ nickName: '', wallet: '', role: '', permission: PermissionEnum.Contributor },
 		]);
@@ -119,7 +140,21 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const handleDeleteRow = (index: number) => {
 		const newData = contributors.filter((_, i) => i !== index);
-		setContributors(newData);
+		changeContributors(newData);
+	};
+
+	const handleClick = (type: 'primary' | 'secondary') => {
+		const action = type === 'primary' ? 'NEXT' : 'BACK';
+		if (!isSettingPage) {
+			handleSubmit(action);
+			return;
+		}
+		if (type === 'primary') {
+			handleSubmit(action);
+		} else {
+			setIsEdited(false);
+			setContributors(data ?? []);
+		}
 	};
 
 	useImperativeHandle(
@@ -132,10 +167,14 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	return (
 		<>
-			<Typography variant={'h4'}>Who can post contribution and vote?</Typography>
-			<Typography variant={'h4'} sx={{ marginTop: '16px' }}>
-				Contributors
-			</Typography>
+			{!isSettingPage ? (
+				<>
+					<Typography variant={'h4'}>Who can post contribution and vote?</Typography>
+					<Typography variant={'h4'} sx={{ marginTop: '16px' }}>
+						Contributors
+					</Typography>
+				</>
+			) : null}
 
 			<TableContainer component={Paper} sx={{ marginTop: '8px' }}>
 				<Table>
@@ -155,6 +194,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 									<TextField
 										size="small"
 										value={row.nickName}
+										disabled={!canEdit}
 										onChange={(e) => handleNameChange(index, e.target.value)}
 									/>
 								</TableCell>
@@ -162,6 +202,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 									<TextField
 										size="small"
 										value={row.wallet}
+										disabled={!canEdit}
 										onChange={(e) =>
 											handleWalletAddressChange(index, e.target.value)
 										}
@@ -172,6 +213,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										<Select
 											size="small"
 											value={row.permission}
+											disabled={!canEdit}
 											onChange={(e) =>
 												handlePermissionChange(
 													index,
@@ -191,10 +233,11 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 									<TextField
 										size="small"
 										value={row.role}
+										disabled={!canEdit}
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
 								</TableCell>
-								{contributors.length > 1 ? (
+								{contributors.length > 1 && canEdit ? (
 									<TableCell>
 										<IconButton onClick={() => handleDeleteRow(index)}>
 											<DeleteIcon />
@@ -205,29 +248,27 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 						))}
 					</TableBody>
 				</Table>
-				<StyledFlexBox
-					sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
-					onClick={handleAddRow}
-				>
-					<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
-					<Typography variant={'body2'} color={'#475569'}>
-						Add
-					</Typography>
-				</StyledFlexBox>
+				{canEdit ? (
+					<StyledFlexBox
+						sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
+						onClick={handleAddRow}
+					>
+						<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
+						<Typography variant={'body2'} color={'#475569'}>
+							Add
+						</Typography>
+					</StyledFlexBox>
+				) : null}
 			</TableContainer>
 
-			<StyledFlexBox sx={{ marginTop: '40px' }}>
-				<Button
-					variant={'outlined'}
-					sx={{ backgroundColor: 'transparent' }}
-					onClick={() => setActiveStep(step - 1)}
-				>
-					Back
-				</Button>
-				<Button variant={'contained'} sx={{ marginLeft: '16px' }} onClick={handleSubmit}>
-					Create
-				</Button>
-			</StyledFlexBox>
+			<ButtonGroup
+				canEdit={canEdit}
+				isEdited={isEdited}
+				isSettingPage={isSettingPage}
+				isLatest
+				handlePrimary={() => handleClick('primary')}
+				handleSecondary={() => handleClick('secondary')}
+			/>
 		</>
 	);
 });

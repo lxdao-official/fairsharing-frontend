@@ -1,14 +1,10 @@
 import * as React from 'react';
-import { Theme, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import Chip from '@mui/material/Chip';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import { Typography } from '@mui/material';
@@ -28,12 +24,19 @@ const MenuProps = {
 
 export interface IContributorSelectorProps {
 	contributorList: IContributor[];
+	contributors: string[];
 	onChange: (values: string[]) => void;
 }
 
 export default function MultipleContributorSelector(props: IContributorSelectorProps) {
-	const { contributorList, onChange } = props;
-	const [selectedValue, setSelectedValue] = React.useState<string[]>([]);
+	const { contributorList, contributors, onChange } = props;
+	const [selectedValue, setSelectedValue] = useState<string[]>([]);
+
+	useEffect(() => {
+		if (contributors.length === 0) {
+			setSelectedValue([]);
+		}
+	}, [contributors]);
 
 	const handleChange = (event: SelectChangeEvent<typeof selectedValue>) => {
 		const {

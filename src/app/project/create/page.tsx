@@ -2,8 +2,8 @@
 
 import process from 'process';
 
-import { Box, Button, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { Img3Provider } from '@lxdao/img3';
 
@@ -11,14 +11,14 @@ import { ethers } from 'ethers';
 
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 
-import { useAccount, useContractRead } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { useRouter } from 'next/navigation';
 
 import StepStart from '@/components/createProject/step/start';
-import StepStrategy, { StepStrategyRef } from '@/components/createProject/step/strategy';
-import StepProfile, { StepProfileRef } from '@/components/createProject/step/profile';
-import StepContributor, { StepContributorRef } from '@/components/createProject/step/contributor';
+import StepStrategy from '@/components/createProject/step/strategy';
+import StepProfile from '@/components/createProject/step/profile';
+import StepContributor from '@/components/createProject/step/contributor';
 import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
@@ -30,7 +30,8 @@ import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils'
 import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
-import { ProjectRegisterABI } from '@/constant/eas';
+import useProjectInfoRef from '@/hooks/useProjectInfoRef';
+import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
 
 const steps = [
 	{
@@ -57,10 +58,7 @@ export default function Page() {
 	const [latestProjectAddress, setLatestProjectAddress] = useState('');
 
 	const [activeStep, setActiveStep] = useState(0);
-
-	const stepProfileRef = useRef<StepProfileRef | null>(null);
-	const stepStrategyRef = useRef<StepStrategyRef | null>(null);
-	const stepContributorRef = useRef<StepContributorRef | null>(null);
+	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 
 	useEffect(() => {
 		if (myAddress && signer) {
@@ -113,37 +111,36 @@ export default function Page() {
 				intro: intro,
 				symbol: symbol,
 				network: network,
-				votePeriod: String(Date.now() + Number(period) * 24 * 60 * 60 * 1000),
+				votePeriod: String(period),
 				contributors: contributors,
 			};
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
 
-			const contract = new ethers.Contract(
-				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
+			const projectRegistryContract = new ethers.Contract(
+				ContractAddressMap.ProjectRegistry,
 				ProjectRegisterABI,
 				signer,
 			);
 
-			const votingContract = `${process.env.NEXT_PUBLIC_DEFAULT_VOTING_STRATEGY}`;
-			console.log(
-				'【Contract】create project params',
-				owner,
-				members,
-				symbol,
-				votingContract,
-			);
-			const tx: TransactionResponse = await contract.create(
-				owner,
-				members,
-				symbol,
-				votingContract,
+			const registerProjectContractParams = {
+				admin: owner,
+				members: members,
+				tokenName: name,
+				tokenSymbol: symbol,
+				voteStrategy: ContractAddressMap.VotingStrategy,
+				voteStrategyData: ethers.toUtf8Bytes(''),
+				votePassingRate: ethers.parseUnits('50'),
+			};
+			console.log('【Contract】create project params', registerProjectContractParams);
+			const tx: TransactionResponse = await projectRegistryContract.create(
+				registerProjectContractParams,
 			);
 			const response = await tx.wait(1);
 			if (response.status !== 1) {
 				throw new Error('【Contract】projectContract not found');
 			}
-			const count: bigint = await contract.projectsCount();
-			const projectAddress = await contract.getOwnerLatestProject(
+			const count: bigint = await projectRegistryContract.projectsCount();
+			const projectAddress = await projectRegistryContract.getOwnerLatestProject(
 				owner,
 				0,
 				Number(count) - 1,
@@ -225,7 +222,16 @@ export default function Page() {
 						))}
 					</Stepper>
 				</Box>
-				<Box sx={{ flex: 1, maxWidth: '860px', minWidth: '400px', marginLeft: '40px' }}>
+				<Box
+					sx={{
+						flex: 1,
+						maxWidth: '860px',
+						minWidth: '400px',
+						marginLeft: '40px',
+						height: '100%',
+						overflowY: 'scroll',
+					}}
+				>
 					<Typography variant={'h2'} style={{ fontWeight: 'bold', marginBottom: '32px' }}>
 						Create a project
 					</Typography>

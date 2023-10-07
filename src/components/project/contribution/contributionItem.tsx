@@ -8,6 +8,7 @@ import {
 	ListItemButton,
 	Paper,
 	Popover,
+	styled,
 	Tooltip,
 	Typography,
 } from '@mui/material';
@@ -15,7 +16,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import Image from 'next/image';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { format, formatDistance } from 'date-fns';
+import { formatDistance } from 'date-fns';
 
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
@@ -24,7 +25,7 @@ import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
 import { useNetwork } from 'wagmi';
 
 import StatusText from '@/components/project/contribution/statusText';
-import Pizza, { BorderOutline } from '@/components/project/contribution/pizza';
+import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject } from '@/services/types';
 import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
@@ -35,8 +36,9 @@ import {
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
-import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { EAS_CHAIN_CONFIGS, EasSchemaVoteKey } from '@/constant/eas';
 import { showToast } from '@/store/utils';
+import MiniContributorList from '@/components/project/contribution/miniContributorList';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -44,10 +46,10 @@ export interface IContributionItemProps {
 	showSelect: boolean;
 	selected: number[];
 	onSelect: (idList: number[]) => void;
-	showDeleteDialog: () => void;
+	showDeleteDialog: (contributionId: number) => void;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
-	easVoteList: EasAttestation[];
+	easVoteList: EasAttestation<EasSchemaVoteKey>[];
 	contributorList: IContributor[];
 }
 
@@ -65,32 +67,42 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const { chain } = useNetwork();
 
-	const voteInfoMap = useMemo(() => {
-		let For = 0,
-			Against = 0,
-			Abstain = 0;
-		const voters: string[] = [];
-		const voterValues: number[] = [];
+	const userVoteInfoMap = useMemo(() => {
+		const userVoterMap: Record<string, number[]> = {};
 		easVoteList?.forEach((vote) => {
-			const decodedDataJson = vote.decodedDataJson as EasAttestationDecodedData[];
-			const attestationData = vote.data as EasAttestationData;
-
-			const voteValueItem = decodedDataJson.find((item) => item.name === 'value');
+			const { signer } = vote.data as EasAttestationData;
+			const decodedDataJson =
+				vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
+			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
 			if (voteValueItem) {
 				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
-				voters.push(attestationData.signer);
-				voterValues.push(voteNumber);
-				if (voteNumber === IVoteValueEnum.FOR) {
-					For += 1;
-				} else if (voteNumber === IVoteValueEnum.AGAINST) {
-					Against += 1;
-				} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
-					Abstain += 1;
+				if (userVoterMap[signer]) {
+					userVoterMap[signer].push(voteNumber);
+				} else {
+					userVoterMap[signer] = [voteNumber];
 				}
 			}
 		});
-		return { For, Against, Abstain, voters, voterValues };
+		return userVoterMap;
 	}, [easVoteList]);
+
+	const voteNumbers = useMemo(() => {
+		let For = 0,
+			Against = 0,
+			Abstain = 0;
+		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+			// 同一用户取最新投票
+			const voteNumber = value[value.length - 1];
+			if (voteNumber === IVoteValueEnum.FOR) {
+				For += 1;
+			} else if (voteNumber === IVoteValueEnum.AGAINST) {
+				Against += 1;
+			} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
+				Abstain += 1;
+			}
+		}
+		return { For, Against, Abstain };
+	}, [userVoteInfoMap]);
 
 	const EasLink = useMemo(() => {
 		const activeChainConfig =
@@ -99,12 +111,23 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return `${activeChainConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
 	}, [contribution, chain]);
 
-	const toContributors = useMemo(() => {
-		const list = contributorList.filter((item) => contribution.toIds.includes(item.wallet));
-		return list.reduce((pre, cur, currentIndex) => {
-			return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
-		}, '');
+	const matchContributors = useMemo(() => {
+		return contributorList.filter((item) => contribution.toIds.includes(item.id));
 	}, [contributorList, contribution]);
+
+	const toContributors = useMemo(() => {
+		const maxNum = 2;
+		if (matchContributors.length > maxNum) {
+			const names = matchContributors.slice(0, maxNum).reduce((pre, cur, currentIndex) => {
+				return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
+			}, '');
+			return `${names}, +${matchContributors.length - maxNum}`;
+		} else {
+			return matchContributors.reduce((pre, cur, currentIndex) => {
+				return `${pre} ${currentIndex > 0 ? ', ' : ''}${cur.nickName}`;
+			}, '');
+		}
+	}, [matchContributors]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -122,7 +145,34 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const [showEdit, setShowEdit] = useState(false);
 
+	const hasVoted = useMemo(() => {
+		const { For, Against, Abstain } = voteNumbers;
+		return !(For === 0 && Against === 0 && Abstain === 0);
+	}, [voteNumbers]);
+
+	const targetTime = useMemo(() => {
+		return (
+			new Date(contribution.createAt).getTime() +
+			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+		);
+	}, [contribution.createAt, projectDetail.votePeriod]);
+
 	const handleVote = (voteValue: IVoteValueEnum) => {
+		if (contribution.status === 'UNREADY') {
+			showToast(`Contribution is not ready!`, 'error');
+			return false;
+		}
+		// 投票时间结束后，不允许继续Vote
+		if (Date.now() >= targetTime) {
+			showToast(`Vote ended, can't vote`, 'error');
+			return false;
+		}
+		if (contribution.status === 'CLAIM') {
+			showToast(`Can't vote after the contribution is claimed!`, 'error');
+			return false;
+		}
+
+		// 同一用户允许继续vote
 		props.onVote({
 			contributionId: contribution.id,
 			uId: contribution.uId as string,
@@ -130,23 +180,32 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 	};
 
-	const hasVoted = useMemo(() => {
-		const { For, Against, Abstain } = voteInfoMap;
-		return !(For === 0 && Against === 0 && Abstain === 0);
-	}, [voteInfoMap]);
+	const getVoteResult = () => {
+		const voters: string[] = [];
+		const voterValues: number[] = [];
+		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+			voters.push(signer);
+			// 同一用户取最新投票
+			const lastVote = value[value.length - 1];
+			voterValues.push(lastVote);
+		}
+		return {
+			voters: voters,
+			voterValues: voterValues,
+		};
+	};
 
 	const handleClaim = () => {
-		const { For, Against, Abstain } = voteInfoMap;
-		if (For === 0 && Against === 0 && Abstain === 0) {
-			showToast('No votes have been recorded for this contribution', 'error');
-			return false;
-		}
+		const { voters, voterValues } = getVoteResult();
+		console.log('voters', voters);
+		console.log('voterValues', voterValues);
 		props.onClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
 			token: contribution.credit,
-			voters: voteInfoMap.voters,
-			voteValues: voteInfoMap.voterValues,
+			voters: voters,
+			voteValues: voterValues,
+			toIds: contribution.toIds,
 		});
 	};
 
@@ -178,7 +237,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onDelete = () => {
-		console.log('onDelete');
+		showDeleteDialog(contribution.id);
 		handleClosePopover();
 	};
 
@@ -223,7 +282,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<StatusText
 								contribution={contribution}
 								onClaim={handleClaim}
-								period={projectDetail.votePeriod}
+								targetTime={targetTime}
 								hasVoted={hasVoted}
 							/>
 							<Tooltip title="View on chain" placement="top">
@@ -258,7 +317,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 												</ListItemButton>
 											</ListItem>
 											<ListItem disablePadding>
-												<ListItemButton onClick={showDeleteDialog}>
+												<ListItemButton onClick={onDelete}>
 													Delete
 												</ListItemButton>
 											</ListItem>
@@ -278,7 +337,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*proof*/}
 
 							<>
-								<BorderOutline
+								<CustomHoverButton
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenProofPopover}
 								>
@@ -292,7 +351,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									>
 										Proof
 									</Typography>
-								</BorderOutline>
+								</CustomHoverButton>
 								<Popover
 									id={'simple-popover-proof'}
 									open={openProof}
@@ -316,7 +375,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*contributors*/}
 
 							<>
-								<BorderOutline
+								<CustomHoverButton
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenContributorPopover}
 								>
@@ -326,7 +385,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									>
 										@{toContributors}
 									</Typography>
-								</BorderOutline>
+								</CustomHoverButton>
 								<Popover
 									id={'simple-popover-contributor'}
 									open={openContributor}
@@ -336,7 +395,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 									transformOrigin={{ vertical: 'top', horizontal: 'left' }}
 									disableRestoreFocus
 								>
-									<Paper sx={{ padding: '12px' }}>Contributor list</Paper>
+									<Paper sx={{ padding: '12px', maxWidth: '500px' }}>
+										<MiniContributorList contributorList={matchContributors} />
+									</Paper>
 								</Popover>
 							</>
 						</StyledFlexBox>
@@ -345,21 +406,21 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<VoteAction
 								type={VoteTypeEnum.FOR}
 								status={VoteStatus.DONE}
-								count={voteInfoMap.For}
+								count={voteNumbers.For}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
 								status={VoteStatus.NORMAL}
-								count={voteInfoMap.Against}
+								count={voteNumbers.Against}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
 								status={VoteStatus.DISABLED}
-								count={voteInfoMap.Abstain}
+								count={voteNumbers.Abstain}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 							/>
@@ -371,10 +432,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			{showEdit ? (
 				<PostContribution
+					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
-					onPost={onPost}
-					contributorList={contributorList}
 				/>
 			) : null}
 		</>
@@ -382,3 +442,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 };
 
 export default ContributionItem;
+
+export const CustomHoverButton = styled(StyledFlexBox)({
+	borderRadius: 4,
+	height: 28,
+	padding: '0 8px',
+	border: '0.5px solid rgba(15, 23, 42, 0.16)',
+	'&:hover': {
+		backgroundColor: 'rgba(203, 213, 225, .3)',
+	},
+});

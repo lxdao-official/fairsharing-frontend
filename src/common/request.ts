@@ -34,13 +34,9 @@ client.interceptors.response.use(
 		if (data?.code === 0) {
 			return data?.data;
 		}
-
-		// TODO handle not login or other error case
-		if (status === 401 || data?.code === 4001) {
-			/* empty */
-		}
-
 		console.error('Request Error', data?.message, data);
+
+		return Promise.reject(data);
 	},
 	(error) => {
 		const { response } = error ?? {};
@@ -91,13 +87,22 @@ request.post = function post<T = any>(
 	return request(api, version, data, { method: 'post', ...options });
 };
 
-request.put = function post<T = any>(
+request.put = function put<T = any>(
 	api: string,
 	version: number | string,
 	data: any,
-	options?: Omit<AxiosRequestConfig, 'put'>,
+	options?: Omit<AxiosRequestConfig, 'method'>,
 ): Promise<T> {
 	return request(api, version, data, { method: 'put', ...options });
+};
+
+request.delete = function deleteMethod<T = any>(
+	api: string,
+	version: number | string,
+	data: any,
+	options?: Omit<AxiosRequestConfig, 'method'>,
+): Promise<T> {
+	return request(api, version, data, { method: 'delete', ...options });
 };
 
 function removeEmptyParams(data: any) {
