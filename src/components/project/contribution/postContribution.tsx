@@ -211,11 +211,13 @@ const PostContribution = ({
 				operatorId: operatorId,
 			});
 			showToast('Create contribution success', 'success');
-			console.log('updateStatus', updateStatus);
 			onClear();
 			onUpdate?.('create');
-		} catch (err) {
+		} catch (err: any) {
 			console.error(err);
+			if (err.message) {
+				showToast(err.message, 'error');
+			}
 		} finally {
 			closeGlobalLoading();
 		}
