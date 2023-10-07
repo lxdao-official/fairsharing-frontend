@@ -52,6 +52,6 @@ export const prepareClaim = (
 	return request<string>(`contribution/${contributionId}/prepareClaim`, 1, query);
 };
 
-export const deleteContribution = (contributionId: number) => {
-	return request.delete(`contribution/${contributionId}`, 1, {});
+export const deleteContribution = (contributionId: number, operatorId: string) => {
+	return request.delete(`contribution/${contributionId}`, 1, { operatorId });
 };

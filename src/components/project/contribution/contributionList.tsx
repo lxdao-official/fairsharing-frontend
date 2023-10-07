@@ -304,7 +304,7 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 		try {
 			openGlobalLoading();
 			if (!activeCId) return false;
-			const res = await deleteContribution(activeCId);
+			const res = await deleteContribution(activeCId, operatorId);
 			console.log('deleteContribution res', res);
 			setShowDialog(false);
 			await mutateContributionList();
