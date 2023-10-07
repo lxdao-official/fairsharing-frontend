@@ -56,6 +56,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
 import {
+	deleteContribution,
 	getContributionList,
 	getContributorList,
 	getProjectDetail,
@@ -120,6 +121,7 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 	const [contributor, setContributor] = useState('ALL');
 	const [selected, setSelected] = useState<Array<number>>([]);
 	const [showDialog, setShowDialog] = useState(false);
+	const [activeCId, setActiveCId] = useState<number>();
 
 	const [easVoteList, setEasVoteList] = useState<EasAttestation<EasSchemaVoteKey>[]>([]);
 
@@ -293,8 +295,27 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 	const onCloseDialog = () => {
 		setShowDialog(false);
 	};
-	const showDeleteDialog = () => {
+	const showDeleteDialog = useCallback((contributionId: number) => {
+		setActiveCId(contributionId);
 		setShowDialog(true);
+	}, []);
+
+	const onDelete = async () => {
+		try {
+			openGlobalLoading();
+			if (!activeCId) return false;
+			const res = await deleteContribution(activeCId);
+			console.log('deleteContribution res', res);
+			setShowDialog(false);
+			await mutateContributionList();
+		} catch (err: any) {
+			if (err.message) {
+				showToast(err.message, 'error');
+			}
+			console.error('onDelete error', err);
+		} finally {
+			closeGlobalLoading();
+		}
 	};
 
 	const handleVote = useCallback(
@@ -605,7 +626,7 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={onCloseDialog}>Cancel</Button>
-					<Button onClick={onCloseDialog} autoFocus>
+					<Button onClick={onDelete} autoFocus>
 						Delete
 					</Button>
 				</DialogActions>

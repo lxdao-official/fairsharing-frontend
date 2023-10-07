@@ -46,7 +46,7 @@ export interface IContributionItemProps {
 	showSelect: boolean;
 	selected: number[];
 	onSelect: (idList: number[]) => void;
-	showDeleteDialog: () => void;
+	showDeleteDialog: (contributionId: number) => void;
 	onVote: (params: IVoteParams) => void;
 	onClaim: (params: IClaimParams) => void;
 	easVoteList: EasAttestation<EasSchemaVoteKey>[];
@@ -237,7 +237,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onDelete = () => {
-		console.log('onDelete');
+		showDeleteDialog(contribution.id);
 		handleClosePopover();
 	};
 
@@ -317,7 +317,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 												</ListItemButton>
 											</ListItem>
 											<ListItem disablePadding>
-												<ListItemButton onClick={showDeleteDialog}>
+												<ListItemButton onClick={onDelete}>
 													Delete
 												</ListItemButton>
 											</ListItem>
