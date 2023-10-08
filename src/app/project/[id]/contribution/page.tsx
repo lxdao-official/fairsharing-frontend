@@ -14,15 +14,8 @@ import { setCurrentProjectId } from '@/store/project';
 import PostContribution from '@/components/project/contribution/postContribution';
 
 export default function Page({ params }: { params: { id: string } }) {
-	const [refresh, setRefresh] = useState(0);
-
 	useEffect(() => {
 		setCurrentProjectId(params.id as string);
-	}, []);
-
-	const onRefresh = useCallback((type: 'create' | 'edit') => {
-		console.log('onRefresh', type);
-		setRefresh((pre) => pre + 1);
 	}, []);
 
 	const onUpdate = useCallback(() => {
@@ -42,9 +35,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				/>
 			</StyledFlexBox>
 
-			<PostContribution projectId={params.id} confirmText={'Post'} onUpdate={onRefresh} />
+			<PostContribution projectId={params.id} confirmText={'Post'} />
 
-			<ContributionList projectId={params.id} refresh={refresh} onUpdate={onUpdate} />
+			<ContributionList projectId={params.id} onUpdate={onUpdate} />
 		</div>
 	);
 }

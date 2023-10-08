@@ -13,7 +13,7 @@ import { useAccount, useNetwork } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
@@ -37,7 +37,6 @@ export interface IPostContributionProps {
 	contribution?: IContribution;
 	onCancel?: () => void;
 	confirmText?: string;
-	onUpdate?: (type: 'create' | 'edit') => void;
 	refresh?: number;
 }
 
@@ -51,7 +50,6 @@ export interface PostData {
 const PostContribution = ({
 	projectId,
 	contribution,
-	onUpdate,
 	onCancel,
 	confirmText,
 }: IPostContributionProps) => {
@@ -68,6 +66,7 @@ const PostContribution = ({
 
 	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
 
+	const { mutate } = useSWRConfig();
 	const { data: contributorList, mutate: mutateContributorList } = useSWR(
 		['contributor/list', projectId],
 		() => getContributorList(projectId),
@@ -212,7 +211,7 @@ const PostContribution = ({
 			});
 			showToast('Create contribution success', 'success');
 			onClear();
-			onUpdate?.('create');
+			mutate(['contributor/list', projectId]);
 		} catch (err: any) {
 			console.error(err);
 			if (err.message) {

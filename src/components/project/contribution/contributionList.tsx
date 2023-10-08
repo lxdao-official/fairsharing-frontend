@@ -89,7 +89,6 @@ export interface IClaimParams {
 
 export interface IContributionListProps {
 	projectId: string;
-	refresh?: number;
 	onUpdate?: () => void;
 }
 
@@ -104,7 +103,7 @@ BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
-const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListProps) => {
+const ContributionList = ({ projectId, onUpdate }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
 	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
 	const signer = useEthersSigner();
@@ -186,13 +185,6 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
-
-	useEffect(() => {
-		if (refresh) {
-			console.log('refresh', refresh);
-			mutateContributionList();
-		}
-	}, [refresh]);
 
 	useEffect(() => {
 		if (contributionUIds.length > 0) {
