@@ -104,7 +104,7 @@ BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
-const ContributionList = ({ projectId, onUpdate, showHeader }: IContributionListProps) => {
+const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
 	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
 	const signer = useEthersSigner();

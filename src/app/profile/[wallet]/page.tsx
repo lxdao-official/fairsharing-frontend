@@ -214,12 +214,16 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 						onChange={(e) => setCurrentProjectId(e.target.value)}
 					>
 						{projectData?.map((item) => (
-							<MenuItem value={item.id}>{item.name}</MenuItem>
+							<MenuItem key={item.id} value={item.id}>
+								{item.name}
+							</MenuItem>
 						))}
 					</Select>
 				</StyledFlexBox>
 			</StyledFlexBox>
-			{currentProjectId ? <ContributionList projectId={currentProjectId} /> : null}
+			{currentProjectId ? (
+				<ContributionList projectId={currentProjectId} showHeader={false} />
+			) : null}
 		</Container>
 	);
 }
