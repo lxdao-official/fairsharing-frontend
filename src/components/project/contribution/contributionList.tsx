@@ -129,7 +129,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		['project/detail', projectId],
 		() => getProjectDetail(projectId),
 		{
-			onSuccess: (data) => console.log('getProjectDetail', data),
+			onSuccess: (data) => console.log('[useSWR] -> getProjectDetail', data),
 		},
 	);
 
@@ -138,7 +138,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		() => getContributorList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('getContributorList', data),
+			onSuccess: (data) => console.log('[useSWR] -> getContributorList', data),
 		},
 	);
 
@@ -147,7 +147,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		() => fetchContributionList(),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('fetchContributionList', data),
+			onSuccess: (data) => console.log('[useSWR] -> fetchContributionList', data),
 		},
 	);
 
