@@ -5,7 +5,6 @@ import React from 'react';
 import NextTopLoader from 'nextjs-toploader';
 
 import { AppBar, Toolbar, Typography } from '@mui/material';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 import Image from 'next/image';
 
@@ -21,6 +20,7 @@ import SimpleGlobalLoading from '@/components/loading';
 import SimpleSnackbar from '@/components/simpleSnackbar/snackbar';
 
 import styles from '../styles/layout.module.css';
+import User from '@/components/header/user';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,9 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 										FairSharing
 									</Typography>
 								</Link>
-								<div style={{ fontSize: '12px' }}>
-									<ConnectButton />
-								</div>
+								<User />
 							</Toolbar>
 						</AppBar>
 						<div className={styles.main}>

@@ -97,7 +97,6 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 			fallbackData: [],
 		},
 	);
-	console.log(mintData);
 
 	const { address } = useAccount();
 
