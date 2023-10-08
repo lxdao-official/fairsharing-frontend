@@ -71,6 +71,6 @@ export function getProjectDetail(projectId: string): Promise<IProject> {
 	return request(`project/${projectId}`, 1);
 }
 
-export function getMintRecord(projectId: string) {
-	return request<IMintRecord[]>(`project/${projectId}/mintRecord`, 1);
+export function getMintRecord(projectId: string, wallet: string = '') {
+	return request<IMintRecord[]>(`project/${projectId}/mintRecord?wallet=${wallet}`, 1);
 }

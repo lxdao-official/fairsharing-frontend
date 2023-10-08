@@ -1,6 +1,16 @@
 'use client';
-import { Avatar, Button, Grid, Skeleton, Stack, styled, Typography } from '@mui/material';
-import React, { useCallback } from 'react';
+import {
+	Avatar,
+	Button,
+	Grid,
+	MenuItem,
+	Select,
+	Skeleton,
+	Stack,
+	styled,
+	Typography,
+} from '@mui/material';
+import React, { useCallback, useState } from 'react';
 
 import useSWR from 'swr';
 
@@ -9,15 +19,17 @@ import { useAccount } from 'wagmi';
 import EditIcon from '@mui/icons-material/Edit';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { getProjectListByWallet, getUserInfo } from '@/services';
+import { getMintRecord, getProjectListByWallet, getUserInfo } from '@/services';
 
 import { WalletCell } from '@/components/table/cell';
 import EditDialog from '@/components/profile/editDialog';
+import ContributionList from '@/components/project/contribution/contributionList';
 
 const Container = styled('div')(() => ({
 	minWidth: '1000px',
 	width: '1196px',
 	margin: '64px auto',
+	overflowX: 'scroll',
 }));
 
 const UserInfoContainer = styled('div')(() => ({
@@ -58,17 +70,34 @@ const ProjectItem = styled('span')(({ color }: { color: keyof typeof colors }) =
 }));
 
 export default function Profile({ params }: { params: { wallet: string } }) {
+	const [open, setOpen] = useState(false);
+	const [currentProjectId, setCurrentProjectId] = useState('');
+
+	const wallet = params.wallet;
 	const {
 		data: userInfoData,
 		isLoading: userInfoLoading,
 		mutate,
-	} = useSWR(['getUserInfo', params.wallet], () => getUserInfo(params.wallet));
+	} = useSWR(['getUserInfo', wallet], () => getUserInfo(wallet));
 	const { data: projectData, isLoading: projectLoading } = useSWR(
-		['getProjectListByWallet', params.wallet],
-		() => getProjectListByWallet(params.wallet),
+		wallet ? ['getProjectListByWallet', wallet] : null,
+		() => getProjectListByWallet(wallet),
+		{
+			onSuccess: (data) => {
+				if (data.length > 0) {
+					setCurrentProjectId(data[0].id);
+				}
+			},
+		},
 	);
-
-	const [open, setOpen] = React.useState(false);
+	const { data: mintData } = useSWR(
+		currentProjectId && wallet ? ['getMintRecord', currentProjectId, wallet] : null,
+		() => getMintRecord(currentProjectId, wallet),
+		{
+			fallbackData: [],
+		},
+	);
+	console.log(mintData);
 
 	const { address } = useAccount();
 
@@ -125,7 +154,7 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 								<Typography variant="h3">
 									{userInfoData?.name || 'No name'}
 								</Typography>
-								{address === params.wallet ? (
+								{address === wallet ? (
 									<Button
 										variant="outlined"
 										size="small"
@@ -174,6 +203,24 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 					)}
 				</StyledFlexBox>
 			</UserInfoContainer>
+			<StyledFlexBox style={{ justifyContent: 'space-between', marginTop: '24px' }}>
+				<Typography typography={'h3'}>Contributions</Typography>
+				<StyledFlexBox style={{ gap: '24px' }}>
+					<Typography variant="body2">
+						Total pizza slices earned: {mintData[0]?.credit ?? 0}
+					</Typography>
+					<Select
+						size="small"
+						value={currentProjectId}
+						onChange={(e) => setCurrentProjectId(e.target.value)}
+					>
+						{projectData?.map((item) => (
+							<MenuItem value={item.id}>{item.name}</MenuItem>
+						))}
+					</Select>
+				</StyledFlexBox>
+			</StyledFlexBox>
+			{currentProjectId ? <ContributionList projectId={currentProjectId} /> : null}
 		</Container>
 	);
 }
