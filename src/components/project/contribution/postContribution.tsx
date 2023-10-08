@@ -211,7 +211,7 @@ const PostContribution = ({
 			});
 			showToast('Create contribution success', 'success');
 			onClear();
-			mutate(['contributor/list', projectId]);
+			mutate(['contribution/list', projectId]);
 		} catch (err: any) {
 			console.error(err);
 			if (err.message) {
