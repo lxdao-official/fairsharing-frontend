@@ -89,8 +89,8 @@ export interface IClaimParams {
 
 export interface IContributionListProps {
 	projectId: string;
-	refresh?: number;
 	onUpdate?: () => void;
+	showHeader?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -104,7 +104,7 @@ BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
-const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListProps) => {
+const ContributionList = ({ projectId, onUpdate, showHeader }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
 	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
 	const signer = useEthersSigner();
@@ -186,13 +186,6 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
-
-	useEffect(() => {
-		if (refresh) {
-			console.log('refresh', refresh);
-			mutateContributionList();
-		}
-	}, [refresh]);
 
 	useEffect(() => {
 		if (contributionUIds.length > 0) {
@@ -463,21 +456,23 @@ const ContributionList = ({ projectId, onUpdate, refresh }: IContributionListPro
 
 	return (
 		<>
-			<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
-				<Typography typography={'h3'}>Contributions</Typography>
-				<StyledFlexBox sx={{ cursor: 'pointer' }}>
-					<Image
-						src={'/images/claim.png'}
-						width={24}
-						height={24}
-						alt={'claim'}
-						onClick={onClickFilterBtn}
-					/>
-					{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
-					{/*	Claim({claimTotal})*/}
-					{/*</Button>*/}
+			{showHeader ? (
+				<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
+					<Typography typography={'h3'}>Contributions</Typography>
+					<StyledFlexBox sx={{ cursor: 'pointer' }}>
+						<Image
+							src={'/images/claim.png'}
+							width={24}
+							height={24}
+							alt={'claim'}
+							onClick={onClickFilterBtn}
+						/>
+						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
+						{/*	Claim({claimTotal})*/}
+						{/*</Button>*/}
+					</StyledFlexBox>
 				</StyledFlexBox>
-			</StyledFlexBox>
+			) : null}
 			{/*TODO 更新filter条件*/}
 			{showFilter ? (
 				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
