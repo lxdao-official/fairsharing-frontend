@@ -54,14 +54,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								>
 									<Image
 										src={'/images/FS_logo.png'}
-										width={28}
-										height={28}
+										width={40}
+										height={40}
 										alt={'FS'}
 									/>
 
 									<Typography
 										variant="h4"
-										sx={{ flexGrow: 1, fontWeight: 'bold', marginLeft: '8px' }}
+										sx={{ flexGrow: 1, fontWeight: '500', marginLeft: '8px' }}
 									>
 										FairSharing
 									</Typography>
