@@ -41,7 +41,7 @@ const Pizza = (props: IPizzaProps) => {
 	return (
 		<BorderOutline sx={{ background: BackgroundColor[status], border: Border[status] }}>
 			<Image src={pizzaIcon} width={24} height={24} alt={''} style={{ marginRight: '4px' }} />
-			<Typography variant={'body2'} style={{ color: TextColor[status], fontWeight: 'bold' }}>
+			<Typography variant={'body2'} style={{ color: TextColor[status], fontWeight: '500' }}>
 				{credit}
 			</Typography>
 		</BorderOutline>

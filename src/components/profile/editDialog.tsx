@@ -59,7 +59,7 @@ export default function EditDialog(props: EditDialogProps) {
 		async (data: any) => {
 			setIsLoading(true);
 			try {
-				await editUser(userData.id, data);
+				await editUser(userData.wallet, data);
 				showToast('Edit profile success');
 				onConfirm();
 			} catch (e) {

@@ -10,18 +10,11 @@ const roboto = Roboto({
 const theme = createTheme({
 	palette: {
 		mode: 'light',
-		// primary: {
-		// 	light: '#757ce8',
-		// 	main: '#3f50b5',
-		// 	dark: '#002884',
-		// 	contrastText: '#fff',
-		// },
-		// secondary: {
-		// 	light: '#ff7961',
-		// 	main: '#f44336',
-		// 	dark: '#ba000d',
-		// 	contrastText: '#000',
-		// }
+		primary: {
+			main: '#1DE9B6',
+			contrastText: '#000',
+		},
+
 	},
 	typography: {
 		fontFamily: roboto.style.fontFamily,
@@ -74,42 +67,28 @@ const theme = createTheme({
 	},
 	components: {
 		MuiButton: {
-			// styleOverrides: {
-			// 	root: {
-			// 		minWith: '128px',
-			// 		backgroundColor: '#1DE9B6',
-			// 		color: '#0F172A',
-			// 		fontWeight: 'bold',
-			// 		boxShadow: 'none',
-			// 		'&:hover': {
-			// 			background: 'rgba(29, 233, 182, .8)',
-			// 			boxShadow: 'none',
-			// 		},
-			// 	},
-			// },
-			variants: [
-				{
-					props: { variant: 'contained' },
-					style: {
-						minWidth: '128px',
-						backgroundColor: '#1DE9B6',
-						color: '#0F172A',
-						fontWeight: 'bold',
+			styleOverrides: {
+				root: {
+					textTransform: 'capitalize',
+					minWidth: '128px',
+					fontWeight: '500',
+					boxShadow: 'none',
+					'&:hover': {
+						background: 'rgba(29, 233, 182, .8)',
 						boxShadow: 'none',
-						'&:hover': {
-							background: 'rgba(29, 233, 182, .8)',
-							boxShadow: 'none',
-						},
 					},
 				},
+			},
+			variants: [
 				{
 					props: { variant: 'outlined' },
 					style: {
-						minWidth: '128px',
 						color: '#0F172A',
-						fontWeight: 'bold',
-						boxShadow: 'none',
 						borderColor: 'rgba(15, 23, 42, 0.2)',
+						backgroundColor: '#fff',
+						'&:hover': {
+							background: '#fff',
+						},
 					},
 				},
 			],
@@ -150,6 +129,13 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiDivider: {
+			styleOverrides: {
+				root: {
+					borderWidth: '.5px'
+				}
+			}
+		}
 	},
 });
 
