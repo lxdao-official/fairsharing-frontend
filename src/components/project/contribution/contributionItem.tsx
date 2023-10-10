@@ -347,7 +347,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									/>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: 'bold', color: '#475569' }}
+										sx={{ fontWeight: '500', color: '#475569' }}
 									>
 										Proof
 									</Typography>
@@ -381,7 +381,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: 'bold', color: '#475569' }}
+										sx={{ fontWeight: '500', color: '#475569' }}
 									>
 										@{toContributors}
 									</Typography>
