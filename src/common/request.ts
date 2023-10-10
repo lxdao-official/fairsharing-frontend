@@ -10,7 +10,7 @@ import { isProd } from '@/constant/env';
 
 export const client = axios.create({
 	baseURL: getHost(),
-	timeout: 5000,
+	timeout: 20000,
 	withCredentials: false,
 	httpsAgent: new https.Agent({
 		rejectUnauthorized: false,

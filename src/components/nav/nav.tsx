@@ -104,11 +104,11 @@ const Item = ({
 							width: '56px',
 							height: '56px',
 							borderRadius: '56px',
-							border: noBorder
-								? 'none'
-								: isActive
-								? '1px solid rgba(0, 0, 0, 1)'
-								: '0.5px solid #CBD5E1',
+							// border: noBorder
+							// 	? 'none'
+							// 	: isActive
+							// 	? '1px solid rgba(0, 0, 0, 1)'
+							// 	: '0.5px solid #CBD5E1',
 						}}
 					/>
 				) : (

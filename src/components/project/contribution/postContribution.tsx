@@ -211,7 +211,7 @@ const PostContribution = ({
 			});
 			showToast('Create contribution success', 'success');
 			onClear();
-			mutate(['contributor/list', projectId]);
+			mutate(['contribution/list', projectId]);
 		} catch (err: any) {
 			console.error(err);
 			if (err.message) {
@@ -278,8 +278,7 @@ const PostContribution = ({
 			<PostButton>
 				{onCancel ? (
 					<Button
-						variant={'contained'}
-						color={'info'}
+						variant={'outlined'}
 						sx={{ marginRight: '24px' }}
 						onClick={onCancel}
 					>
