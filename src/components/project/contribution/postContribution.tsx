@@ -277,11 +277,7 @@ const PostContribution = ({
 
 			<PostButton>
 				{onCancel ? (
-					<Button
-						variant={'outlined'}
-						sx={{ marginRight: '24px' }}
-						onClick={onCancel}
-					>
+					<Button variant={'outlined'} sx={{ marginRight: '24px' }} onClick={onCancel}>
 						Cancel
 					</Button>
 				) : null}

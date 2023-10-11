@@ -1,12 +1,15 @@
 'use client';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Avatar } from '@mui/material';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import React from 'react';
 import useSWR from 'swr';
-import { getUserInfo } from '@/services';
+
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
+
+import { getUserInfo } from '@/services';
+import { StyledFlexBox } from '@/components/styledComponents';
 
 export default function User() {
 	const { address } = useAccount();
