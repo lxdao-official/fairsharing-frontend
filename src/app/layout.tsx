@@ -13,14 +13,13 @@ import Link from 'next/link';
 import ThemeRegistry from '@/components/themeRegistry/themeRegistry';
 import { RainbowProvider } from '@/components/rainbow/provider';
 
-import Nav from '@/components/nav/nav';
-
 import SimpleGlobalLoading from '@/components/loading';
 
 import SimpleSnackbar from '@/components/simpleSnackbar/snackbar';
 
-import styles from '../styles/layout.module.css';
 import User from '@/components/header/user';
+
+import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -70,7 +69,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							</Toolbar>
 						</AppBar>
 						<div className={styles.main}>
-							<Nav />
 							{children}
 						</div>
 						<SimpleGlobalLoading />
