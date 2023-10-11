@@ -9,6 +9,7 @@ export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
 	hasVoted: boolean;
+	votePass: boolean;
 	targetTime: number;
 }
 
@@ -18,11 +19,16 @@ enum StatusColorEnum {
 	RED = '#D32F2F',
 }
 
-const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusTextProps) => {
+const StatusText = ({
+	contribution,
+	onClaim,
+	hasVoted,
+	targetTime,
+	votePass,
+}: IStatusTextProps) => {
 	const { status } = contribution;
-	const { days, hours, minutes, seconds } = useCountdown(targetTime);
+	const { days, hours, minutes, seconds, isEnd } = useCountdown(targetTime);
 	const [countdownText, setCountdownText] = useState('');
-	const [voteTimeEnd, setVoteTimeEnd] = useState(false);
 
 	const [showText, setShowText] = useState('');
 	const [color, setColor] = useState(StatusColorEnum.GRAY);
@@ -30,9 +36,6 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 
 	useEffect(() => {
 		setCountdownText(getCountDownText(days, hours, minutes, seconds));
-		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
-			setVoteTimeEnd(true);
-		}
 	}, [days, hours, minutes, seconds]);
 
 	useEffect(() => {
@@ -45,18 +48,23 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 			setCursor('not-allowed');
 			setColor(StatusColorEnum.GRAY);
 		} else {
-			if (hasVoted && voteTimeEnd) {
-				setShowText('To be claimed');
-				setCursor('pointer');
-				setColor(StatusColorEnum.GREEN);
-				// 	TODO 如果投票数不通过(同一个人只有一票)，直接红色
+			if (isEnd) {
+				if (votePass) {
+					setShowText('To be claimed');
+					setCursor('pointer');
+					setColor(StatusColorEnum.GREEN);
+				} else {
+					setShowText('Rejected');
+					setCursor('not-allowed');
+					setColor(StatusColorEnum.RED);
+				}
 			} else {
 				setShowText(countdownText);
 				setColor(StatusColorEnum.GRAY);
 				setCursor('not-allowed');
 			}
 		}
-	}, [status, hasVoted, voteTimeEnd, countdownText]);
+	}, [status, hasVoted, isEnd, countdownText, votePass]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
 		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
@@ -76,7 +84,7 @@ const StatusText = ({ contribution, onClaim, hasVoted, targetTime }: IStatusText
 	};
 
 	const handleClaim = () => {
-		if (!voteTimeEnd) {
+		if (!isEnd) {
 			showToast(`Can't claim before the voting period has ended`, 'error');
 			return false;
 		}

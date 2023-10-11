@@ -68,9 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								<User />
 							</Toolbar>
 						</AppBar>
-						<div className={styles.main}>
-							{children}
-						</div>
+						<div className={styles.main}>{children}</div>
 						<SimpleGlobalLoading />
 						<SimpleSnackbar />
 					</RainbowProvider>
