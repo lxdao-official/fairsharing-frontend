@@ -14,7 +14,6 @@ const theme = createTheme({
 			main: '#1DE9B6',
 			contrastText: '#000',
 		},
-
 	},
 	typography: {
 		fontFamily: roboto.style.fontFamily,
@@ -132,10 +131,10 @@ const theme = createTheme({
 		MuiDivider: {
 			styleOverrides: {
 				root: {
-					borderWidth: '.5px'
-				}
-			}
-		}
+					borderWidth: '.5px',
+				},
+			},
+		},
 	},
 });
 

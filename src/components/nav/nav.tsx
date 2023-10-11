@@ -12,7 +12,7 @@ import { Img3 } from '@lxdao/img3';
 import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
-import { getProjectList, getProjectListByWallet } from '@/services/project';
+import { getProjectListByWallet } from '@/services/project';
 
 export default function Nav() {
 	const { currentProjectId, userProjectList } = useProjectStore();

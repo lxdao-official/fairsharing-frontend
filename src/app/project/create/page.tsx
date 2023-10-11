@@ -129,7 +129,7 @@ export default function Page() {
 				tokenSymbol: symbol,
 				voteStrategy: ContractAddressMap.VotingStrategy,
 				voteStrategyData: ethers.toUtf8Bytes(''),
-				votePassingRate: ethers.parseUnits('50'),
+				votePassingRate: 50,
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(

@@ -284,6 +284,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 								onClaim={handleClaim}
 								targetTime={targetTime}
 								hasVoted={hasVoted}
+								votePass={
+									hasVoted &&
+									voteNumbers.For > 0 &&
+									voteNumbers.For >= voteNumbers.Against
+								}
 							/>
 							<Tooltip title="View on chain" placement="top">
 								<Link href={EasLink} target={'_blank'}>
@@ -332,7 +337,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 						<StyledFlexBox>
 							{/*pizza status*/}
 
-							<Pizza credit={contribution.credit} status={contribution.status} />
+							<Pizza
+								credit={contribution.credit}
+								status={contribution.status}
+								targetTime={targetTime}
+								votePass={
+									hasVoted &&
+									voteNumbers.For > 0 &&
+									voteNumbers.For >= voteNumbers.Against
+								}
+							/>
 
 							{/*proof*/}
 

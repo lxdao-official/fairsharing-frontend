@@ -8,7 +8,7 @@ import { closeGlobalLoading, openGlobalLoading, useUtilsStore } from '@/store/ut
 export default function SimpleGlobalLoading() {
 	const { open } = useUtilsStore();
 	const handleClose = () => {
-		closeGlobalLoading();
+		// closeGlobalLoading();
 	};
 
 	return (

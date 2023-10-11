@@ -441,6 +441,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				});
 				showToast('Claim success', 'success');
 				console.log('claim updateStatus success', updateStatus);
+				// TODO 更新状态 claim好像没生效
 				onUpdate?.();
 			} catch (err: any) {
 				console.error('onClaim error', err);
