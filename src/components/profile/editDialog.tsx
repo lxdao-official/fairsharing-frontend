@@ -18,9 +18,9 @@ import UploadImage from '@/components/uploadImage/uploadImage';
 import { showToast } from '@/store/utils';
 
 const registerSchema = object({
-	avatar: string(),
-	name: string(),
-	bio: string(),
+	avatar: string().optional(),
+	name: string().optional(),
+	bio: string().optional(),
 });
 
 type FormData = TypeOf<typeof registerSchema>;
@@ -49,9 +49,9 @@ export default function EditDialog(props: EditDialogProps) {
 	} = useForm<FormData>({
 		resolver: zodResolver(registerSchema),
 		defaultValues: {
-			avatar: userData.avatar,
-			name: userData.name,
-			bio: userData.bio,
+			avatar: userData.avatar || '',
+			name: userData.name || '',
+			bio: userData.bio || '',
 		},
 	});
 
