@@ -27,12 +27,12 @@ export const PreviewFile = (props: {
 			<Img3 style={{ maxHeight: '100%', maxWidth: '100%' }} src={src} alt={file.name} />
 			{file.status === 'uploading' && (
 				<Status>
-					<Icon icon={'line-md:uploading-loop'} color={'#65a2fa'} fontSize={40} />
+					<Icon icon={'line-md:uploading-loop'} color={'#65a2fa'} width={40} />
 				</Status>
 			)}
 			{file.status === 'error' && (
 				<Status>
-					<Icon icon={'iconoir:cloud-error'} color={'#ffb7b7'} fontSize={40} />
+					<Icon icon={'iconoir:cloud-error'} color={'#ffb7b7'} width={40} />
 				</Status>
 			)}
 		</>
