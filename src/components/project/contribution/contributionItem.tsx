@@ -283,7 +283,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									voteNumbers.For >= voteNumbers.Against
 								}
 							/>
-							<Tooltip title="View on chain" placement="top">
+							<Tooltip title="View on chain" placement="top" arrow={true}>
 								<Link
 									href={EasLink}
 									target={'_blank'}
