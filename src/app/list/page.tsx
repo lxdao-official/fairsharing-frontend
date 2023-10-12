@@ -25,16 +25,23 @@ export default function ProjectList() {
 
 	return (
 		<main style={{ flex: 1, padding: '24px', overflowY: 'scroll' }}>
-			<Container maxWidth="lg">
+			<Container maxWidth="xl">
 				<Typography variant={'h4'} sx={{ marginBottom: '24px' }}>
 					All Projects({total})
 				</Typography>
-				<Grid container spacing={5}>
+				<div
+					style={{
+						display: 'grid',
+						gridGap: '28px',
+						gridTemplateColumns: 'repeat(auto-fit, 280px)',
+						justifyContent: 'center',
+					}}
+				>
 					{projectList.map((project, idx) => (
 						// @ts-ignore
 						<ProjectItem key={idx} project={project} />
 					))}
-				</Grid>
+				</div>
 			</Container>
 		</main>
 	);
