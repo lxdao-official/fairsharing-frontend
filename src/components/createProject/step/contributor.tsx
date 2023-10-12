@@ -6,7 +6,7 @@ import {
 	IconButton,
 	MenuItem,
 	Paper,
-	Select,
+	Select, styled,
 	Table,
 	TableBody,
 	TableCell,
@@ -169,14 +169,16 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		<>
 			{!isSettingPage ? (
 				<>
-					<Typography variant={'h4'}>Who can post contribution and vote?</Typography>
-					<Typography variant={'h4'} sx={{ marginTop: '16px' }}>
+					<Typography variant={'h4'} sx={{ fontWeight: '500' }}>
+						Who can post contribution and vote?
+					</Typography>
+					<Typography variant={'h4'} sx={{ marginTop: '16px', fontWeight: '500' }}>
 						Contributors
 					</Typography>
 				</>
 			) : null}
 
-			<TableContainer component={Paper} sx={{ marginTop: '8px' }}>
+			<TableContainer component={Paper} sx={{ marginTop: '8px', marginBottom: '4px', boxShadow: 'none' }}>
 				<Table>
 					<TableHead sx={{ height: '40px', backgroundColor: '#F1F5F9' }}>
 						<TableRow>
@@ -189,16 +191,16 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					</TableHead>
 					<TableBody>
 						{contributors.map((row, index) => (
-							<TableRow key={index}>
-								<TableCell>
+							<TableRow key={index} >
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.nickName}
 										disabled={!canEdit}
 										onChange={(e) => handleNameChange(index, e.target.value)}
 									/>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.wallet}
@@ -207,8 +209,8 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											handleWalletAddressChange(index, e.target.value)
 										}
 									/>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<FormControl>
 										<Select
 											size="small"
@@ -228,38 +230,36 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											</MenuItem>
 										</Select>
 									</FormControl>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.role}
 										disabled={!canEdit}
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
-								</TableCell>
+								</StyledTableCell>
 								{contributors.length > 1 && canEdit ? (
-									<TableCell>
+									<StyledTableCell>
 										<IconButton onClick={() => handleDeleteRow(index)}>
 											<DeleteIcon />
 										</IconButton>
-									</TableCell>
+									</StyledTableCell>
 								) : null}
 							</TableRow>
 						))}
 					</TableBody>
 				</Table>
-				{canEdit ? (
-					<StyledFlexBox
-						sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
-						onClick={handleAddRow}
-					>
-						<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
-						<Typography variant={'body2'} color={'#475569'}>
-							Add
-						</Typography>
-					</StyledFlexBox>
-				) : null}
 			</TableContainer>
+
+			{canEdit ? (
+				<AddRow onClick={handleAddRow}>
+					<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
+					<Typography variant={'body2'} color={'#475569'}>
+						Add
+					</Typography>
+				</AddRow>
+			) : null}
 
 			<ButtonGroup
 				canEdit={canEdit}
@@ -276,3 +276,18 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 StepContributor.displayName = 'StepContributor';
 
 export default StepContributor;
+
+const StyledTableCell = styled(TableCell)({
+	borderBottom: 'none'
+})
+
+const AddRow = styled(StyledFlexBox)({
+	height: '32px',
+	justifyContent: 'center',
+	cursor: 'pointer',
+	borderRadius: '2px',
+	border: '.5px dotted #0F172A29',
+	"&:hover": {
+		border: '1px dotted #212121',
+	}
+})
