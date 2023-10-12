@@ -40,7 +40,7 @@ const StatusText = ({
 
 	useEffect(() => {
 		if (status === Status.UNREADY) {
-			setShowText('UnReady');
+			setShowText('Vote preparation in progress');
 			setCursor('wait');
 			setColor(StatusColorEnum.GRAY);
 		} else if (status === Status.CLAIM) {

@@ -6,13 +6,13 @@ import { usePathname } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 import { useAccount } from 'wagmi';
-
 import { Img3 } from '@lxdao/img3';
 
 import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectListByWallet } from '@/services/project';
+import { AddIcon, HomeIcon } from '@/icons';
 
 export default function Nav() {
 	const { currentProjectId, userProjectList } = useProjectStore();
@@ -55,13 +55,13 @@ export default function Nav() {
 			<Item
 				href={'/'}
 				image={'/images/home.png'}
-				noBorder={pathname !== '/'}
 				isActive={pathname === '/'}
+				icon={<HomeIcon />}
 			/>
 			{userProjectList.map((project, idx) => (
 				<Item
-					href={`/project/${project.id}/contribution`}
 					key={project.id}
+					href={`/project/${project.id}/contribution`}
 					name={project.name}
 					isActive={currentProjectId === project.id}
 					image={project.logo}
@@ -71,8 +71,7 @@ export default function Nav() {
 				href={'/project/create'}
 				image={'/images/new.png'}
 				isActive={pathname === '/project/create'}
-				prefetch={true}
-				noBorder={pathname !== '/project/create'}
+				icon={<AddIcon />}
 			/>
 		</NavContainer>
 	);
@@ -83,37 +82,30 @@ const Item = ({
 	image,
 	name,
 	isActive,
-	prefetch,
-	noBorder,
+	icon,
 }: {
 	href: string;
-	image?: string;
-	isActive?: boolean;
+	isActive: boolean;
 	name?: string;
-	prefetch?: boolean;
-	noBorder?: boolean;
+	icon?: JSX.Element
+	image?: string;
 }) => {
 	return (
-		<Link href={href} prefetch={!!prefetch}>
-			<NavItem active={!!isActive}>
-				{/*TODO avatar hover效果*/}
-				{image ? (
+		<Link href={href} prefetch={true}>
+			<NavItem active={isActive}>
+				{icon ? icon : image ? (
 					<Img3
 						src={image}
 						style={{
 							width: '56px',
 							height: '56px',
 							borderRadius: '56px',
-							// border: noBorder
-							// 	? 'none'
-							// 	: isActive
-							// 	? '1px solid rgba(0, 0, 0, 1)'
-							// 	: '0.5px solid #CBD5E1',
 						}}
 					/>
 				) : (
 					<Typography variant={'h4'}>{name || 'Project'}</Typography>
 				)}
+
 			</NavItem>
 		</Link>
 	);
@@ -138,14 +130,14 @@ const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({
 	position: 'relative',
 	'&::after': active
 		? {
-				content: '""',
-				position: 'absolute',
-				left: '0',
-				top: '24px',
-				height: '32px',
-				width: '6px',
-				borderRadius: '0 6px 6px 0',
-				backgroundColor: '#475569',
-		  }
+			content: '""',
+			position: 'absolute',
+			left: '0',
+			top: '24px',
+			height: '32px',
+			width: '6px',
+			borderRadius: '0 6px 6px 0',
+			backgroundColor: '#475569',
+		}
 		: {},
 }));
