@@ -1,4 +1,4 @@
-import { TextField, Typography } from '@mui/material';
+import { TextareaAutosize, TextField, Typography } from '@mui/material';
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 import { Img3 } from '@lxdao/img3';
@@ -119,7 +119,8 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					value={name}
 					placeholder={''}
 					onChange={handleNameInputChange}
-					sx={{ display: 'block', marginTop: '32px' }}
+					sx={{ display: 'block', marginTop: '32px', width: '300px' }}
+					fullWidth={true}
 					error={nameError}
 					disabled={!canEdit}
 				/>
@@ -133,6 +134,11 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 					fullWidth={true}
 					error={introError}
 					disabled={!canEdit}
+					InputProps={{
+						inputComponent: TextareaAutosize,
+						minRows: 1,
+						maxRows: 20,
+					}}
 				/>
 				<ButtonGroup
 					canEdit={canEdit}
