@@ -115,6 +115,32 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiInputBase: {
+			styleOverrides: {
+				// 为Select修改
+				root: {
+					'&.Mui-focused': {
+						'& fieldset': {
+							borderColor: '#212121 !important',
+						},
+					},
+					"& label": {
+						color: "rgba(0,0,0,0.3)",
+					},
+					"&:hover label": {
+						fontWeight: 400,
+					},
+					"& label.Mui-focused": {
+						color: "rgba(0,0,0,0.6)",
+					},
+				},
+			},
+		},
+		MuiSelect: {
+			styleOverrides: {
+				select: {},
+			},
+		},
 		MuiAlert: {
 			styleOverrides: {
 				root: ({ ownerState }) => ({
