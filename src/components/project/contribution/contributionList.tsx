@@ -65,6 +65,7 @@ import {
 } from '@/services';
 
 import useEas from '@/hooks/useEas';
+import { FilterIcon } from '@/icons';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -461,13 +462,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
 					<Typography typography={'h3'}>Contributions</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
-						<Image
-							src={'/images/claim.png'}
-							width={24}
-							height={24}
-							alt={'claim'}
-							onClick={onClickFilterBtn}
-						/>
+						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
 						{/*	Claim({claimTotal})*/}
 						{/*</Button>*/}

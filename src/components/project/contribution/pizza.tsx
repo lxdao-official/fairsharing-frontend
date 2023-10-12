@@ -1,11 +1,11 @@
 import { styled, Typography } from '@mui/material';
 
 import { useMemo } from 'react';
-import Image from 'next/image';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { Status } from '@/services/types';
 import useCountdown from '@/hooks/useCountdown';
+import { PizzaGrayIcon, PizzaOrangeIcon } from '@/icons';
 
 export interface IPizzaProps {
 	credit: number;
@@ -13,9 +13,6 @@ export interface IPizzaProps {
 	votePass: boolean;
 	targetTime: number;
 }
-
-const pizzaReady = '/images/pizza1.png';
-const pizzaUnReady = '/images/pizza2.png';
 
 const TextColor = {
 	gray: '#475569',
@@ -48,10 +45,6 @@ const Pizza = (props: IPizzaProps) => {
 		}
 	}, [status, isEnd, votePass]);
 
-	const pizzaIcon = useMemo(() => {
-		return canClaim ? pizzaReady : pizzaUnReady;
-	}, [canClaim]);
-
 	const textColor = useMemo(() => {
 		if (status === Status.CLAIM) {
 			return TextColor.green;
@@ -68,7 +61,13 @@ const Pizza = (props: IPizzaProps) => {
 
 	return (
 		<BorderOutline sx={{ background: BackgroundColor[status], border: Border[status] }}>
-			<Image src={pizzaIcon} width={24} height={24} alt={''} style={{ marginRight: '4px' }} />
+			<div style={{ marginRight: '4px' }}>
+				{canClaim ? (
+					<PizzaOrangeIcon width={24} height={24} />
+				) : (
+					<PizzaGrayIcon width={24} height={24} />
+				)}
+			</div>
 			<Typography variant={'body2'} style={{ color: textColor, fontWeight: '500' }}>
 				{credit}
 			</Typography>

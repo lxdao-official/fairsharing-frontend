@@ -7,6 +7,8 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 
+import { Icon } from '@iconify/react';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import StepProfile from '@/components/createProject/step/profile';
 import {
@@ -21,7 +23,6 @@ import { showToast } from '@/store/utils';
 import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
-import { Icon } from '@iconify/react';
 import { scanUrl } from '@/constant/url';
 
 export default function Setting({ params }: { params: { id: string } }) {

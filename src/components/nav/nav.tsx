@@ -87,13 +87,15 @@ const Item = ({
 	href: string;
 	isActive: boolean;
 	name?: string;
-	icon?: JSX.Element
+	icon?: JSX.Element;
 	image?: string;
 }) => {
 	return (
 		<Link href={href} prefetch={true}>
 			<NavItem active={isActive}>
-				{icon ? icon : image ? (
+				{icon ? (
+					icon
+				) : image ? (
 					<Img3
 						src={image}
 						style={{
@@ -105,7 +107,6 @@ const Item = ({
 				) : (
 					<Typography variant={'h4'}>{name || 'Project'}</Typography>
 				)}
-
 			</NavItem>
 		</Link>
 	);
@@ -130,14 +131,14 @@ const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({
 	position: 'relative',
 	'&::after': active
 		? {
-			content: '""',
-			position: 'absolute',
-			left: '0',
-			top: '24px',
-			height: '32px',
-			width: '6px',
-			borderRadius: '0 6px 6px 0',
-			backgroundColor: '#475569',
-		}
+				content: '""',
+				position: 'absolute',
+				left: '0',
+				top: '24px',
+				height: '32px',
+				width: '6px',
+				borderRadius: '0 6px 6px 0',
+				backgroundColor: '#475569',
+		  }
 		: {},
 }));
