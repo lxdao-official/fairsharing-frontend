@@ -1,5 +1,6 @@
 import { SvgIcon, SvgIconProps } from '@mui/material';
 
+import LogoSvg from './svg/logo.svg'
 import AddSvg from './svg/add.svg';
 import HomeSvg from './svg/home.svg';
 
@@ -23,6 +24,8 @@ import FileSvg from './svg/file.svg';
 import EasLogoSvg from './svg/eas.svg';
 import MoreSvg from './svg/more-horizontal.svg';
 import FilterSvg from './svg/filter.svg';
+
+const LogoIcon  = (props: SvgIconProps) => <LogoSvg {...props} />
 
 const HomeIcon = (props: SvgIconProps) => <HomeSvg {...props} />;
 const AddIcon = (props: SvgIconProps) => <AddSvg {...props} />;
@@ -82,6 +85,7 @@ const SettingIcon = (props: SvgIconProps) => (
 );
 
 export {
+	LogoIcon,
 	AddIcon,
 	HomeIcon,
 	ForIcon,
