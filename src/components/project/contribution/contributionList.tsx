@@ -9,6 +9,7 @@ import {
 	MenuItem,
 	Select,
 	SelectChangeEvent,
+	styled,
 	Typography,
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -298,6 +299,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		try {
 			openGlobalLoading();
 			if (!activeCId) return false;
+			// TODO 合约也需要revoke
 			const res = await deleteContribution(activeCId, operatorId);
 			console.log('deleteContribution res', res);
 			setShowDialog(false);
@@ -609,19 +611,18 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
 			>
-				{/*<DialogTitle id="alert-dialog-title">*/}
-				{/*	{"Use Google's location service?"}*/}
-				{/*</DialogTitle>*/}
 				<DialogContent>
 					<DialogContentText id="alert-dialog-description">
-						Are you sure to delete this contribution?
+						Are you sure to revoke this contribution?
 					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={onCloseDialog}>Cancel</Button>
-					<Button onClick={onDelete} autoFocus>
-						Delete
-					</Button>
+					<DialogButton onClick={onCloseDialog} variant={'outlined'}>
+						Cancel
+					</DialogButton>
+					<RevokeButton onClick={onDelete} autoFocus>
+						Revoke
+					</RevokeButton>
 				</DialogActions>
 			</Dialog>
 		</>
@@ -629,3 +630,19 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 };
 
 export default ContributionList;
+
+const DialogButton = styled(Button)({
+	minWidth: 80,
+	width: 80,
+	height: 34,
+	borderRadius: 4,
+	padding: 0,
+});
+
+const RevokeButton = styled(DialogButton)({
+	backgroundColor: '#0F172A',
+	color: '#fff',
+	'&:hover': {
+		background: 'rgba(15, 23, 42, .8)',
+	},
+});

@@ -318,7 +318,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 											</ListItem>
 											<ListItem disablePadding>
 												<ListItemButton onClick={onDelete}>
-													Delete
+													Revoke
 												</ListItemButton>
 											</ListItem>
 										</List>
