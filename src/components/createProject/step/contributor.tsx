@@ -6,7 +6,8 @@ import {
 	IconButton,
 	MenuItem,
 	Paper,
-	Select, styled,
+	Select,
+	styled,
 	Table,
 	TableBody,
 	TableCell,
@@ -178,7 +179,10 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				</>
 			) : null}
 
-			<TableContainer component={Paper} sx={{ marginTop: '8px', marginBottom: '4px', boxShadow: 'none' }}>
+			<TableContainer
+				component={Paper}
+				sx={{ marginTop: '8px', marginBottom: '4px', boxShadow: 'none' }}
+			>
 				<Table>
 					<TableHead sx={{ height: '40px', backgroundColor: '#F1F5F9' }}>
 						<TableRow>
@@ -191,7 +195,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					</TableHead>
 					<TableBody>
 						{contributors.map((row, index) => (
-							<TableRow key={index} >
+							<TableRow key={index}>
 								<StyledTableCell>
 									<TextField
 										size="small"
@@ -278,8 +282,8 @@ StepContributor.displayName = 'StepContributor';
 export default StepContributor;
 
 const StyledTableCell = styled(TableCell)({
-	borderBottom: 'none'
-})
+	borderBottom: 'none',
+});
 
 const AddRow = styled(StyledFlexBox)({
 	height: '32px',
@@ -287,7 +291,7 @@ const AddRow = styled(StyledFlexBox)({
 	cursor: 'pointer',
 	borderRadius: '2px',
 	border: '.5px dotted #0F172A29',
-	"&:hover": {
+	'&:hover': {
 		border: '1px dotted #212121',
-	}
-})
+	},
+});

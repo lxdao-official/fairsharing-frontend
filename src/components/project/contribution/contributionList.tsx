@@ -460,7 +460,9 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		<>
 			{showHeader ? (
 				<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
-					<Typography variant={'subtitle1'} sx={{fontWeight: 500}}>Contributions</Typography>
+					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
+						Contributions
+					</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}

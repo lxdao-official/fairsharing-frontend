@@ -262,7 +262,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
 							{/*TODO 改为贡献人的名字*/}
-							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>{projectDetail.name}</Typography>
+							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
+								{projectDetail.name}
+							</Typography>
 							<Typography
 								variant={'body2'}
 								sx={{ marginLeft: '12px', color: '#64748B' }}

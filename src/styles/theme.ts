@@ -103,14 +103,14 @@ const theme = createTheme({
 							borderColor: '#212121',
 						},
 					},
-					"& label": {
-						color: "rgba(0,0,0,0.3)",
+					'& label': {
+						color: 'rgba(0,0,0,0.3)',
 					},
-					"&:hover label": {
+					'&:hover label': {
 						fontWeight: 400,
 					},
-					"& label.Mui-focused": {
-						color: "rgba(0,0,0,0.6)",
+					'& label.Mui-focused': {
+						color: 'rgba(0,0,0,0.6)',
 					},
 				},
 			},
@@ -124,14 +124,14 @@ const theme = createTheme({
 							borderColor: '#212121 !important',
 						},
 					},
-					"& label": {
-						color: "rgba(0,0,0,0.3)",
+					'& label': {
+						color: 'rgba(0,0,0,0.3)',
 					},
-					"&:hover label": {
+					'&:hover label': {
 						fontWeight: 400,
 					},
-					"& label.Mui-focused": {
-						color: "rgba(0,0,0,0.6)",
+					'& label.Mui-focused': {
+						color: 'rgba(0,0,0,0.6)',
 					},
 				},
 			},

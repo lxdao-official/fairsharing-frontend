@@ -1,12 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import {
-	Box,
-	MenuItem,
-	Select,
-	SelectChangeEvent,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Box, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
