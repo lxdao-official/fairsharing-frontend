@@ -19,6 +19,8 @@ import SimpleSnackbar from '@/components/simpleSnackbar/snackbar';
 
 import User from '@/components/header/user';
 
+import NavLogo from '@/components/navLogo';
+
 import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -51,13 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 									href={'/'}
 									style={{ display: 'flex', flex: 1, alignItems: 'center' }}
 								>
-									<Image
-										src={'/images/FS_logo.png'}
-										width={40}
-										height={40}
-										alt={'FS'}
-									/>
-
+									<NavLogo />
 									<Typography
 										variant="h4"
 										sx={{ flexGrow: 1, fontWeight: '500', marginLeft: '8px' }}

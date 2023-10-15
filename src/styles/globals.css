@@ -16,11 +16,8 @@ body {
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    font-size: .24rem;
-    user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: none;
-
 }
 
 *::-webkit-scrollbar {

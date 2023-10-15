@@ -2,13 +2,34 @@
 
 import { usePathname, useParams } from 'next/navigation';
 
-import { Typography } from '@mui/material';
-import React, { useEffect, useMemo } from 'react';
+import { styled, Typography } from '@mui/material';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 import styles from '@/styles/project.module.css';
 import { useProjectStore } from '@/store/project';
+import { ContributionIcon, ContributorIcon, DashboardIcon, SettingIcon } from '@/icons';
+
+export enum ProjectSubPageEnum {
+	Contribution = 'contribution',
+	Contributor = 'contributor',
+	Dashboard = 'dashboard',
+	Setting = 'setting',
+}
+
+const NameMap = {
+	[ProjectSubPageEnum.Contribution]: 'Contributions',
+	[ProjectSubPageEnum.Contributor]: 'Contributors',
+	[ProjectSubPageEnum.Dashboard]: 'Dashboard',
+	[ProjectSubPageEnum.Setting]: 'Settings',
+};
+
+const IconMap = {
+	[ProjectSubPageEnum.Contribution]: ContributionIcon,
+	[ProjectSubPageEnum.Contributor]: ContributorIcon,
+	[ProjectSubPageEnum.Dashboard]: DashboardIcon,
+	[ProjectSubPageEnum.Setting]: SettingIcon,
+};
 
 const ProjectNav = () => {
 	const pathname = usePathname();
@@ -19,41 +40,46 @@ const ProjectNav = () => {
 		return pathname.indexOf(name) > -1;
 	};
 
+	const currentPageName = useMemo(() => {
+		if (isMatch(ProjectSubPageEnum.Contribution)) {
+			return ProjectSubPageEnum.Contribution;
+		} else if (isMatch(ProjectSubPageEnum.Contributor)) {
+			return ProjectSubPageEnum.Contributor;
+		} else if (isMatch(ProjectSubPageEnum.Dashboard)) {
+			return ProjectSubPageEnum.Dashboard;
+		} else if (isMatch(ProjectSubPageEnum.Setting)) {
+			return ProjectSubPageEnum.Setting;
+		} else {
+			return ProjectSubPageEnum.Contribution;
+		}
+	}, [pathname]);
+
 	const projectName = useMemo(() => {
 		return userProjectList.find((item) => item.id === currentProjectId)?.name;
 	}, [currentProjectId, userProjectList]);
 
 	return (
 		<div className={styles.projectNavContainer}>
-			<Typography
-				variant={'subtitle1'}
-				style={{ borderBottom: '1px solid rgba(15, 23, 42, 0.16)', padding: '8px 16px' }}
-			>
-				{projectName || 'Project'}
-			</Typography>
+			<ProjectTitle variant={'subtitle1'}>{projectName || 'Project'}</ProjectTitle>
 			<NavItem
 				href={`/project/${params.id}/contribution`}
-				name={'Contributions'}
-				icon={'/images/projectNav/contribution.png'}
-				isActive={isMatch('contribution')}
+				name={ProjectSubPageEnum.Contribution}
+				isActive={currentPageName === ProjectSubPageEnum.Contribution}
 			/>
 			<NavItem
 				href={`/project/${params.id}/contributor`}
-				name={'Contributors'}
-				icon={'/images/projectNav/contributor.png'}
-				isActive={isMatch('contributor')}
+				name={ProjectSubPageEnum.Contributor}
+				isActive={currentPageName === ProjectSubPageEnum.Contributor}
 			/>
 			<NavItem
 				href={`/project/${params.id}/dashboard`}
-				name={'Dashboard'}
-				icon={'/images/projectNav/dashboard.png'}
-				isActive={isMatch('dashboard')}
+				name={ProjectSubPageEnum.Dashboard}
+				isActive={currentPageName === ProjectSubPageEnum.Dashboard}
 			/>
 			<NavItem
 				href={`/project/${params.id}/setting`}
-				name={'Settings'}
-				icon={'/images/projectNav/setting.png'}
-				isActive={isMatch('setting')}
+				name={ProjectSubPageEnum.Setting}
+				isActive={currentPageName === ProjectSubPageEnum.Setting}
 			/>
 		</div>
 	);
@@ -61,35 +87,46 @@ const ProjectNav = () => {
 
 export default ProjectNav;
 
-const NavItem = ({
-	href,
-	name,
-	icon,
-	isActive,
-}: {
+export interface INavItemProps {
 	href: string;
-	name: string;
-	icon: string;
-	isActive?: boolean;
-}) => {
+	name: ProjectSubPageEnum;
+	isActive: boolean;
+}
+
+const NavItem = ({ href, name, isActive }: INavItemProps) => {
+	const Icon = useMemo(() => {
+		return IconMap[name];
+	}, [name]);
+
 	return (
-		<Link
-			href={href}
-			style={{
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				height: '56px',
-				padding: '0 24px',
-			}}
-		>
-			<Image src={icon} width={24} height={24} alt={'icon'} />
-			<Typography
-				sx={{ marginLeft: '24px', flex: '1', fontWeight: isActive ? 'bold' : 'normal' }}
-				variant={'body1'}
-			>
-				{name}
-			</Typography>
-		</Link>
+		<StyledLink href={href}>
+			<Icon fill={isActive ? '#0F172A' : '#64748B'} />
+			<StyledName variant={'body1'} isActive={isActive}>
+				{NameMap[name]}
+			</StyledName>
+		</StyledLink>
 	);
 };
+
+const ProjectTitle = styled(Typography)({
+	maxWidth: '208px',
+	borderBottom: '1px solid rgba(15, 23, 42, 0.16)',
+	padding: '8px 16px',
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis',
+});
+
+const StyledLink = styled(Link)({
+	display: 'flex',
+	justifyContent: 'center',
+	alignItems: 'center',
+	height: '56px',
+	padding: '0 24px',
+});
+const StyledName = styled(Typography)<{ isActive: boolean }>(({ isActive }) => ({
+	marginLeft: '24px',
+	flex: '1',
+	color: isActive ? '#0F172A' : '#475569',
+	fontWeight: isActive ? '500' : 'normal',
+}));

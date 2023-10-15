@@ -87,10 +87,60 @@ const theme = createTheme({
 						backgroundColor: '#fff',
 						'&:hover': {
 							background: '#fff',
+							borderColor: '#0F172A',
 						},
 					},
 				},
 			],
+		},
+		MuiTextField: {
+			styleOverrides: {
+				root: {
+					'& .MuiOutlinedInput-root': {
+						'&:hover fieldset': {
+							borderColor: '#212121',
+						},
+						'&.Mui-focused fieldset': {
+							borderColor: '#212121',
+						},
+					},
+					'& label': {
+						color: 'rgba(0,0,0,0.3)',
+					},
+					'&:hover label': {
+						fontWeight: 400,
+					},
+					'& label.Mui-focused': {
+						color: 'rgba(0,0,0,0.6)',
+					},
+				},
+			},
+		},
+		MuiInputBase: {
+			styleOverrides: {
+				// 为Select修改
+				root: {
+					'&.Mui-focused': {
+						'& fieldset': {
+							borderColor: '#212121 !important',
+						},
+					},
+					'& label': {
+						color: 'rgba(0,0,0,0.3)',
+					},
+					'&:hover label': {
+						fontWeight: 400,
+					},
+					'& label.Mui-focused': {
+						color: 'rgba(0,0,0,0.6)',
+					},
+				},
+			},
+		},
+		MuiSelect: {
+			styleOverrides: {
+				select: {},
+			},
 		},
 		MuiAlert: {
 			styleOverrides: {
@@ -132,6 +182,14 @@ const theme = createTheme({
 			styleOverrides: {
 				root: {
 					borderWidth: '.5px',
+					opacity: '.16',
+				},
+			},
+		},
+		MuiLink: {
+			styleOverrides: {
+				root: {
+					color: '#437EF7',
 				},
 			},
 		},

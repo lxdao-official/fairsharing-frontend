@@ -40,7 +40,7 @@ const StatusText = ({
 
 	useEffect(() => {
 		if (status === Status.UNREADY) {
-			setShowText('UnReady');
+			setShowText('Vote preparation in progress');
 			setCursor('wait');
 			setColor(StatusColorEnum.GRAY);
 		} else if (status === Status.CLAIM) {
@@ -67,6 +67,7 @@ const StatusText = ({
 	}, [status, hasVoted, isEnd, countdownText, votePass]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
+		console.log('getCountDownText', days, hours, minutes, seconds);
 		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
 			return 'Vote ended';
 		}
@@ -79,7 +80,7 @@ const StatusText = ({
 		} else if (seconds > 0) {
 			return `Vote ends in ${seconds}s`;
 		} else {
-			return 'Vote ended';
+			return 'Vote is ended';
 		}
 	};
 

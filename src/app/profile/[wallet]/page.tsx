@@ -170,7 +170,10 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 								needFormat={false}
 								color="#475569"
 							/>
-							<Typography variant="h6" sx={{ margin: '24px 0 8px' }}>
+							<Typography
+								variant="h6"
+								sx={{ margin: '24px 0 8px', fontSize: '16px' }}
+							>
 								Intro
 							</Typography>
 							<Typography
@@ -203,23 +206,28 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 				</StyledFlexBox>
 			</UserInfoContainer>
 			<StyledFlexBox style={{ justifyContent: 'space-between', marginTop: '24px' }}>
-				<Typography typography={'h3'}>Contributions</Typography>
-				<StyledFlexBox style={{ gap: '24px' }}>
-					<Typography variant="body2">
-						Total pizza slices earned: {mintData[0]?.credit ?? 0}
-					</Typography>
-					<Select
-						size="small"
-						value={currentProjectId}
-						onChange={(e) => setCurrentProjectId(e.target.value)}
-					>
-						{projectData?.map((item) => (
-							<MenuItem key={item.id} value={item.id}>
-								{item.name}
-							</MenuItem>
-						))}
-					</Select>
-				</StyledFlexBox>
+				<Typography typography={'h3'} sx={{ fontWeight: 500 }}>
+					Contributions
+				</Typography>
+				{projectData?.length ? (
+					<StyledFlexBox style={{ gap: '24px' }}>
+						<Typography variant="body2">
+							Total pizza slices earned: {mintData[0]?.credit ?? 0}
+						</Typography>
+						<Select
+							size="small"
+							value={currentProjectId}
+							sx={{ minWidth: '180px' }}
+							onChange={(e) => setCurrentProjectId(e.target.value)}
+						>
+							{projectData?.map((item) => (
+								<MenuItem key={item.id} value={item.id}>
+									{item.name}
+								</MenuItem>
+							))}
+						</Select>
+					</StyledFlexBox>
+				) : null}
 			</StyledFlexBox>
 			{currentProjectId ? (
 				<ContributionList projectId={currentProjectId} showHeader={false} />

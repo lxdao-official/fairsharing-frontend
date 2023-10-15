@@ -2,30 +2,26 @@
 
 import { styled, Typography } from '@mui/material';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React, { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useMemo } from 'react';
 
 import { useAccount } from 'wagmi';
-
 import { Img3 } from '@lxdao/img3';
 
 import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectListByWallet } from '@/services/project';
+import { AddIcon, HomeIcon } from '@/icons';
 
 export default function Nav() {
 	const { currentProjectId, userProjectList } = useProjectStore();
 	const pathname = usePathname();
 	const { address: myAddress } = useAccount();
+	const router = useRouter();
 
-	useEffect(() => {
-		if (pathname.indexOf('project') < 0) {
-			setCurrentProjectId('');
-		}
-		if (pathname.indexOf('create')) {
-			setCurrentProjectId('');
-		}
+	const isProjectRoute = useMemo(() => {
+		return pathname.indexOf('project') > -1 && pathname.indexOf('/project/create') < 0;
 	}, [pathname]);
 
 	useEffect(() => {
@@ -50,72 +46,62 @@ export default function Nav() {
 		}
 	};
 
+	const handleClickItem = useCallback((projectId: string) => {
+		setCurrentProjectId(projectId);
+		router.push(`/project/${projectId}/contribution`);
+	}, []);
+
 	return (
 		<NavContainer>
-			<Item
-				href={'/'}
-				image={'/images/home.png'}
-				noBorder={pathname !== '/'}
-				isActive={pathname === '/'}
-			/>
+			<Link href={'/list'}>
+				<NavItem active={pathname === '/list'}>
+					<HomeIcon />
+				</NavItem>
+			</Link>
 			{userProjectList.map((project, idx) => (
 				<Item
-					href={`/project/${project.id}/contribution`}
 					key={project.id}
 					name={project.name}
-					isActive={currentProjectId === project.id}
+					isActive={isProjectRoute && currentProjectId === project.id}
 					image={project.logo}
+					onClickEvent={handleClickItem}
+					projectId={project.id}
 				/>
 			))}
-			<Item
-				href={'/project/create'}
-				image={'/images/new.png'}
-				isActive={pathname === '/project/create'}
-				prefetch={true}
-				noBorder={pathname !== '/project/create'}
-			/>
+			<Link href={'/project/create'}>
+				<NavItem active={pathname.indexOf('/project/create') > -1}>
+					<AddIcon />
+				</NavItem>
+			</Link>
 		</NavContainer>
 	);
 }
 
-const Item = ({
-	href,
-	image,
-	name,
-	isActive,
-	prefetch,
-	noBorder,
-}: {
-	href: string;
-	image?: string;
-	isActive?: boolean;
-	name?: string;
-	prefetch?: boolean;
-	noBorder?: boolean;
-}) => {
+export interface IItemProps {
+	onClickEvent: (projectId: string) => void;
+	isActive: boolean;
+	projectId: string;
+	name: string;
+	image: string;
+}
+
+const Item = (props: IItemProps) => {
+	const { image, name, projectId, isActive, onClickEvent } = props;
 	return (
-		<Link href={href} prefetch={!!prefetch}>
-			<NavItem active={!!isActive}>
-				{/*TODO avatar hover效果*/}
-				{image ? (
-					<Img3
-						src={image}
-						style={{
-							width: '56px',
-							height: '56px',
-							borderRadius: '56px',
-							// border: noBorder
-							// 	? 'none'
-							// 	: isActive
-							// 	? '1px solid rgba(0, 0, 0, 1)'
-							// 	: '0.5px solid #CBD5E1',
-						}}
-					/>
-				) : (
-					<Typography variant={'h4'}>{name || 'Project'}</Typography>
-				)}
-			</NavItem>
-		</Link>
+		<NavItem active={isActive} onClick={() => onClickEvent(projectId)}>
+			{image ? (
+				<Img3
+					src={image}
+					style={{
+						width: '56px',
+						height: '56px',
+						borderRadius: '56px',
+					}}
+				/>
+			) : (
+				<Typography variant={'h4'}>{name || 'Project'}</Typography>
+			)}
+		</NavItem>
 	);
 };
 
@@ -136,6 +122,7 @@ const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({
 	justifyContent: 'center',
 	alignItems: 'center',
 	position: 'relative',
+	cursor: 'pointer',
 	'&::after': active
 		? {
 				content: '""',

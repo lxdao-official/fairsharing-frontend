@@ -7,6 +7,7 @@ import {
 	MenuItem,
 	Paper,
 	Select,
+	styled,
 	Table,
 	TableBody,
 	TableCell,
@@ -17,7 +18,6 @@ import {
 	Typography,
 } from '@mui/material';
 
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -27,6 +27,8 @@ import { Contributor, PermissionEnum } from '@/services/project';
 import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
+import { ethers } from 'ethers';
+import { DeleteIcon } from '@/icons';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -98,6 +100,11 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				showToast('Empty [wallet] address', 'error');
 				return false;
 			}
+			if (!ethers.isAddress(wallet)) {
+				valid = false;
+				showToast(`[${wallet}] is not a valid wallet address`, 'error');
+				return false;
+			}
 		});
 		return valid;
 	};
@@ -139,6 +146,12 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	};
 
 	const handleDeleteRow = (index: number) => {
+		if (contributors.length <= 1) {
+			return false;
+		}
+		if (!canEdit) {
+			return false;
+		}
 		const newData = contributors.filter((_, i) => i !== index);
 		changeContributors(newData);
 	};
@@ -169,36 +182,42 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		<>
 			{!isSettingPage ? (
 				<>
-					<Typography variant={'h4'}>Who can post contribution and vote?</Typography>
-					<Typography variant={'h4'} sx={{ marginTop: '16px' }}>
+					<Typography variant={'h4'} sx={{ fontWeight: '500' }}>
+						Who can post contribution and vote?
+					</Typography>
+					<Typography variant={'h4'} sx={{ marginTop: '16px', fontWeight: '500' }}>
 						Contributors
 					</Typography>
 				</>
 			) : null}
 
-			<TableContainer component={Paper} sx={{ marginTop: '8px' }}>
+			<TableContainer
+				component={Paper}
+				sx={{ marginTop: '8px', marginBottom: '4px', boxShadow: 'none' }}
+			>
 				<Table>
 					<TableHead sx={{ height: '40px', backgroundColor: '#F1F5F9' }}>
 						<TableRow>
-							<TableCell width={140}>NickName*</TableCell>
-							<TableCell width={300}>Wallet Address*</TableCell>
-							<TableCell width={160}>Permission</TableCell>
-							<TableCell width={230}>Role</TableCell>
-							{contributors.length > 1 ? <TableCell>Action</TableCell> : null}
+							<TableCell>NickName*</TableCell>
+							<TableCell>Wallet Address*</TableCell>
+							<TableCell>Permission</TableCell>
+							<TableCell>Role</TableCell>
+							<TableCell>Action</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
 						{contributors.map((row, index) => (
 							<TableRow key={index}>
-								<TableCell>
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.nickName}
 										disabled={!canEdit}
 										onChange={(e) => handleNameChange(index, e.target.value)}
+										sx={{ maxWidth: 120 }}
 									/>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.wallet}
@@ -206,9 +225,10 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										onChange={(e) =>
 											handleWalletAddressChange(index, e.target.value)
 										}
+										sx={{ maxWidth: 300, minWidth: 120 }}
 									/>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<FormControl>
 										<Select
 											size="small"
@@ -220,6 +240,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 													e.target.value as PermissionEnum,
 												)
 											}
+											sx={{ width: 140 }}
 										>
 											<MenuItem value={PermissionEnum.Owner}>Owner</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
@@ -228,38 +249,44 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											</MenuItem>
 										</Select>
 									</FormControl>
-								</TableCell>
-								<TableCell>
+								</StyledTableCell>
+								<StyledTableCell>
 									<TextField
 										size="small"
 										value={row.role}
 										disabled={!canEdit}
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
-								</TableCell>
-								{contributors.length > 1 && canEdit ? (
-									<TableCell>
-										<IconButton onClick={() => handleDeleteRow(index)}>
-											<DeleteIcon />
-										</IconButton>
-									</TableCell>
-								) : null}
+								</StyledTableCell>
+								<StyledTableCell>
+									<IconButton
+										onClick={() => handleDeleteRow(index)}
+										sx={{
+											opacity:
+												contributors.length > 1 && canEdit ? '1' : '.5',
+											cursor:
+												contributors.length > 1 && canEdit
+													? 'pointer'
+													: 'not-allowed',
+										}}
+									>
+										<DeleteIcon />
+									</IconButton>
+								</StyledTableCell>
 							</TableRow>
 						))}
 					</TableBody>
 				</Table>
-				{canEdit ? (
-					<StyledFlexBox
-						sx={{ height: '32px', justifyContent: 'center', cursor: 'pointer' }}
-						onClick={handleAddRow}
-					>
-						<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
-						<Typography variant={'body2'} color={'#475569'}>
-							Add
-						</Typography>
-					</StyledFlexBox>
-				) : null}
 			</TableContainer>
+
+			{canEdit ? (
+				<AddRow onClick={handleAddRow}>
+					<AddIcon sx={{ fontSize: '14px', color: '#475569' }} />
+					<Typography variant={'body2'} color={'#475569'}>
+						Add
+					</Typography>
+				</AddRow>
+			) : null}
 
 			<ButtonGroup
 				canEdit={canEdit}
@@ -276,3 +303,18 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 StepContributor.displayName = 'StepContributor';
 
 export default StepContributor;
+
+const StyledTableCell = styled(TableCell)({
+	borderBottom: 'none',
+});
+
+const AddRow = styled(StyledFlexBox)({
+	height: '32px',
+	justifyContent: 'center',
+	cursor: 'pointer',
+	borderRadius: '2px',
+	border: '.5px dotted #0F172A29',
+	'&:hover': {
+		border: '1px dotted #212121',
+	},
+});

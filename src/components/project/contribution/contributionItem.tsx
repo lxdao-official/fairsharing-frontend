@@ -14,13 +14,10 @@ import {
 } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
-import Image from 'next/image';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { formatDistance } from 'date-fns';
 
-import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import Link from 'next/link';
-import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
+import MuiLink from '@mui/material/Link';
 
 import { useNetwork } from 'wagmi';
 
@@ -28,7 +25,7 @@ import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject } from '@/services/types';
-import VoteAction, { VoteStatus, VoteTypeEnum } from '@/components/project/contribution/voteAction';
+import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 import {
 	IClaimParams,
@@ -39,6 +36,8 @@ import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@
 import { EAS_CHAIN_CONFIGS, EasSchemaVoteKey } from '@/constant/eas';
 import { showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
+import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
+import useCountdown from '@/hooks/useCountdown';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -64,8 +63,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 		easVoteList,
 		contributorList,
 	} = props;
-
 	const { chain } = useNetwork();
+
+	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+	const [openMore, setOpenMore] = useState(false);
+	const [openProof, setOpenProof] = useState(false);
+	const [openContributor, setOpenContributor] = useState(false);
+	const [showEdit, setShowEdit] = useState(false);
+
+	const targetTime = useCountdownTarget(contribution, projectDetail);
+	const { isEnd } = useCountdown(targetTime);
 
 	const userVoteInfoMap = useMemo(() => {
 		const userVoterMap: Record<string, number[]> = {};
@@ -129,6 +136,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 		}
 	}, [matchContributors]);
 
+	const hasVoted = useMemo(() => {
+		const { For, Against, Abstain } = voteNumbers;
+		return !(For === 0 && Against === 0 && Abstain === 0);
+	}, [voteNumbers]);
+
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
@@ -137,25 +149,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 			: selected.filter((id) => Number(id) !== Number(contribution.id));
 		onSelect(newList);
 	};
-
-	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-	const [openMore, setOpenMore] = useState(false);
-	const [openProof, setOpenProof] = useState(false);
-	const [openContributor, setOpenContributor] = useState(false);
-
-	const [showEdit, setShowEdit] = useState(false);
-
-	const hasVoted = useMemo(() => {
-		const { For, Against, Abstain } = voteNumbers;
-		return !(For === 0 && Against === 0 && Abstain === 0);
-	}, [voteNumbers]);
-
-	const targetTime = useMemo(() => {
-		return (
-			new Date(contribution.createAt).getTime() +
-			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
-		);
-	}, [contribution.createAt, projectDetail.votePeriod]);
 
 	const handleVote = (voteValue: IVoteValueEnum) => {
 		if (contribution.status === 'UNREADY') {
@@ -251,7 +244,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	return (
 		<>
-			<StyledFlexBox sx={{ alignItems: 'flex-start', paddingTop: '16px' }}>
+			<StyledFlexBox
+				sx={{
+					alignItems: 'flex-start',
+					paddingTop: '16px',
+					display: showEdit ? 'none' : 'flex',
+				}}
+			>
 				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
 					{showSelect ? (
 						<Checkbox
@@ -259,6 +258,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
+					{/*TODO 改为贡献人的logo 不是project*/}
 					<Img3
 						src={projectDetail.logo}
 						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
@@ -267,7 +267,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							<Typography variant={'subtitle1'}>{projectDetail.name}</Typography>
+							{/*TODO 改为贡献人的名字*/}
+							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
+								{projectDetail.name}
+							</Typography>
 							<Typography
 								variant={'body2'}
 								sx={{ marginLeft: '12px', color: '#64748B' }}
@@ -290,21 +293,19 @@ const ContributionItem = (props: IContributionItemProps) => {
 									voteNumbers.For >= voteNumbers.Against
 								}
 							/>
-							<Tooltip title="View on chain" placement="top">
-								<Link href={EasLink} target={'_blank'}>
-									<Image
-										src={'/images/eas_logo.png'}
-										width={52}
-										height={24}
-										alt={'eas'}
-										style={{ cursor: 'pointer', margin: '0 24px' }}
-									/>
+							<Tooltip title="View on chain" placement="top" arrow={true}>
+								<Link
+									href={EasLink}
+									target={'_blank'}
+									style={{ cursor: 'pointer', margin: '0 24px' }}
+								>
+									<EasLogoIcon width={52} height={24} />
 								</Link>
 							</Tooltip>
 
 							<div>
 								<IconButton size="small" onClick={handleOpenMorePopover}>
-									<MoreHorizIcon />
+									<MoreIcon width={24} height={24} />
 								</IconButton>
 								<Popover
 									id={'simple-popover-more'}
@@ -323,7 +324,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 											</ListItem>
 											<ListItem disablePadding>
 												<ListItemButton onClick={onDelete}>
-													Delete
+													Revoke
 												</ListItemButton>
 											</ListItem>
 										</List>
@@ -355,13 +356,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 									sx={{ cursor: 'pointer', margin: '0 8px' }}
 									onClick={handleOpenProofPopover}
 								>
-									<InsertDriveFileOutlinedIcon
-										fontSize={'small'}
-										sx={{ color: '#677389' }}
-									/>
+									<FileIcon width={14} height={14} />
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569' }}
+										sx={{
+											fontWeight: '500',
+											color: '#475569',
+											marginLeft: '4px',
+										}}
 									>
 										Proof
 									</Typography>
@@ -376,12 +378,18 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										<Link href={contribution.proof} target={'_blank'}>
-											<InsertLinkOutlinedIcon sx={{ color: '#437EF7' }} />
-											<Button variant={'text'} sx={{ textTransform: 'none' }}>
-												{contribution.proof}
-											</Button>
-										</Link>
+										<MuiLink
+											href={contribution.proof}
+											target={'_blank'}
+											underline={'hover'}
+										>
+											<LinkIcon
+												width={16}
+												height={16}
+												style={{ marginRight: 8 }}
+											/>
+											{contribution.proof}
+										</MuiLink>
 									</Paper>
 								</Popover>
 							</>
@@ -419,28 +427,31 @@ const ContributionItem = (props: IContributionItemProps) => {
 						<StyledFlexBox>
 							<VoteAction
 								type={VoteTypeEnum.FOR}
-								status={VoteStatus.DONE}
+								contributionStatus={contribution.status}
 								count={voteNumbers.For}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
+								isEnd={isEnd}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
-								status={VoteStatus.NORMAL}
+								contributionStatus={contribution.status}
 								count={voteNumbers.Against}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
+								isEnd={isEnd}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
-								status={VoteStatus.DISABLED}
+								contributionStatus={contribution.status}
 								count={voteNumbers.Abstain}
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
+								isEnd={isEnd}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>
-					{!showEdit ? <Divider sx={{ marginTop: '26px' }} /> : null}
+					{!showEdit ? <Divider sx={{ marginTop: '24px' }} /> : null}
 				</div>
 			</StyledFlexBox>
 
@@ -456,6 +467,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 };
 
 export default ContributionItem;
+
+export function useCountdownTarget(contribution: IContribution, projectDetail: IProject) {
+	const targetTime = useMemo(() => {
+		return (
+			new Date(contribution.createAt).getTime() +
+			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+		);
+	}, [contribution.createAt, projectDetail.votePeriod]);
+
+	return targetTime;
+}
 
 export const CustomHoverButton = styled(StyledFlexBox)({
 	borderRadius: 4,

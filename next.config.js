@@ -12,6 +12,24 @@ const nextConfig = {
 		},
 	},
 	webpack: config => {
+		config.module.rules.push({
+			test: /\.svg$/i,
+			issuer: /\.[jt]sx?$/,
+			use: [{
+				loader: '@svgr/webpack',
+				options: {
+					svgo: true,
+					svgoConfig: {
+						plugins: [
+							{
+								name: 'preset-default',
+								params: { overrides: { removeViewBox: false } },
+							},
+						],
+					},
+				},
+			}],
+		})
 		config.resolve.fallback = { fs: false, net: false, tls: false };
 		config.externals.push('pino-pretty', 'lokijs', 'encoding');
 		return config;

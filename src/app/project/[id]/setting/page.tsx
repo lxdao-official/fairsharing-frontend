@@ -1,11 +1,13 @@
 'use client';
 
 import useSWR from 'swr';
-import { Typography, Tabs, Tab, Skeleton, Stack, Alert } from '@mui/material';
+import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button } from '@mui/material';
 
 import { useCallback, useMemo, useState } from 'react';
 
 import { useAccount } from 'wagmi';
+
+import { Icon } from '@iconify/react';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import StepProfile from '@/components/createProject/step/profile';
@@ -21,6 +23,7 @@ import { showToast } from '@/store/utils';
 import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
+import { scanUrl } from '@/constant/url';
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -94,6 +97,10 @@ export default function Setting({ params }: { params: { id: string } }) {
 		}
 	}, []);
 
+	const handleToScan = useCallback(() => {
+		window.open(`${scanUrl}/address/${params.id}`, '_blank');
+	}, [params.id]);
+
 	const tabContent = useMemo(() => {
 		switch (activeTab) {
 			case 'profile':
@@ -131,7 +138,18 @@ export default function Setting({ params }: { params: { id: string } }) {
 	return (
 		<div>
 			<StyledFlexBox sx={{ justifyContent: 'space-between', marginBottom: '10px' }}>
-				<Typography variant="h3">Setting</Typography>
+				<Typography variant="h3">Settings</Typography>
+				<StyledFlexBox sx={{ gap: '8px', cursor: 'pointer' }} onClick={handleToScan}>
+					<Typography variant="subtitle1" sx={{ fontSize: '16px', fontWeight: 500 }}>
+						Project contract
+					</Typography>
+					<Icon
+						icon="material-symbols:keyboard-arrow-right"
+						width={20}
+						height={20}
+						color="#0F172A"
+					/>
+				</StyledFlexBox>
 			</StyledFlexBox>
 			<Tabs
 				value={activeTab}

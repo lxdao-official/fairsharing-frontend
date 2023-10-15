@@ -9,6 +9,7 @@ import {
 	MenuItem,
 	Select,
 	SelectChangeEvent,
+	styled,
 	Typography,
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -65,6 +66,7 @@ import {
 } from '@/services';
 
 import useEas from '@/hooks/useEas';
+import { FilterIcon } from '@/icons';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -297,6 +299,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		try {
 			openGlobalLoading();
 			if (!activeCId) return false;
+			// TODO 合约也需要revoke
 			const res = await deleteContribution(activeCId, operatorId);
 			console.log('deleteContribution res', res);
 			setShowDialog(false);
@@ -459,15 +462,11 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		<>
 			{showHeader ? (
 				<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px' }}>
-					<Typography typography={'h3'}>Contributions</Typography>
+					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
+						Contributions
+					</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
-						<Image
-							src={'/images/claim.png'}
-							width={24}
-							height={24}
-							alt={'claim'}
-							onClick={onClickFilterBtn}
-						/>
+						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
 						{/*	Claim({claimTotal})*/}
 						{/*</Button>*/}
@@ -612,19 +611,18 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
 			>
-				{/*<DialogTitle id="alert-dialog-title">*/}
-				{/*	{"Use Google's location service?"}*/}
-				{/*</DialogTitle>*/}
 				<DialogContent>
 					<DialogContentText id="alert-dialog-description">
-						Are you sure to delete this contribution?
+						Are you sure to revoke this contribution?
 					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={onCloseDialog}>Cancel</Button>
-					<Button onClick={onDelete} autoFocus>
-						Delete
-					</Button>
+					<DialogButton onClick={onCloseDialog} variant={'outlined'}>
+						Cancel
+					</DialogButton>
+					<RevokeButton onClick={onDelete} autoFocus>
+						Revoke
+					</RevokeButton>
 				</DialogActions>
 			</Dialog>
 		</>
@@ -632,3 +630,19 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 };
 
 export default ContributionList;
+
+const DialogButton = styled(Button)({
+	minWidth: 80,
+	width: 80,
+	height: 34,
+	borderRadius: 4,
+	padding: 0,
+});
+
+const RevokeButton = styled(DialogButton)({
+	backgroundColor: '#0F172A',
+	color: '#fff',
+	'&:hover': {
+		background: 'rgba(15, 23, 42, .8)',
+	},
+});

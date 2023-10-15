@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import Image from 'next/image';
 import { Button, styled, TextField, Typography } from '@mui/material';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
@@ -9,14 +8,14 @@ import { ethers } from 'ethers';
 
 import axios from 'axios';
 
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 import useSWR, { useSWRConfig } from 'swr';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution, IContributor } from '@/services/types';
+import { IContribution } from '@/services/types';
 import MultipleContributorSelector from '@/components/project/contribution/contributorSelector';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import { createContribution, getContributorList, updateContributionStatus } from '@/services';
@@ -31,6 +30,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
+import { PizzaGrayIcon } from '@/icons';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -262,7 +262,7 @@ const PostContribution = ({
 			</StyledFlexBox>
 
 			<CreditContainer>
-				<Image src={'/images/pizza2.png'} width={24} height={24} alt={'pizza'} />
+				<PizzaGrayIcon width={24} height={24} />
 				<StyledInput
 					sx={{ marginLeft: '4px', marginTop: '4px' }}
 					variant={'standard'}
@@ -277,14 +277,18 @@ const PostContribution = ({
 
 			<PostButton>
 				{onCancel ? (
-					<Button variant={'outlined'} sx={{ marginRight: '24px' }} onClick={onCancel}>
+					<BaseButton
+						variant={'outlined'}
+						sx={{ marginRight: '16px' }}
+						onClick={onCancel}
+					>
 						Cancel
-					</Button>
+					</BaseButton>
 				) : null}
 
-				<Button variant={'contained'} onClick={onSubmit}>
+				<BaseButton variant={'contained'} sx={{}} onClick={onSubmit}>
 					{confirmText || 'Re-Post'}
-				</Button>
+				</BaseButton>
 			</PostButton>
 		</PostContainer>
 	);
@@ -295,7 +299,6 @@ export default PostContribution;
 const PostContainer = styled('div')({
 	minHeight: '90px',
 	backgroundColor: 'white',
-	marginTop: '16px',
 	padding: '12px 16px',
 	borderRadius: '4px',
 	position: 'relative',
@@ -325,4 +328,8 @@ const CreditContainer = styled(StyledFlexBox)({
 	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
 	padding: '3px 8px',
+});
+
+const BaseButton = styled(Button)({
+	minWidth: '64px',
 });

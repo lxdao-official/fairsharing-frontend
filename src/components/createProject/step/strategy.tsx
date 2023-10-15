@@ -1,13 +1,5 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
-import {
-	Box,
-	Button,
-	MenuItem,
-	Select,
-	SelectChangeEvent,
-	TextField,
-	Typography,
-} from '@mui/material';
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { Box, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -121,14 +113,13 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				labelId="network-select-label"
 				id="network-select"
 				value={network.toString()}
-				label="Network"
 				onChange={handleNetworkChange}
 				placeholder={'Select network'}
 				sx={{ width: '320px', marginTop: '32px' }}
 				disabled={isSettingPage}
 			>
 				{/*<MenuItem value={'5'}>MainNet</MenuItem>*/}
-				<MenuItem value={'420'}>optimismGoerli</MenuItem>
+				<MenuItem value={'420'}>Optimism Goerli</MenuItem>
 				{/*<MenuItem value={'1'}>Georily</MenuItem>*/}
 			</Select>
 

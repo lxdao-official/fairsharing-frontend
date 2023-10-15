@@ -200,6 +200,14 @@ export default function Page() {
 		return { profileFormData, strategyFormData, contributorFormData };
 	};
 
+	const handleClickStepLabel = (index: number) => {
+		if (index >= activeStep) {
+			return false;
+		} else {
+			setActiveStep(index);
+		}
+	};
+
 	return (
 		<Img3Provider defaultGateways={defaultGateways}>
 			<Container
@@ -215,7 +223,7 @@ export default function Page() {
 					<Stepper activeStep={activeStep} orientation="vertical">
 						{steps.map((step, index) => (
 							<Step sx={{ cursor: 'pointer' }} key={step.label}>
-								<StepLabel onClick={() => setActiveStep(index)}>
+								<StepLabel onClick={() => handleClickStepLabel(index)}>
 									{step.label}
 								</StepLabel>
 							</Step>
