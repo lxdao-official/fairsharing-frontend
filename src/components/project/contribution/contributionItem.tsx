@@ -207,10 +207,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		setOpenMore(true);
 	};
 
-	const handleOpenProofPopover = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+	const handleOpenProofPopover = (event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
 		setOpenProof(true);
-	}, [openProof, anchorEl]);
+	}
 
 	const handleOpenContributorPopover = (event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -372,8 +372,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										<MuiLink href={contribution.proof} target={'_blank'} underline={'hover'}>
-											<LinkIcon width={16} height={16} style={{ marginRight: 8 }} />
+										<MuiLink
+											href={contribution.proof}
+											target={'_blank'}
+											underline={'hover'}
+										>
+											<LinkIcon
+												width={16}
+												height={16}
+												style={{ marginRight: 8 }}
+											/>
 											{contribution.proof}
 										</MuiLink>
 									</Paper>
