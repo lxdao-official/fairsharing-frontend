@@ -277,14 +277,18 @@ const PostContribution = ({
 
 			<PostButton>
 				{onCancel ? (
-					<Button variant={'outlined'} sx={{ marginRight: '24px' }} onClick={onCancel}>
+					<BaseButton
+						variant={'outlined'}
+						sx={{ marginRight: '16px' }}
+						onClick={onCancel}
+					>
 						Cancel
-					</Button>
+					</BaseButton>
 				) : null}
 
-				<Button variant={'contained'} onClick={onSubmit}>
+				<BaseButton variant={'contained'} sx={{}} onClick={onSubmit}>
 					{confirmText || 'Re-Post'}
-				</Button>
+				</BaseButton>
 			</PostButton>
 		</PostContainer>
 	);
@@ -295,7 +299,6 @@ export default PostContribution;
 const PostContainer = styled('div')({
 	minHeight: '90px',
 	backgroundColor: 'white',
-	marginTop: '16px',
 	padding: '12px 16px',
 	borderRadius: '4px',
 	position: 'relative',
@@ -325,4 +328,8 @@ const CreditContainer = styled(StyledFlexBox)({
 	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
 	padding: '3px 8px',
+});
+
+const BaseButton = styled(Button)({
+	minWidth: '64px',
 });

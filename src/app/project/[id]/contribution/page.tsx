@@ -24,7 +24,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	return (
 		<div style={{ flex: '1', minWidth: '600px' }}>
-			<StyledFlexBox>
+			<StyledFlexBox sx={{ marginBottom: '16px' }}>
 				<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
 					Post your contribution
 				</Typography>

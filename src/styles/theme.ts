@@ -182,6 +182,7 @@ const theme = createTheme({
 			styleOverrides: {
 				root: {
 					borderWidth: '.5px',
+					opacity: '.16',
 				},
 			},
 		},

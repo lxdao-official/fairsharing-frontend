@@ -210,7 +210,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const handleOpenProofPopover = (event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
 		setOpenProof(true);
-	}
+	};
 
 	const handleOpenContributorPopover = (event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -244,7 +244,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	return (
 		<>
-			<StyledFlexBox sx={{ alignItems: 'flex-start', paddingTop: '16px' }}>
+			<StyledFlexBox
+				sx={{
+					alignItems: 'flex-start',
+					paddingTop: '16px',
+					display: showEdit ? 'none' : 'flex',
+				}}
+			>
 				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
 					{showSelect ? (
 						<Checkbox
@@ -445,7 +451,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>
-					{!showEdit ? <Divider sx={{ marginTop: '26px' }} /> : null}
+					{!showEdit ? <Divider sx={{ marginTop: '24px' }} /> : null}
 				</div>
 			</StyledFlexBox>
 
