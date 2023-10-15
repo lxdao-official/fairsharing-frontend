@@ -252,6 +252,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
+					{/*TODO 改为贡献人的logo 不是project*/}
 					<Img3
 						src={projectDetail.logo}
 						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
@@ -260,7 +261,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							<Typography variant={'subtitle1'}>{projectDetail.name}</Typography>
+							{/*TODO 改为贡献人的名字*/}
+							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>{projectDetail.name}</Typography>
 							<Typography
 								variant={'body2'}
 								sx={{ marginLeft: '12px', color: '#64748B' }}

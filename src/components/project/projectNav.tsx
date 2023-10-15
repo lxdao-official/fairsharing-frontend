@@ -2,7 +2,7 @@
 
 import { usePathname, useParams } from 'next/navigation';
 
-import { Typography } from '@mui/material';
+import { styled, Typography } from '@mui/material';
 import React, { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,12 +25,7 @@ const ProjectNav = () => {
 
 	return (
 		<div className={styles.projectNavContainer}>
-			<Typography
-				variant={'subtitle1'}
-				style={{ borderBottom: '1px solid rgba(15, 23, 42, 0.16)', padding: '8px 16px' }}
-			>
-				{projectName || 'Project'}
-			</Typography>
+			<ProjectTitle variant={'subtitle1'}>{projectName || 'Project'}</ProjectTitle>
 			<NavItem
 				href={`/project/${params.id}/contribution`}
 				name={'Contributions'}
@@ -85,7 +80,7 @@ const NavItem = ({
 		>
 			<Image src={icon} width={24} height={24} alt={'icon'} />
 			<Typography
-				sx={{ marginLeft: '24px', flex: '1', fontWeight: isActive ? 'bold' : 'normal' }}
+				sx={{ marginLeft: '24px', flex: '1', color: isActive ? '#0F172A' : '#475569', fontWeight: isActive ? '500' : 'normal' }}
 				variant={'body1'}
 			>
 				{name}
@@ -93,3 +88,12 @@ const NavItem = ({
 		</Link>
 	);
 };
+
+const ProjectTitle = styled(Typography) ({
+	maxWidth: '208px',
+	borderBottom: '1px solid rgba(15, 23, 42, 0.16)',
+	padding: '8px 16px',
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis'
+})

@@ -25,7 +25,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	return (
 		<div style={{ flex: '1', minWidth: '600px' }}>
 			<StyledFlexBox>
-				<Typography typography={'h3'}>Post your contribution</Typography>
+				<Typography variant={'subtitle1'} sx={{fontWeight: 500}}>Post your contribution</Typography>
 				<Image
 					src={'/images/book.png'}
 					width={24}
