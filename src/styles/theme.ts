@@ -188,10 +188,10 @@ const theme = createTheme({
 		MuiLink: {
 			styleOverrides: {
 				root: {
-					color: '#437EF7'
-				}
-			}
-		}
+					color: '#437EF7',
+				},
+			},
+		},
 	},
 });
 

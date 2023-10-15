@@ -50,6 +50,7 @@ export default function ButtonGroup(props: IButtonGroupProps) {
 						variant={'contained'}
 						onClick={handlePrimary}
 						disabled={!isSettingPage ? false : !isEdited}
+						disableRipple={true}
 					>
 						{isSettingPage ? 'Save' : isLatest ? 'Create' : 'Next'}
 					</Button>

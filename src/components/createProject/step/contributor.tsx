@@ -18,7 +18,6 @@ import {
 	Typography,
 } from '@mui/material';
 
-import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -28,6 +27,8 @@ import { Contributor, PermissionEnum } from '@/services/project';
 import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
+import { ethers } from 'ethers';
+import { DeleteIcon } from '@/icons';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -99,6 +100,11 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				showToast('Empty [wallet] address', 'error');
 				return false;
 			}
+			if (!ethers.isAddress(wallet)) {
+				valid = false;
+				showToast(`[${wallet}] is not a valid wallet address`, 'error');
+				return false;
+			}
 		});
 		return valid;
 	};
@@ -140,6 +146,12 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	};
 
 	const handleDeleteRow = (index: number) => {
+		if (contributors.length <= 1) {
+			return false;
+		}
+		if (!canEdit) {
+			return false;
+		}
 		const newData = contributors.filter((_, i) => i !== index);
 		changeContributors(newData);
 	};
@@ -186,11 +198,11 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				<Table>
 					<TableHead sx={{ height: '40px', backgroundColor: '#F1F5F9' }}>
 						<TableRow>
-							<TableCell width={140}>NickName*</TableCell>
-							<TableCell width={300}>Wallet Address*</TableCell>
-							<TableCell width={160}>Permission</TableCell>
-							<TableCell width={230}>Role</TableCell>
-							{contributors.length > 1 ? <TableCell>Action</TableCell> : null}
+							<TableCell>NickName*</TableCell>
+							<TableCell>Wallet Address*</TableCell>
+							<TableCell>Permission</TableCell>
+							<TableCell>Role</TableCell>
+							<TableCell>Action</TableCell>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -202,6 +214,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										value={row.nickName}
 										disabled={!canEdit}
 										onChange={(e) => handleNameChange(index, e.target.value)}
+										sx={{ maxWidth: 120 }}
 									/>
 								</StyledTableCell>
 								<StyledTableCell>
@@ -212,6 +225,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										onChange={(e) =>
 											handleWalletAddressChange(index, e.target.value)
 										}
+										sx={{ maxWidth: 300, minWidth: 120 }}
 									/>
 								</StyledTableCell>
 								<StyledTableCell>
@@ -226,6 +240,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 													e.target.value as PermissionEnum,
 												)
 											}
+											sx={{ width: 140 }}
 										>
 											<MenuItem value={PermissionEnum.Owner}>Owner</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
@@ -243,13 +258,21 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
 								</StyledTableCell>
-								{contributors.length > 1 && canEdit ? (
-									<StyledTableCell>
-										<IconButton onClick={() => handleDeleteRow(index)}>
-											<DeleteIcon />
-										</IconButton>
-									</StyledTableCell>
-								) : null}
+								<StyledTableCell>
+									<IconButton
+										onClick={() => handleDeleteRow(index)}
+										sx={{
+											opacity:
+												contributors.length > 1 && canEdit ? '1' : '.5',
+											cursor:
+												contributors.length > 1 && canEdit
+													? 'pointer'
+													: 'not-allowed',
+										}}
+									>
+										<DeleteIcon />
+									</IconButton>
+								</StyledTableCell>
 							</TableRow>
 						))}
 					</TableBody>
