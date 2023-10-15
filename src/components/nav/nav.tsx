@@ -53,7 +53,7 @@ export default function Nav() {
 	return (
 		<NavContainer>
 			<Item
-				href={'/'}
+				href={'/list'}
 				image={'/images/home.png'}
 				isActive={pathname === '/'}
 				icon={<HomeIcon />}
