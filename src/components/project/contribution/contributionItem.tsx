@@ -17,7 +17,7 @@ import { Img3 } from '@lxdao/img3';
 import { formatDistance } from 'date-fns';
 
 import Link from 'next/link';
-import InsertLinkOutlinedIcon from '@mui/icons-material/InsertLinkOutlined';
+import MuiLink from '@mui/material/Link';
 
 import { useNetwork } from 'wagmi';
 
@@ -36,7 +36,7 @@ import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@
 import { EAS_CHAIN_CONFIGS, EasSchemaVoteKey } from '@/constant/eas';
 import { showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
-import { EasLogoIcon, FileIcon, MoreIcon } from '@/icons';
+import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
 import useCountdown from '@/hooks/useCountdown';
 
 export interface IContributionItemProps {
@@ -207,10 +207,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		setOpenMore(true);
 	};
 
-	const handleOpenProofPopover = (event: React.MouseEvent<HTMLDivElement>) => {
+	const handleOpenProofPopover = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
 		setOpenProof(true);
-	};
+	}, [openProof, anchorEl]);
 
 	const handleOpenContributorPopover = (event: React.MouseEvent<HTMLDivElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -372,12 +372,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										<Link href={contribution.proof} target={'_blank'}>
-											<InsertLinkOutlinedIcon sx={{ color: '#437EF7' }} />
-											<Button variant={'text'} sx={{ textTransform: 'none' }}>
-												{contribution.proof}
-											</Button>
-										</Link>
+										<MuiLink href={contribution.proof} target={'_blank'} underline={'hover'}>
+											<LinkIcon width={16} height={16} style={{ marginRight: 8 }} />
+											{contribution.proof}
+										</MuiLink>
 									</Paper>
 								</Popover>
 							</>

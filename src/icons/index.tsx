@@ -24,6 +24,7 @@ import FileSvg from './svg/file.svg';
 import EasLogoSvg from './svg/eas.svg';
 import MoreSvg from './svg/more-horizontal.svg';
 import FilterSvg from './svg/filter.svg';
+import LinkSvg from './svg/link.svg'
 
 const LogoIcon = (props: SvgIconProps) => <LogoSvg {...props} />;
 
@@ -50,6 +51,7 @@ const FileIcon = (props: SvgIconProps) => <FileSvg {...props} />;
 const EasLogoIcon = (props: SvgIconProps) => <EasLogoSvg {...props} />;
 const MoreIcon = (props: SvgIconProps) => <MoreSvg {...props} />;
 const FilterIcon = (props: SvgIconProps) => <FilterSvg {...props} />;
+const LinkIcon = (props: SvgIconProps) => <LinkSvg {...props} />;
 
 const ContributionIcon = (props: SvgIconProps) => (
 	<SvgIcon {...props}>
@@ -110,4 +112,5 @@ export {
 	ContributorIcon,
 	DashboardIcon,
 	SettingIcon,
+	LinkIcon
 };

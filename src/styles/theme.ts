@@ -185,6 +185,13 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiLink: {
+			styleOverrides: {
+				root: {
+					color: '#437EF7'
+				}
+			}
+		}
 	},
 });
 
