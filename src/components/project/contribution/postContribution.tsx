@@ -1,12 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import {
-	Autocomplete,
-	Button,
-	styled,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Autocomplete, Button, styled, TextField, Typography } from '@mui/material';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 

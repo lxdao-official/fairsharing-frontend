@@ -31,10 +31,7 @@ import {
 	getEASContributionList,
 	getEASVoteRecord,
 } from '@/services/eas';
-import {
-	EasSchemaContributionKey,
-	EasSchemaVoteKey,
-} from '@/constant/eas';
+import { EasSchemaContributionKey, EasSchemaVoteKey } from '@/constant/eas';
 import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
@@ -425,19 +422,19 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && contributionList.length > 0
 				? contributionList.map((contribution, idx) => (
-					<ContributionItem
-						key={contribution.id}
-						contribution={contribution}
-						showSelect={showSelect}
-						selected={selected}
-						onSelect={onSelect}
-						showDeleteDialog={showDeleteDialog}
-						projectDetail={projectDetail}
-						easVoteList={easVoteMap[contribution.uId as string]}
-						contributorList={contributorList}
-						contributionList={contributionList}
-					/>
-				))
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							easVoteList={easVoteMap[contribution.uId as string]}
+							contributorList={contributorList}
+							contributionList={contributionList}
+						/>
+				  ))
 				: null}
 
 			<Dialog
