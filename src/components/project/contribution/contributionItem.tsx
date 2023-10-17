@@ -460,6 +460,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
+					selectedContributors={matchContributors}
 				/>
 			) : null}
 		</>

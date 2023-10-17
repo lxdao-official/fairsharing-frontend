@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Button, styled, TextField, Typography } from '@mui/material';
+import {
+	Autocomplete,
+	Button,
+	styled,
+	TextField,
+	Typography,
+} from '@mui/material';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -15,8 +21,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import useSWR, { useSWRConfig } from 'swr';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution } from '@/services/types';
-import MultipleContributorSelector from '@/components/project/contribution/contributorSelector';
+import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import { createContribution, getContributorList, updateContributionStatus } from '@/services';
 import {
@@ -38,6 +43,7 @@ export interface IPostContributionProps {
 	onCancel?: () => void;
 	confirmText?: string;
 	refresh?: number;
+	selectedContributors?: IContributor[];
 }
 
 export interface PostData {
@@ -47,16 +53,33 @@ export interface PostData {
 	credit: string;
 }
 
+export interface AutoCompleteValue {
+	label: string;
+	wallet: string;
+	id: string;
+}
+
 const PostContribution = ({
 	projectId,
 	contribution,
 	onCancel,
 	confirmText,
+	selectedContributors,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
 	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || ''));
+	// 目前只允许选择一个to
+	const [value, setValue] = React.useState<AutoCompleteValue | null>(
+		selectedContributors && selectedContributors.length > 0
+			? {
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
+			: null,
+	);
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -87,6 +110,16 @@ const PostContribution = ({
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
+	const contributorOptions = useMemo(() => {
+		return contributorList.map((item) => {
+			return {
+				label: item.nickName,
+				wallet: item.wallet,
+				id: item.id,
+			};
+		});
+	}, [contributorList]);
+
 	const onClear = () => {
 		setDetail('');
 		setProof('');
@@ -103,10 +136,6 @@ const PostContribution = ({
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
-	};
-
-	const handleContributorChange = (values: string[]) => {
-		setContributors(values);
 	};
 
 	const onSubmit = () => {
@@ -254,10 +283,40 @@ const PostContribution = ({
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
-				<MultipleContributorSelector
-					contributors={contributors}
-					contributorList={contributorList}
-					onChange={handleContributorChange}
+				{/*多选*/}
+				{/*<MultipleContributorSelector*/}
+				{/*	contributors={contributors}*/}
+				{/*	contributorList={contributorList}*/}
+				{/*	onChange={handleContributorChange}*/}
+				{/*/>*/}
+				{/*单选*/}
+				<Autocomplete
+					id="contributor-select"
+					sx={{
+						width: 250,
+						border: 'none',
+						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+					}}
+					size={'small'}
+					options={contributorOptions}
+					getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
+					value={value}
+					onChange={(event, newValue: AutoCompleteValue | null) => {
+						setValue(newValue);
+						setContributors(newValue ? [newValue.id] : []);
+					}}
+					popupIcon={''}
+					renderInput={(params) => (
+						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
+					)}
 				/>
 			</StyledFlexBox>
 
@@ -318,6 +377,7 @@ const TagLabel = styled(Typography)({
 const StyledInput = styled(TextField)({
 	flex: '1',
 	border: 'none',
+	paddingLeft: '14px',
 });
 
 const CreditContainer = styled(StyledFlexBox)({
