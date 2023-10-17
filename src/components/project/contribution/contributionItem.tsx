@@ -224,7 +224,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onEdit = () => {
-		console.log('onEdit');
+		if (isEnd) {
+			return false;
+		}
 		setShowEdit(true);
 		handleClosePopover();
 	};
@@ -317,11 +319,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper>
 										<List>
-											<ListItem disablePadding>
-												<ListItemButton onClick={onEdit}>
-													Edit
-												</ListItemButton>
-											</ListItem>
+											{isEnd ? null :
+												<ListItem disablePadding>
+													<ListItemButton onClick={onEdit}>
+														Edit
+													</ListItemButton>
+												</ListItem>
+											}
+
 											<ListItem disablePadding>
 												<ListItemButton onClick={onDelete}>
 													Revoke
