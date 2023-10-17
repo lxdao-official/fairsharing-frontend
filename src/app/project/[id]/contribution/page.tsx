@@ -18,10 +18,6 @@ export default function Page({ params }: { params: { id: string } }) {
 		setCurrentProjectId(params.id as string);
 	}, []);
 
-	const onUpdate = useCallback(() => {
-		console.log('onUpdate');
-	}, []);
-
 	return (
 		<div style={{ flex: '1', minWidth: '600px' }}>
 			<StyledFlexBox sx={{ marginBottom: '16px' }}>
@@ -39,7 +35,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 			<PostContribution projectId={params.id} confirmText={'Post'} />
 
-			<ContributionList projectId={params.id} onUpdate={onUpdate} />
+			<ContributionList projectId={params.id} />
 		</div>
 	);
 }
