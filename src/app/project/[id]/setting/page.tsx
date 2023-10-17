@@ -9,6 +9,10 @@ import { useAccount } from 'wagmi';
 
 import { Icon } from '@iconify/react';
 
+import { ethers } from 'ethers';
+
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import StepProfile from '@/components/createProject/step/profile';
 import {
@@ -24,10 +28,9 @@ import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
-import { ethers } from 'ethers';
 import { ContractAddressMap, ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -99,10 +102,9 @@ export default function Setting({ params }: { params: { id: string } }) {
 		const addList = array2.filter((item) => !set1.has(item.wallet));
 		const removeList = array1.filter((item) => !set2.has(item.wallet));
 
-
 		return {
-			addList: addList.map(item => item.wallet),
-			removeList: removeList.map(item => item.wallet),
+			addList: addList.map((item) => item.wallet),
+			removeList: removeList.map((item) => item.wallet),
 		};
 	};
 
@@ -115,7 +117,10 @@ export default function Setting({ params }: { params: { id: string } }) {
 
 		let saveContractFail = false;
 		try {
-			const { addList, removeList } = compareArrays(contributorsData, formData?.contributors as IContributor[]);
+			const { addList, removeList } = compareArrays(
+				contributorsData,
+				formData?.contributors as IContributor[],
+			);
 			console.log('addList', addList, removeList);
 			// 合约只存wallet
 			if (addList.length > 0 || removeList.length > 0) {
@@ -125,7 +130,6 @@ export default function Setting({ params }: { params: { id: string } }) {
 					signer,
 				);
 				const res = await projectContract.setMembers(addList, removeList);
-				console.log('res', res)
 				if (!res) {
 					saveContractFail = true;
 					throw new Error('【projectContract】 setMembers fail');

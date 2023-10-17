@@ -246,7 +246,7 @@ const PostContribution = ({
 	};
 
 	const onEditContribution = async (postData: PostData) => {
-		showToast('Edit contribution is in progress, please wait.', 'warning')
+		showToast('Edit contribution is in progress, please wait.', 'warning');
 	};
 
 	return (
@@ -310,7 +310,9 @@ const PostContribution = ({
 						setContributors(newValue ? [newValue.id] : []);
 					}}
 					popupIcon={''}
-					renderInput={(params) => (<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />)}
+					renderInput={(params) => (
+						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
+					)}
 				/>
 			</StyledFlexBox>
 

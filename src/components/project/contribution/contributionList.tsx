@@ -45,6 +45,8 @@ import {
 
 import { FilterIcon } from '@/icons';
 
+import CustomCheckbox from '@/components/checkbox';
+
 import ContributionItem from './contributionItem';
 
 export enum IVoteValueEnum {
@@ -91,7 +93,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
-	const [showSelect, setShowSelect] = useState(false);
+	const [showMultiSelect, setShowMultiSelect] = useState(false);
 	const [period, setPeriod] = useState('ALL');
 	const [voteStatus, setVoteStatus] = useState('ALL');
 	const [contributor, setContributor] = useState('ALL');
@@ -221,7 +223,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	};
 
 	const handleHideSelect = () => {
-		setShowSelect(false);
+		setShowMultiSelect(false);
 	};
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
@@ -235,14 +237,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	};
 
 	const onClickFilterBtn = () => {
-		if (showFilter) {
-			setShowSelect(false);
-		}
 		setShowFilter((pre) => !pre);
+		setShowMultiSelect(false);
 	};
 
 	const onClickSelectBtn = () => {
-		setShowSelect((pre) => !pre);
+		setShowMultiSelect((pre) => !pre);
+		setShowFilter((pre) => !pre);
 	};
 
 	const handleRest = () => {
@@ -300,9 +301,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
-						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
-						{/*	Claim({claimTotal})*/}
-						{/*</Button>*/}
+						<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
+							Claim({claimTotal})
+						</Button>
 					</StyledFlexBox>
 				</StyledFlexBox>
 			) : null}
@@ -352,17 +353,15 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 								</MenuItem>
 							))}
 						</Select>
-						<Button variant={'text'} sx={{ marginLeft: '16px' }} onClick={handleRest}>
+						<TextButton style={{ marginLeft: '16px' }} onClick={handleRest}>
 							Reset
-						</Button>
+						</TextButton>
 					</StyledFlexBox>
-					<Button variant={'text'} onClick={onClickSelectBtn}>
-						Select
-					</Button>
+					<TextButton onClick={onClickSelectBtn}>Select</TextButton>
 				</StyledFlexBox>
 			) : null}
 
-			{showSelect ? (
+			{showMultiSelect ? (
 				<StyledFlexBox
 					sx={{
 						marginTop: '16px',
@@ -372,7 +371,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				>
 					<StyledFlexBox>
 						{/* TODO use native checkbox */}
-						<Checkbox
+						<CustomCheckbox
 							total={contributionList.length}
 							selected={selected.length}
 							onChange={onClickSelectParent}
@@ -380,42 +379,42 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 						<Typography variant={'body1'}>{selected.length} have selected</Typography>
 					</StyledFlexBox>
 					<StyledFlexBox>
-						<Button
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'success'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#12C29C80"
+							textColor="#12C29C"
+							hoverColor="rgba(18, 194, 156, 1)"
 							startIcon={<DoneOutlinedIcon />}
 						>
 							For
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'error'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#D32F2F80"
+							textColor="#D32F2F"
+							hoverColor="rgba(211, 47, 47, 1)"
 							startIcon={<ClearOutlinedIcon />}
 						>
 							Again
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'primary'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#0288D180"
+							textColor="#437EF7"
+							hoverColor="rgba(2, 136, 209, 1)"
 							startIcon={<ArrowForwardOutlinedIcon />}
 						>
 							Abstain
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'info'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#0F172A29"
+							textColor="#0F172A"
+							hoverColor="rgba(15, 23, 42, 1)"
 							onClick={handleHideSelect}
 						>
 							Cancel
-						</Button>
+						</StyledButton>
 					</StyledFlexBox>
 				</StyledFlexBox>
 			) : null}
@@ -425,7 +424,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 						<ContributionItem
 							key={contribution.id}
 							contribution={contribution}
-							showSelect={showSelect}
+							showSelect={showMultiSelect}
 							selected={selected}
 							onSelect={onSelect}
 							showDeleteDialog={showDeleteDialog}
@@ -478,3 +477,25 @@ const RevokeButton = styled(DialogButton)({
 		background: 'rgba(15, 23, 42, .8)',
 	},
 });
+
+const TextButton = styled('span')({
+	cursor: 'pointer',
+	fontWeight: '500',
+	'&:hover': {
+		opacity: '0.5',
+	},
+});
+
+const StyledButton = styled(Button)<{ mainColor: string; textColor: string; hoverColor: string }>(
+	({ mainColor, textColor, hoverColor }) => ({
+		minWidth: '112px',
+		width: '112px',
+		height: '40px',
+		marginLeft: '12px',
+		borderColor: mainColor,
+		color: textColor,
+		'&:hover': {
+			borderColor: hoverColor,
+		},
+	}),
+);
