@@ -357,7 +357,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			});
 			showToast('Claim success', 'success');
 			console.log('claim updateStatus success', updateStatus);
-			await mutate(['contributor/list', projectDetail.id]);
+			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);
 			if (err.message) {
