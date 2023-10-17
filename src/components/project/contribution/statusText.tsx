@@ -67,7 +67,6 @@ const StatusText = ({
 	}, [status, hasVoted, isEnd, countdownText, votePass]);
 
 	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
-		console.log('getCountDownText', days, hours, minutes, seconds);
 		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
 			return 'Vote ended';
 		}
