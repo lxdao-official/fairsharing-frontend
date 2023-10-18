@@ -14,7 +14,8 @@ export const nickNameCell: GridColDef = {
 	field: 'nickName',
 	headerName: 'Name',
 	sortable: false,
-	width: 200,
+	flex: 1,
+	minWidth: 150,
 	renderCell: (item) => {
 		return (
 			<StyledFlexBox sx={{ gap: '8px' }}>
@@ -59,7 +60,8 @@ export const walletCell: GridColDef = {
 	field: 'wallet',
 	headerName: 'ETH Wallet',
 	sortable: false,
-	width: 200,
+	flex: 1,
+	minWidth: 200,
 	renderCell: (item) => {
 		return <WalletCell wallet={item.value} />;
 	},

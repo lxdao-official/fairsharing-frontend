@@ -25,7 +25,8 @@ const columns: GridColDef[] = [
 		field: 'permission',
 		headerName: 'Role',
 		sortable: false,
-		width: 200,
+		flex: 1,
+		minWidth: 150,
 		renderCell: (item) => {
 			return (
 				<PermissionWrapper>
@@ -37,7 +38,8 @@ const columns: GridColDef[] = [
 	{
 		field: 'createAt',
 		headerName: 'Joined time',
-		width: 200,
+		flex: 1,
+		minWidth: 150,
 		renderCell: (item) => {
 			const date = new Date(item.value);
 			const value = date.toLocaleDateString('en-US', {
