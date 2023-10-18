@@ -430,7 +430,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 					{/*TODO 改为贡献人的logo 不是project*/}
 					<Img3
 						src={projectDetail.logo}
-						style={{ width: '48px', height: '48px', borderRadius: '48px' }}
+						style={{
+							width: '48px',
+							height: '48px',
+							borderRadius: '48px',
+							border: '1px solid rgba(15,23,42,0.12)',
+						}}
 					/>
 				</StyledFlexBox>
 				<div style={{ flex: 1 }}>

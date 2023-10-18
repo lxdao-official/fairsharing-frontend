@@ -106,7 +106,13 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 						<Img3
 							src={avatar}
 							alt="logo"
-							style={{ width: 80, height: 80, marginTop: 16 }}
+							style={{
+								width: 80,
+								height: 80,
+								marginTop: 16,
+								borderRadius: '50px',
+								border: '1px solid rgba(15,23,42,0.12)',
+							}}
 						/>
 					</>
 				) : (

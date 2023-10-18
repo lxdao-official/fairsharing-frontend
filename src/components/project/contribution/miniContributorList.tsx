@@ -25,7 +25,7 @@ const MiniContributorList = ({ contributorList }: IMiniContributorListProps) => 
 										width: '20px',
 										height: '20px',
 										borderRadius: '20px',
-										border: '0.5px solid #0F172A29',
+										border: '1px solid rgba(15,23,42,0.12)',
 									}}
 								/>
 							) : (
