@@ -19,7 +19,7 @@ export const nickNameCell: GridColDef = {
 		return (
 			<StyledFlexBox sx={{ gap: '8px' }}>
 				<Avatar alt={item.value} src={item.row.user?.avatar || ''} />
-				<Typography variant="subtitle2" fontSize={16}>
+				<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
 					{item.value}
 				</Typography>
 			</StyledFlexBox>

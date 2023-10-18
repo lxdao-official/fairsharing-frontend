@@ -84,7 +84,9 @@ export default function Page({ params }: { params: { id: string } }) {
 			<DataGrid
 				autoHeight
 				loading={isLoading}
+				disableRowSelectionOnClick={contributorList.length <= 1}
 				rows={contributorList || []}
+				disableColumnMenu
 				columns={columns}
 				rowHeight={72}
 				initialState={{
@@ -95,6 +97,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				pageSizeOptions={[10, 20]}
 				sx={{
 					border: 0,
+					'& .MuiDataGrid-columnHeader:focus': {
+						outline: '1px solid #fff',
+					},
 				}}
 			/>
 		</div>
