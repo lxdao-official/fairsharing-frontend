@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button } from '@mui/material';
+import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button, Box } from '@mui/material';
 
 import { useCallback, useMemo, useState } from 'react';
 
@@ -30,7 +30,6 @@ import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
 import { ContractAddressMap, ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
-
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -228,7 +227,14 @@ export default function Setting({ params }: { params: { id: string } }) {
 						<Skeleton variant="rounded" width={300} height={80} />
 					</Stack>
 				) : (
-					<>
+					<Box
+						sx={{
+							'& .Mui-disabled input,& .Mui-disabled textarea,& .Mui-disabled div': {
+								cursor: 'no-drop',
+								'text-fill-color': '#000',
+							},
+						}}
+					>
 						{!isContributor ? (
 							<Alert
 								severity="info"
@@ -236,6 +242,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 								sx={{
 									backgroundColor: '#F5F5F5',
 									color: '#475569',
+									fontSize: '16px',
 									'.MuiAlert-icon': {
 										color: '#0F172A7A',
 									},
@@ -246,7 +253,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 							</Alert>
 						) : null}
 						{tabContent}
-					</>
+					</Box>
 				)}
 			</div>
 		</div>

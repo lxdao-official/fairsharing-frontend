@@ -44,7 +44,8 @@ export default function Page({ params }: { params: { id: string } }) {
 			{
 				field: 'percentage',
 				headerName: 'Percentage',
-				width: 200,
+				flex: 1,
+				minWidth: 150,
 				valueGetter: (params) => {
 					const percentage = (params.row.credit / claimedAmount) * 100;
 					return percentage.toFixed(2);
@@ -63,7 +64,8 @@ export default function Page({ params }: { params: { id: string } }) {
 				field: 'credit',
 				headerName: 'Pizza slices earned',
 				sortable: false,
-				width: 200,
+				flex: 1,
+				minWidth: 150,
 				renderCell: (item) => {
 					return (
 						<StyledFlexBox sx={{ gap: '4px' }}>
@@ -91,27 +93,29 @@ export default function Page({ params }: { params: { id: string } }) {
 	);
 
 	return (
-		<div>
+		<div style={{ width: '100%' }}>
 			<StyledFlexBox sx={{ justifyContent: 'space-between', marginBottom: '30px' }}>
 				<Typography variant="h3">Dashboard</Typography>
 				<TextField label="Search" size="small" onChange={handleSearch} />
 			</StyledFlexBox>
-			<DataGrid
-				loading={isLoading}
-				rows={recordList || []}
-				columns={columns}
-				rowHeight={72}
-				autoHeight
-				initialState={{
-					pagination: {
-						paginationModel: { page: 0, pageSize: 10 },
-					},
-				}}
-				pageSizeOptions={[10, 20]}
-				sx={{
-					border: 0,
-				}}
-			/>
+			<div style={{ width: '100%' }}>
+				<DataGrid
+					loading={isLoading}
+					rows={recordList || []}
+					columns={columns}
+					rowHeight={72}
+					autoHeight
+					initialState={{
+						pagination: {
+							paginationModel: { page: 0, pageSize: 10 },
+						},
+					}}
+					pageSizeOptions={[10, 20]}
+					sx={{
+						border: 0,
+					}}
+				/>
+			</div>
 		</div>
 	);
 }

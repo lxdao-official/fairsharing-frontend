@@ -25,7 +25,7 @@ const ProjectItem = (props: IProjectItemProps) => {
 							width: '88px',
 							height: '88px',
 							borderRadius: '88px',
-							border: '0.5px solid #CBD5E1',
+							border: '1px solid rgba(15,23,42,0.12)',
 						}}
 					/>
 					<Typography

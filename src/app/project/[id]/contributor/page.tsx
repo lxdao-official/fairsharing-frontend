@@ -25,7 +25,8 @@ const columns: GridColDef[] = [
 		field: 'permission',
 		headerName: 'Role',
 		sortable: false,
-		width: 200,
+		flex: 1,
+		minWidth: 150,
 		renderCell: (item) => {
 			return (
 				<PermissionWrapper>
@@ -37,7 +38,8 @@ const columns: GridColDef[] = [
 	{
 		field: 'createAt',
 		headerName: 'Joined time',
-		width: 200,
+		flex: 1,
+		minWidth: 150,
 		renderCell: (item) => {
 			const date = new Date(item.value);
 			const value = date.toLocaleDateString('en-US', {
@@ -84,7 +86,9 @@ export default function Page({ params }: { params: { id: string } }) {
 			<DataGrid
 				autoHeight
 				loading={isLoading}
+				disableRowSelectionOnClick={contributorList.length <= 1}
 				rows={contributorList || []}
+				disableColumnMenu
 				columns={columns}
 				rowHeight={72}
 				initialState={{
@@ -95,6 +99,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				pageSizeOptions={[10, 20]}
 				sx={{
 					border: 0,
+					'& .MuiDataGrid-columnHeader:focus': {
+						outline: '1px solid #fff',
+					},
 				}}
 			/>
 		</div>

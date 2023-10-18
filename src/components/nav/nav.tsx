@@ -96,6 +96,7 @@ const Item = (props: IItemProps) => {
 						width: '56px',
 						height: '56px',
 						borderRadius: '56px',
+						border: '1px solid rgba(15,23,42,0.12)',
 					}}
 				/>
 			) : (
