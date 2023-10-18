@@ -242,6 +242,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 								sx={{
 									backgroundColor: '#F5F5F5',
 									color: '#475569',
+									fontSize: '16px',
 									'.MuiAlert-icon': {
 										color: '#0F172A7A',
 									},

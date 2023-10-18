@@ -40,30 +40,30 @@ const UserInfoContainer = styled('div')(() => ({
 	gap: '24px',
 }));
 
-const colors = {
-	blue: {
+const colors = [
+	{
 		bg: '#E8F4FF',
 		color: '#437EF7',
 	},
-	green: {
+	{
 		bg: '#E8FFF5',
 		color: '#0A9B80',
 	},
-	orange: {
+	{
 		bg: '#FFF3E0',
 		color: '#F57C00',
 	},
-	purple: {
+	{
 		bg: '#EDE7F6',
 		color: '#673AB7',
 	},
-};
+];
 
-const ProjectItem = styled('span')(({ color }: { color: keyof typeof colors }) => ({
+const ProjectItem = styled('span')(({ index }: { index: number }) => ({
 	display: 'inline-block',
 	padding: '4px 12px',
-	backgroundColor: colors[color].bg,
-	color: colors[color].color,
+	backgroundColor: colors[index].bg,
+	color: colors[index].color,
 	borderRadius: '4px',
 	fontSize: '14px',
 	fontWeight: 500,
@@ -187,14 +187,10 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 								Project involved
 							</Typography>
 							<Grid container spacing="12px">
-								{projectData?.map((item) => {
-									const randomNum = Math.floor(Math.random() * 4);
-									const color = Object.keys(colors)[
-										randomNum
-									] as keyof typeof colors;
+								{projectData?.map((item, index) => {
 									return (
 										<Grid item key={item.id}>
-											<ProjectItem key={item.id} color={color}>
+											<ProjectItem key={item.id} index={index % 4}>
 												{item.name}
 											</ProjectItem>
 										</Grid>
