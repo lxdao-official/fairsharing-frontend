@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button } from '@mui/material';
+import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button, Box } from '@mui/material';
 
 import { useCallback, useMemo, useState } from 'react';
 
@@ -227,7 +227,14 @@ export default function Setting({ params }: { params: { id: string } }) {
 						<Skeleton variant="rounded" width={300} height={80} />
 					</Stack>
 				) : (
-					<>
+					<Box
+						sx={{
+							'& .Mui-disabled input,& .Mui-disabled textarea,& .Mui-disabled div': {
+								cursor: 'no-drop',
+								'text-fill-color': '#000',
+							},
+						}}
+					>
 						{!isContributor ? (
 							<Alert
 								severity="info"
@@ -246,7 +253,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 							</Alert>
 						) : null}
 						{tabContent}
-					</>
+					</Box>
 				)}
 			</div>
 		</div>

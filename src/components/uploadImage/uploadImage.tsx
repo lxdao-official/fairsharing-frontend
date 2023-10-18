@@ -56,7 +56,12 @@ export default function UploadImage(props: IUploadImageProps) {
 						<PreviewFile file={file} />
 					) : (
 						<Img3
-							style={{ maxHeight: '100%', maxWidth: '100%' }}
+							style={{
+								maxHeight: '100%',
+								maxWidth: '100%',
+								borderRadius: '50px',
+								border: '1px solid rgba(15,23,42,0.12)',
+							}}
 							src={props.defaultAvatar}
 							alt={'FS'}
 						/>
