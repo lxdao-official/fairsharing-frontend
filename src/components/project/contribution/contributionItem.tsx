@@ -19,7 +19,17 @@ import { formatDistance } from 'date-fns';
 import Link from 'next/link';
 import MuiLink from '@mui/material/Link';
 
-import { useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
+
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+import axios from 'axios';
+
+import { useSWRConfig } from 'swr';
+
+import { ethers } from 'ethers';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -33,11 +43,23 @@ import {
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
 import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
-import { EAS_CHAIN_CONFIGS, EasSchemaVoteKey } from '@/constant/eas';
-import { showToast } from '@/store/utils';
+import {
+	EAS_CHAIN_CONFIGS,
+	EasSchemaClaimKey,
+	EasSchemaData,
+	EasSchemaMap,
+	EasSchemaTemplateMap,
+	EasSchemaVoteKey,
+} from '@/constant/eas';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
 import useCountdown from '@/hooks/useCountdown';
+import { useUserStore } from '@/store/user';
+import useEas from '@/hooks/useEas';
+import { useEthersProvider, useEthersSigner } from '@/common/ether';
+
+import { prepareClaim, updateContributionStatus } from '@/services';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -46,10 +68,9 @@ export interface IContributionItemProps {
 	selected: number[];
 	onSelect: (idList: number[]) => void;
 	showDeleteDialog: (contributionId: number) => void;
-	onVote: (params: IVoteParams) => void;
-	onClaim: (params: IClaimParams) => void;
 	easVoteList: EasAttestation<EasSchemaVoteKey>[];
 	contributorList: IContributor[];
+	contributionList: IContribution[];
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -62,8 +83,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 		projectDetail,
 		easVoteList,
 		contributorList,
+		contributionList,
 	} = props;
+
+	const { myInfo } = useUserStore();
 	const { chain } = useNetwork();
+	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
+	const signer = useEthersSigner();
+	const provider = useEthersProvider();
+	const { address: myAddress } = useAccount();
+	const { openConnectModal } = useConnectModal();
+	const { mutate } = useSWRConfig();
 
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [openMore, setOpenMore] = useState(false);
@@ -141,6 +171,19 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return !(For === 0 && Against === 0 && Abstain === 0);
 	}, [voteNumbers]);
 
+	const operatorId = useMemo(() => {
+		if (contributorList.length === 0 || !myInfo) {
+			return '';
+		}
+		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorList, myInfo]);
+
+	const contributionUIds = useMemo(() => {
+		return contributionList
+			.filter((contribution) => !!contribution.uId)
+			.map((item) => item.uId) as string[];
+	}, [contributionList]);
+
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
@@ -151,6 +194,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const handleVote = (voteValue: IVoteValueEnum) => {
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
+		if (!contribution.uId) {
+			console.error('uId not exist');
+			return false;
+		}
 		if (contribution.status === 'UNREADY') {
 			showToast(`Contribution is not ready!`, 'error');
 			return false;
@@ -164,13 +215,66 @@ const ContributionItem = (props: IContributionItemProps) => {
 			showToast(`Can't vote after the contribution is claimed!`, 'error');
 			return false;
 		}
-
-		// 同一用户允许继续vote
-		props.onVote({
+		submitVote({
 			contributionId: contribution.id,
 			uId: contribution.uId as string,
 			value: voteValue,
 		});
+	};
+
+	const submitVote = async ({ contributionId, value, uId }: IVoteParams) => {
+		try {
+			openGlobalLoading();
+			const offchain = await eas.getOffchain();
+			const voteSchemaUid = EasSchemaMap.vote;
+
+			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
+			const data: EasSchemaData<EasSchemaVoteKey>[] = [
+				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
+				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{ name: 'VoteChoice', value: value, type: 'uint8' },
+				{ name: 'Comment', value: 'Good contribution', type: 'string' },
+			];
+			const encodedData = schemaEncoder.encodeData(data);
+			const block = await provider.getBlock('latest');
+			if (!signer) {
+				return;
+			}
+			const offchainAttestation = await offchain.signOffchainAttestation(
+				{
+					recipient: '0x0000000000000000000000000000000000000000',
+					expirationTime: BigInt(0),
+					time: BigInt(block ? block.timestamp : 0),
+					revocable: true,
+					version: 1,
+					nonce: BigInt(0),
+					schema: voteSchemaUid,
+					refUID: uId, // 可用来查询vote信息
+					data: encodedData,
+				},
+				signer,
+			);
+			console.log('vote offchainAttestation', offchainAttestation);
+
+			const res = await submitSignedAttestation({
+				signer: myAddress as string,
+				sig: offchainAttestation,
+			});
+			console.log('vote submitSignedAttestation', res);
+			if (res.data.error) {
+				console.error('vote submitSignedAttestation fail', res.data);
+				throw new Error(res.data.error);
+			}
+			showToast('Vote success', 'success');
+			const baseURL = getEasScanURL();
+			// Update ENS names
+			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+			await mutate(['eas/vote/list', contributionUIds]);
+		} catch (e) {
+			console.error('onVote error', e);
+		} finally {
+			closeGlobalLoading();
+		}
 	};
 
 	const getVoteResult = () => {
@@ -189,10 +293,15 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const handleClaim = () => {
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
 		const { voters, voterValues } = getVoteResult();
+
 		console.log('voters', voters);
 		console.log('voterValues', voterValues);
-		props.onClaim({
+		submitClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
 			token: contribution.credit,
@@ -200,6 +309,63 @@ const ContributionItem = (props: IContributionItemProps) => {
 			voteValues: voterValues,
 			toIds: contribution.toIds,
 		});
+	};
+
+	const submitClaim = async (claimParams: IClaimParams) => {
+		const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
+		try {
+			openGlobalLoading();
+			const claimSchemaUid = EasSchemaMap.claim;
+
+			// 默认选第一个To里面的人
+			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
+			const signature = await prepareClaim(contributionId, {
+				wallet: myAddress as string,
+				toWallet: toWallet,
+				chainId: chain?.id as number,
+			});
+			console.log('signature', signature);
+
+			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
+			const data: EasSchemaData<EasSchemaClaimKey>[] = [
+				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
+				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{ name: 'Voters', value: voters, type: 'address[]' },
+				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
+				{ name: 'Recipient', value: myAddress, type: 'address' },
+				{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
+				{ name: 'Signatures', value: signature, type: 'bytes' },
+			];
+			const encodedData = schemaEncoder.encodeData(data);
+
+			const attestation = await eas.attest({
+				schema: claimSchemaUid,
+				data: {
+					recipient: myAddress as string,
+					expirationTime: BigInt(0),
+					revocable: false,
+					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+					data: encodedData,
+					value: BigInt(0),
+				},
+			});
+			console.log('onchainAttestation:', attestation);
+			const updateStatus = await updateContributionStatus(contributionId, {
+				type: 'claim',
+				uId: uId,
+				operatorId: operatorId,
+			});
+			showToast('Claim success', 'success');
+			console.log('claim updateStatus success', updateStatus);
+			await mutate(['contribution/list', projectDetail.id]);
+		} catch (err: any) {
+			console.error('onClaim error', err);
+			if (err.message) {
+				showToast(err.message, 'error');
+			}
+		} finally {
+			closeGlobalLoading();
+		}
 	};
 
 	const handleOpenMorePopover = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -216,6 +382,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		setAnchorEl(event.currentTarget);
 		setOpenContributor(true);
 	};
+
 	const handleClosePopover = () => {
 		setAnchorEl(null);
 		setOpenMore(false);
@@ -224,7 +391,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onEdit = () => {
-		console.log('onEdit');
+		if (isEnd) {
+			return false;
+		}
 		setShowEdit(true);
 		handleClosePopover();
 	};
@@ -317,11 +486,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper>
 										<List>
-											<ListItem disablePadding>
-												<ListItemButton onClick={onEdit}>
-													Edit
-												</ListItemButton>
-											</ListItem>
+											{isEnd ? null : (
+												<ListItem disablePadding>
+													<ListItemButton onClick={onEdit}>
+														Edit
+													</ListItemButton>
+												</ListItem>
+											)}
+
 											<ListItem disablePadding>
 												<ListItemButton onClick={onDelete}>
 													Revoke
@@ -460,6 +632,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
+					selectedContributors={matchContributors}
 				/>
 			) : null}
 		</>

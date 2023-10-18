@@ -9,6 +9,10 @@ import { useAccount } from 'wagmi';
 
 import { Icon } from '@iconify/react';
 
+import { ethers } from 'ethers';
+
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import StepProfile from '@/components/createProject/step/profile';
 import {
@@ -24,9 +28,15 @@ import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
+import { ContractAddressMap, ProjectABI } from '@/constant/contract';
+import { useEthersSigner } from '@/common/ether';
+
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
+	const signer = useEthersSigner();
+	const { address: myAddress } = useAccount();
+	const { openConnectModal } = useConnectModal();
 
 	const {
 		isLoading: detailLoading,
@@ -85,8 +95,54 @@ export default function Setting({ params }: { params: { id: string } }) {
 		[data],
 	);
 
+	const compareArrays = (array1: IContributor[], array2: IContributor[]) => {
+		const set1 = new Set(array1.map((item) => item.wallet));
+		const set2 = new Set(array2.map((item) => item.wallet));
+
+		const addList = array2.filter((item) => !set1.has(item.wallet));
+		const removeList = array1.filter((item) => !set2.has(item.wallet));
+
+		return {
+			addList: addList.map((item) => item.wallet),
+			removeList: removeList.map((item) => item.wallet),
+		};
+	};
+
 	const handleContributorSubmit = useCallback(async () => {
 		const formData = stepContributorRef.current?.getFormData();
+		if (!myAddress) {
+			openConnectModal?.();
+			return false;
+		}
+
+		let saveContractFail = false;
+		try {
+			const { addList, removeList } = compareArrays(
+				contributorsData,
+				formData?.contributors as IContributor[],
+			);
+			console.log('addList', addList, removeList);
+			// 合约只存wallet
+			if (addList.length > 0 || removeList.length > 0) {
+				const projectContract = new ethers.Contract(
+					ContractAddressMap.Project,
+					ProjectABI,
+					signer,
+				);
+				const res = await projectContract.setMembers(addList, removeList);
+				if (!res) {
+					saveContractFail = true;
+					throw new Error('【projectContract】 setMembers fail');
+				}
+			}
+		} catch (err) {
+			saveContractFail = true;
+			console.error('【projectContract】 setMembers error', err);
+			showToast('Failed to save onchain, please try again.', 'error');
+		}
+
+		if (saveContractFail) return;
+		// DB可能会更改nickname、权限等
 		if (formData?.contributors) {
 			await editContributorList({
 				projectId: params.id,
@@ -95,7 +151,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			showToast(`Contributors updated successfully`);
 			await contributorMutate();
 		}
-	}, []);
+	}, [contributorsData, stepContributorRef.current, myAddress, signer, params.id]);
 
 	const handleToScan = useCallback(() => {
 		window.open(`${scanUrl}/address/${params.id}`, '_blank');

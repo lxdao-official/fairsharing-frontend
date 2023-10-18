@@ -223,7 +223,18 @@ export default function Page() {
 					<Stepper activeStep={activeStep} orientation="vertical">
 						{steps.map((step, index) => (
 							<Step sx={{ cursor: 'pointer' }} key={step.label}>
-								<StepLabel onClick={() => handleClickStepLabel(index)}>
+								<StepLabel
+									onClick={() => handleClickStepLabel(index)}
+									StepIconProps={{
+										sx: {
+											'& text': {
+												fill: activeStep >= index ? '#fff' : '#CBD5E1',
+											},
+											borderColor: activeStep >= index ? '#000' : '#CBD5E1',
+											background: activeStep >= index ? '#000' : '#fff',
+										},
+									}}
+								>
 									{step.label}
 								</StepLabel>
 							</Step>

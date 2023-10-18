@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { styled } from '@mui/material';
+import { useCallback, useMemo } from 'react';
+import { Checkbox, FormControlLabel, styled } from '@mui/material';
 
 import Image from 'next/image';
 
@@ -23,7 +23,7 @@ const IconMap: Record<CheckboxTypeEnum, string> = {
 	[CheckboxTypeEnum.Empty]: '/images/checkbox_empty.png',
 };
 
-export default function Checkbox(props: ICheckboxProps) {
+export default function CustomCheckbox(props: ICheckboxProps) {
 	const { total, selected, onChange } = props;
 	const type = useMemo(() => {
 		if (selected === 0) return CheckboxTypeEnum.Empty;
@@ -31,18 +31,25 @@ export default function Checkbox(props: ICheckboxProps) {
 		return CheckboxTypeEnum.Partial;
 	}, [total, selected]);
 
-	const handleClick = () => {
+	const handleClick = useCallback(() => {
 		if (type === CheckboxTypeEnum.Empty || type === CheckboxTypeEnum.Partial) {
 			onChange(CheckboxTypeEnum.All);
 		} else {
 			onChange(CheckboxTypeEnum.Empty);
 		}
-	};
+	}, [type]);
 
 	return (
-		<Container onClick={handleClick}>
-			<Image src={IconMap[type]} alt={'checkbox'} width={24} height={24} />
-		</Container>
+		<FormControlLabel
+			label="Parent"
+			control={
+				<Checkbox
+					checked={selected === total}
+					indeterminate={selected > 0 && selected < total}
+					onChange={handleClick}
+				/>
+			}
+		/>
 	);
 }
 

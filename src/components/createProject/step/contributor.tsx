@@ -20,6 +20,8 @@ import {
 
 import AddIcon from '@mui/icons-material/Add';
 
+import { ethers } from 'ethers';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
@@ -27,7 +29,6 @@ import { Contributor, PermissionEnum } from '@/services/project';
 import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
-import { ethers } from 'ethers';
 import { DeleteIcon } from '@/icons';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {

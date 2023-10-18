@@ -101,7 +101,7 @@ const NavItem = ({ href, name, isActive }: INavItemProps) => {
 	return (
 		<StyledLink href={href}>
 			<Icon fill={isActive ? '#0F172A' : '#64748B'} />
-			<StyledName variant={'body1'} isActive={isActive}>
+			<StyledName variant={'body1'} active={isActive ? 'true' : 'false'}>
 				{NameMap[name]}
 			</StyledName>
 		</StyledLink>
@@ -124,9 +124,9 @@ const StyledLink = styled(Link)({
 	height: '56px',
 	padding: '0 24px',
 });
-const StyledName = styled(Typography)<{ isActive: boolean }>(({ isActive }) => ({
+const StyledName = styled(Typography)<{ active: string }>(({ active }) => ({
 	marginLeft: '24px',
 	flex: '1',
-	color: isActive ? '#0F172A' : '#475569',
-	fontWeight: isActive ? '500' : 'normal',
+	color: active === 'true' ? '#0F172A' : '#475569',
+	fontWeight: active === 'true' ? '500' : 'normal',
 }));

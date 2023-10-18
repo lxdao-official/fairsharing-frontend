@@ -62,7 +62,7 @@ const Pizza = (props: IPizzaProps) => {
 	return (
 		<BorderOutline sx={{ background: BackgroundColor[status], border: Border[status] }}>
 			<div style={{ marginRight: '4px' }}>
-				{canClaim ? (
+				{canClaim || status === 'CLAIM' ? (
 					<PizzaOrangeIcon width={24} height={24} />
 				) : (
 					<PizzaGrayIcon width={24} height={24} />

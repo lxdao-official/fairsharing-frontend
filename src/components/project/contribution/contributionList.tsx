@@ -14,45 +14,25 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import Image from 'next/image';
-
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { useAccount, useNetwork } from 'wagmi';
-
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-
-import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
-
-import axios from 'axios';
+import { useNetwork } from 'wagmi';
 
 import useSWR from 'swr';
 
-import { ethers } from 'ethers';
-
 import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
-import ContributionItem from '@/components/project/contribution/contributionItem';
 import {
 	EasAttestation,
 	EasAttestationData,
 	EasAttestationDecodedData,
 	getEASContributionList,
-	getEasSignature,
 	getEASVoteRecord,
 } from '@/services/eas';
-import {
-	EasSchemaClaimKey,
-	EasSchemaContributionKey,
-	EasSchemaData,
-	EasSchemaMap,
-	EasSchemaTemplateMap,
-	EasSchemaVoteKey,
-} from '@/constant/eas';
+import { EasSchemaContributionKey, EasSchemaVoteKey } from '@/constant/eas';
 import { useUserStore } from '@/store/user';
-import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
@@ -61,12 +41,15 @@ import {
 	getContributionList,
 	getContributorList,
 	getProjectDetail,
-	prepareClaim,
-	updateContributionStatus,
 } from '@/services';
 
-import useEas from '@/hooks/useEas';
 import { FilterIcon } from '@/icons';
+
+import CustomCheckbox from '@/components/checkbox';
+
+import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
+
+import ContributionItem from './contributionItem';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -106,26 +89,17 @@ BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
-const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContributionListProps) => {
+const ContributionList = ({ projectId, showHeader = true }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
-	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
-	const signer = useEthersSigner();
-	const provider = useEthersProvider();
 	const network = useNetwork();
-	const { address: myAddress } = useAccount();
-	const { openConnectModal } = useConnectModal();
 
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
-	const [showSelect, setShowSelect] = useState(false);
-	const [period, setPeriod] = useState('ALL');
-	const [voteStatus, setVoteStatus] = useState('ALL');
-	const [contributor, setContributor] = useState('ALL');
+	const [showMultiSelect, setShowMultiSelect] = useState(false);
+
 	const [selected, setSelected] = useState<Array<number>>([]);
 	const [showDialog, setShowDialog] = useState(false);
 	const [activeCId, setActiveCId] = useState<number>();
-
-	const [easVoteList, setEasVoteList] = useState<EasAttestation<EasSchemaVoteKey>[]>([]);
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -146,7 +120,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		['contribution/list', projectId],
-		() => fetchContributionList(),
+		() => fetchContributionList(projectId),
 		{
 			fallbackData: [],
 			onSuccess: (data) => console.log('[useSWR] -> fetchContributionList', data),
@@ -158,6 +132,15 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 			.filter((contribution) => !!contribution.uId)
 			.map((item) => item.uId) as string[];
 	}, [contributionList]);
+
+	const { data: easVoteList } = useSWR(
+		['eas/vote/list', contributionUIds],
+		() => fetchEasVoteList(contributionUIds),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('[useSWR EAS] -> fetchEasVoteList', data),
+		},
+	);
 
 	const easVoteMap = useMemo(() => {
 		if (easVoteList.length === 0) return {};
@@ -173,9 +156,9 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		easVoteList.forEach((item) => {
 			map[item.refUID].push(item);
 		});
-		console.log('easVoteMap', map);
 		return map;
 	}, [easVoteList, contributionUIds]);
+
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
 			return '';
@@ -183,20 +166,20 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
+	const { renderFilter, filterContributionList } = useContributionListFilter({
+		contributionList,
+		contributorList,
+		projectDetail,
+		easVoteMap
+	});
+
 	useEffect(() => {
 		mutateProjectDetail();
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
 
-	useEffect(() => {
-		if (contributionUIds.length > 0) {
-			fetchEasContributionList(contributionUIds);
-			fetchEasVoteList(contributionUIds);
-		}
-	}, [contributionUIds]);
-
-	const fetchContributionList = async () => {
+	const fetchContributionList = async (projectId: string) => {
 		try {
 			const { list } = await getContributionList({
 				pageSize: 50,
@@ -212,7 +195,9 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 
 	const fetchEasContributionList = async (uIds: string[]) => {
 		try {
-			const { attestations } = await getEASContributionList(uIds, network.chain?.id);
+			// uids存在才会进行计算
+			const ids = uIds.filter((id) => !!id);
+			const { attestations } = await getEASContributionList(ids, network.chain?.id);
 			const easList = attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
@@ -220,13 +205,13 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				) as EasAttestationDecodedData<EasSchemaContributionKey>[],
 				data: JSON.parse(item.data as string) as EasAttestationData,
 			}));
-			// setEasContributionList(easList);
 			console.log('EAS Data[graphql] -> ContributionList: ', easList);
 		} catch (err) {
 			console.error('EAS Data[graphql] -> getEASContributionList error', err);
 		}
 	};
 	const fetchEasVoteList = async (uIds: string[]) => {
+		if (uIds.length === 0) return Promise.resolve([]);
 		try {
 			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
 			const easVoteList = attestations.map((item) => ({
@@ -236,42 +221,25 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 				) as EasAttestationDecodedData<EasSchemaVoteKey>[],
 				data: JSON.parse(item.data as string) as EasAttestationData,
 			}));
-			console.log('EAS Data[graphql] -> easVoteList', easVoteList);
-			setEasVoteList(easVoteList);
+			return easVoteList;
 		} catch (err) {
 			console.error('EAS Data[graphql] -> getEASVoteRecord error', err);
+			return Promise.reject(err);
 		}
 	};
 
 	const handleHideSelect = () => {
-		setShowSelect(false);
-	};
-
-	const handlePeriodChange = (event: SelectChangeEvent) => {
-		setPeriod(event.target.value);
-	};
-	const handleVoteStatusChange = (event: SelectChangeEvent) => {
-		setVoteStatus(event.target.value);
-	};
-	const handleContributorChange = (event: SelectChangeEvent) => {
-		setContributor(event.target.value);
+		setShowMultiSelect(false);
 	};
 
 	const onClickFilterBtn = () => {
-		if (showFilter) {
-			setShowSelect(false);
-		}
 		setShowFilter((pre) => !pre);
+		setShowMultiSelect(false);
 	};
 
 	const onClickSelectBtn = () => {
-		setShowSelect((pre) => !pre);
-	};
-
-	const handleRest = () => {
-		setVoteStatus('ALL');
-		setPeriod('ALL');
-		setContributor('ALL');
+		setShowMultiSelect((pre) => !pre);
+		setShowFilter((pre) => !pre);
 	};
 
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
@@ -314,150 +282,6 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 		}
 	};
 
-	const handleVote = useCallback(
-		async ({ contributionId, value, uId }: IVoteParams) => {
-			if (!myAddress) {
-				openConnectModal?.();
-				return false;
-			}
-			console.log('vote params', contributionId, value, uId);
-			if (!uId) {
-				console.error('uId not exist');
-				return;
-			}
-			try {
-				openGlobalLoading();
-				const offchain = await eas.getOffchain();
-				const voteSchemaUid = EasSchemaMap.vote;
-
-				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
-				const data: EasSchemaData<EasSchemaVoteKey>[] = [
-					{ name: 'ProjectAddress', value: projectId, type: 'address' },
-					{ name: 'ContributionID', value: contributionId, type: 'uint64' },
-					{ name: 'VoteChoice', value: value, type: 'uint8' },
-					{ name: 'Comment', value: 'Good contribution', type: 'string' },
-				];
-				const encodedData = schemaEncoder.encodeData(data);
-				const block = await provider.getBlock('latest');
-				if (!signer) {
-					return;
-				}
-				const offchainAttestation = await offchain.signOffchainAttestation(
-					{
-						recipient: '0x0000000000000000000000000000000000000000',
-						expirationTime: BigInt(0),
-						time: BigInt(block ? block.timestamp : 0),
-						revocable: true,
-						version: 1,
-						nonce: BigInt(0),
-						schema: voteSchemaUid,
-						refUID: uId, // 可用来查询vote信息
-						data: encodedData,
-					},
-					signer,
-				);
-				console.log('vote offchainAttestation', offchainAttestation);
-
-				const res = await submitSignedAttestation({
-					signer: myAddress as string,
-					sig: offchainAttestation,
-				});
-				console.log('vote submitSignedAttestation', res);
-				if (res.data.error) {
-					console.error('vote submitSignedAttestation fail', res.data);
-					throw new Error(res.data.error);
-				}
-				showToast('Vote success', 'success');
-				const baseURL = getEasScanURL();
-				// Update ENS names
-				await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-				const cids = contributionList
-					.filter((contribution) => !!contribution.uId)
-					.map((item) => item.uId);
-				await fetchEasContributionList(cids as string[]);
-				await fetchEasVoteList(contributionUIds);
-			} catch (e) {
-				console.error('onVote error', e);
-			} finally {
-				closeGlobalLoading();
-			}
-		},
-		[projectId, signer, myAddress, eas],
-	);
-
-	const handleClaim = useCallback(
-		async (claimParams: IClaimParams) => {
-			const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
-			// const claimAddress = await readProjectContract(contributionId);
-			// if (claimAddress === myAddress) {
-			// 	console.log('已经claim过了');
-			// 	return false;
-			// }
-			console.log('onClaim params', claimParams);
-			if (!myAddress) {
-				openConnectModal?.();
-				return false;
-			}
-
-			try {
-				openGlobalLoading();
-				const claimSchemaUid = EasSchemaMap.claim;
-
-				const toWallet = contributorList.find((item) => item.id === toIds[0])
-					?.wallet as string;
-				// TODO 待确认 默认选第一个To里面的人
-				const signature = await prepareClaim(contributionId, {
-					wallet: myAddress as string,
-					toWallet: toWallet,
-					chainId: network.chain?.id as number,
-				});
-				console.log('signature', signature);
-
-				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
-				const data: EasSchemaData<EasSchemaClaimKey>[] = [
-					{ name: 'ProjectAddress', value: projectId, type: 'address' },
-					{ name: 'ContributionID', value: contributionId, type: 'uint64' },
-					{ name: 'Voters', value: voters, type: 'address[]' },
-					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
-					{ name: 'Recipient', value: myAddress, type: 'address' },
-					{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
-					{ name: 'Signatures', value: signature, type: 'bytes' },
-				];
-				const encodedData = schemaEncoder.encodeData(data);
-
-				const attestation = await eas.attest({
-					schema: claimSchemaUid,
-					data: {
-						recipient: myAddress as string,
-						expirationTime: BigInt(0),
-						revocable: false,
-						refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
-						data: encodedData,
-						value: BigInt(0),
-					},
-				});
-				console.log('onchainAttestation:', attestation);
-				const updateStatus = await updateContributionStatus(contributionId, {
-					type: 'claim',
-					uId: uId,
-					operatorId: operatorId,
-				});
-				showToast('Claim success', 'success');
-				console.log('claim updateStatus success', updateStatus);
-				// TODO 更新状态 claim好像没生效
-				onUpdate?.();
-			} catch (err: any) {
-				console.error('onClaim error', err);
-				if (err.message) {
-					showToast(err.message, 'error');
-				}
-			} finally {
-				closeGlobalLoading();
-			}
-		},
-		[projectId, myAddress, eas, network],
-	);
-
 	return (
 		<>
 			{showHeader ? (
@@ -467,69 +291,24 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 					</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
-						{/*<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>*/}
-						{/*	Claim({claimTotal})*/}
-						{/*</Button>*/}
-					</StyledFlexBox>
-				</StyledFlexBox>
-			) : null}
-			{/*TODO 更新filter条件*/}
-			{showFilter ? (
-				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
-					<StyledFlexBox>
-						<Select
-							id="period-select"
-							value={period}
-							onChange={handlePeriodChange}
-							placeholder={'Period'}
-							sx={{ width: '160px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All time</MenuItem>
-							<MenuItem value={'2'}>This week</MenuItem>
-							<MenuItem value={'3'}>This month</MenuItem>
-							<MenuItem value={'4'}>This season</MenuItem>
-							<MenuItem value={'5'}>This year</MenuItem>
-						</Select>
-						<Select
-							id="vote-status"
-							value={voteStatus}
-							onChange={handleVoteStatusChange}
-							placeholder={'Vote Status'}
-							sx={{ width: '200px', margin: '0 16px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All status</MenuItem>
-							<MenuItem value={'2'}>Voted by me</MenuItem>
-							<MenuItem value={'3'}>Unvoted by me</MenuItem>
-							<MenuItem value={'4'}>voted ended</MenuItem>
-						</Select>
-						<Select
-							id="contributor"
-							value={contributor}
-							onChange={handleContributorChange}
-							placeholder={'Contributor'}
-							sx={{ width: '200px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All contributors</MenuItem>
-							{contributorList.map((contributor) => (
-								<MenuItem key={contributor.wallet} value={contributor.wallet}>
-									{contributor.nickName}
-								</MenuItem>
-							))}
-						</Select>
-						<Button variant={'text'} sx={{ marginLeft: '16px' }} onClick={handleRest}>
-							Reset
+						<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
+							Claim({claimTotal})
 						</Button>
 					</StyledFlexBox>
-					<Button variant={'text'} onClick={onClickSelectBtn}>
-						Select
-					</Button>
 				</StyledFlexBox>
 			) : null}
+			<StyledFlexBox
+				sx={{
+					marginTop: '16px',
+					justifyContent: 'space-between',
+					display: showFilter ? 'flex' : 'none',
+				}}
+			>
+				{renderFilter}
+				<TextButton onClick={onClickSelectBtn}>Select</TextButton>
+			</StyledFlexBox>
 
-			{showSelect ? (
+			{showMultiSelect ? (
 				<StyledFlexBox
 					sx={{
 						marginTop: '16px',
@@ -538,8 +317,7 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 					}}
 				>
 					<StyledFlexBox>
-						{/* TODO use native checkbox */}
-						<Checkbox
+						<CustomCheckbox
 							total={contributionList.length}
 							selected={selected.length}
 							onChange={onClickSelectParent}
@@ -547,42 +325,42 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 						<Typography variant={'body1'}>{selected.length} have selected</Typography>
 					</StyledFlexBox>
 					<StyledFlexBox>
-						<Button
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'success'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#12C29C80"
+							textColor="#12C29C"
+							hoverColor="rgba(18, 194, 156, 1)"
 							startIcon={<DoneOutlinedIcon />}
 						>
 							For
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'error'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#D32F2F80"
+							textColor="#D32F2F"
+							hoverColor="rgba(211, 47, 47, 1)"
 							startIcon={<ClearOutlinedIcon />}
 						>
 							Again
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'primary'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#0288D180"
+							textColor="#437EF7"
+							hoverColor="rgba(2, 136, 209, 1)"
 							startIcon={<ArrowForwardOutlinedIcon />}
 						>
 							Abstain
-						</Button>
-						<Button
+						</StyledButton>
+						<StyledButton
 							variant="outlined"
-							size={'large'}
-							color={'info'}
-							sx={{ width: '112px', marginLeft: '12px' }}
+							mainColor="#0F172A29"
+							textColor="#0F172A"
+							hoverColor="rgba(15, 23, 42, 1)"
 							onClick={handleHideSelect}
 						>
 							Cancel
-						</Button>
+						</StyledButton>
 					</StyledFlexBox>
 				</StyledFlexBox>
 			) : null}
@@ -592,15 +370,14 @@ const ContributionList = ({ projectId, onUpdate, showHeader = true }: IContribut
 						<ContributionItem
 							key={contribution.id}
 							contribution={contribution}
-							showSelect={showSelect}
+							showSelect={showMultiSelect}
 							selected={selected}
 							onSelect={onSelect}
 							showDeleteDialog={showDeleteDialog}
 							projectDetail={projectDetail}
-							onVote={handleVote}
-							onClaim={handleClaim}
 							easVoteList={easVoteMap[contribution.uId as string]}
 							contributorList={contributorList}
+							contributionList={filterContributionList}
 						/>
 				  ))
 				: null}
@@ -646,3 +423,25 @@ const RevokeButton = styled(DialogButton)({
 		background: 'rgba(15, 23, 42, .8)',
 	},
 });
+
+const TextButton = styled('span')({
+	cursor: 'pointer',
+	fontWeight: '500',
+	'&:hover': {
+		opacity: '0.5',
+	},
+});
+
+const StyledButton = styled(Button)<{ mainColor: string; textColor: string; hoverColor: string }>(
+	({ mainColor, textColor, hoverColor }) => ({
+		minWidth: '112px',
+		width: '112px',
+		height: '40px',
+		marginLeft: '12px',
+		borderColor: mainColor,
+		color: textColor,
+		'&:hover': {
+			borderColor: hoverColor,
+		},
+	}),
+);
