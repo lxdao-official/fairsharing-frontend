@@ -47,6 +47,8 @@ import { FilterIcon } from '@/icons';
 
 import CustomCheckbox from '@/components/checkbox';
 
+import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
+
 import ContributionItem from './contributionItem';
 
 export enum IVoteValueEnum {
@@ -94,9 +96,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
 	const [showMultiSelect, setShowMultiSelect] = useState(false);
-	const [period, setPeriod] = useState('ALL');
-	const [voteStatus, setVoteStatus] = useState('ALL');
-	const [contributor, setContributor] = useState('ALL');
+
 	const [selected, setSelected] = useState<Array<number>>([]);
 	const [showDialog, setShowDialog] = useState(false);
 	const [activeCId, setActiveCId] = useState<number>();
@@ -133,7 +133,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			.map((item) => item.uId) as string[];
 	}, [contributionList]);
 
-	// TODO 初始化数据
 	const { data: easVoteList } = useSWR(
 		['eas/vote/list', contributionUIds],
 		() => fetchEasVoteList(contributionUIds),
@@ -166,6 +165,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		}
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
+
+	const { renderFilter, filterContributionList } = useContributionListFilter({
+		contributionList,
+		contributorList,
+		projectDetail,
+		easVoteMap
+	});
 
 	useEffect(() => {
 		mutateProjectDetail();
@@ -226,16 +232,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		setShowMultiSelect(false);
 	};
 
-	const handlePeriodChange = (event: SelectChangeEvent) => {
-		setPeriod(event.target.value);
-	};
-	const handleVoteStatusChange = (event: SelectChangeEvent) => {
-		setVoteStatus(event.target.value);
-	};
-	const handleContributorChange = (event: SelectChangeEvent) => {
-		setContributor(event.target.value);
-	};
-
 	const onClickFilterBtn = () => {
 		setShowFilter((pre) => !pre);
 		setShowMultiSelect(false);
@@ -244,12 +240,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const onClickSelectBtn = () => {
 		setShowMultiSelect((pre) => !pre);
 		setShowFilter((pre) => !pre);
-	};
-
-	const handleRest = () => {
-		setVoteStatus('ALL');
-		setPeriod('ALL');
-		setContributor('ALL');
 	};
 
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
@@ -307,59 +297,16 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					</StyledFlexBox>
 				</StyledFlexBox>
 			) : null}
-			{/*TODO 更新filter条件*/}
-			{showFilter ? (
-				<StyledFlexBox sx={{ marginTop: '16px', justifyContent: 'space-between' }}>
-					<StyledFlexBox>
-						<Select
-							id="period-select"
-							value={period}
-							onChange={handlePeriodChange}
-							placeholder={'Period'}
-							sx={{ width: '160px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All time</MenuItem>
-							<MenuItem value={'2'}>This week</MenuItem>
-							<MenuItem value={'3'}>This month</MenuItem>
-							<MenuItem value={'4'}>This season</MenuItem>
-							<MenuItem value={'5'}>This year</MenuItem>
-						</Select>
-						<Select
-							id="vote-status"
-							value={voteStatus}
-							onChange={handleVoteStatusChange}
-							placeholder={'Vote Status'}
-							sx={{ width: '200px', margin: '0 16px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All status</MenuItem>
-							<MenuItem value={'2'}>Voted by me</MenuItem>
-							<MenuItem value={'3'}>Unvoted by me</MenuItem>
-							<MenuItem value={'4'}>voted ended</MenuItem>
-						</Select>
-						<Select
-							id="contributor"
-							value={contributor}
-							onChange={handleContributorChange}
-							placeholder={'Contributor'}
-							sx={{ width: '200px' }}
-							size={'small'}
-						>
-							<MenuItem value={'ALL'}>All contributors</MenuItem>
-							{contributorList.map((contributor) => (
-								<MenuItem key={contributor.wallet} value={contributor.wallet}>
-									{contributor.nickName}
-								</MenuItem>
-							))}
-						</Select>
-						<TextButton style={{ marginLeft: '16px' }} onClick={handleRest}>
-							Reset
-						</TextButton>
-					</StyledFlexBox>
-					<TextButton onClick={onClickSelectBtn}>Select</TextButton>
-				</StyledFlexBox>
-			) : null}
+			<StyledFlexBox
+				sx={{
+					marginTop: '16px',
+					justifyContent: 'space-between',
+					display: showFilter ? 'flex' : 'none',
+				}}
+			>
+				{renderFilter}
+				<TextButton onClick={onClickSelectBtn}>Select</TextButton>
+			</StyledFlexBox>
 
 			{showMultiSelect ? (
 				<StyledFlexBox
@@ -370,7 +317,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					}}
 				>
 					<StyledFlexBox>
-						{/* TODO use native checkbox */}
 						<CustomCheckbox
 							total={contributionList.length}
 							selected={selected.length}
@@ -431,7 +377,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 							projectDetail={projectDetail}
 							easVoteList={easVoteMap[contribution.uId as string]}
 							contributorList={contributorList}
-							contributionList={contributionList}
+							contributionList={filterContributionList}
 						/>
 				  ))
 				: null}

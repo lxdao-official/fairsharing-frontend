@@ -15,9 +15,6 @@ export interface CreateProjectParams {
 	logo: string;
 	intro: string;
 	network: number;
-	/**
-	 * 改为截止日期
-	 */
 	votePeriod: string;
 	contributors: Contributor[];
 }
