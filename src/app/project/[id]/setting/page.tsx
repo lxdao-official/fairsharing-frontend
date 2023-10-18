@@ -31,7 +31,6 @@ import { scanUrl } from '@/constant/url';
 import { ContractAddressMap, ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
 
-
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 	const signer = useEthersSigner();
@@ -236,6 +235,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 								sx={{
 									backgroundColor: '#F5F5F5',
 									color: '#475569',
+									fontSize: '16px',
 									'.MuiAlert-icon': {
 										color: '#0F172A7A',
 									},
