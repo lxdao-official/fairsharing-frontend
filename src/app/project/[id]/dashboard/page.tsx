@@ -113,6 +113,9 @@ export default function Page({ params }: { params: { id: string } }) {
 					pageSizeOptions={[10, 20]}
 					sx={{
 						border: 0,
+						'& .mui-de9k3v-MuiDataGrid-selectedRowCount': {
+							visibility: 'hidden',
+						},
 					}}
 				/>
 			</div>
