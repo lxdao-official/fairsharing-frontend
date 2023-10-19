@@ -319,10 +319,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			// 默认选第一个To里面的人
 			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
-			const signature = await prepareClaim(contributionId, {
+			const signature = await prepareClaim( {
 				wallet: myAddress as string,
 				toWallet: toWallet,
 				chainId: chain?.id as number,
+				contributionIds: String(contributionId)
 			});
 			console.log('signature', signature);
 
@@ -334,7 +335,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 				{ name: 'Recipient', value: myAddress, type: 'address' },
 				{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
-				{ name: 'Signatures', value: signature, type: 'bytes' },
+				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
 
