@@ -3,7 +3,7 @@
 import useSWR from 'swr';
 import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button, Box } from '@mui/material';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 
@@ -20,7 +20,7 @@ import {
 	editProject,
 	getContributorList,
 	getProjectDetail,
-	IContributor,
+	IContributor, PermissionEnum,
 } from '@/services';
 
 import { showToast } from '@/store/utils';
@@ -30,12 +30,14 @@ import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
 import { ContractAddressMap, ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
+import { compareMemberArrays } from '@/utils/member';
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 	const signer = useEthersSigner();
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
+	const [contributorList, setContributorList] = useState<IContributor[]>([])
 
 	const {
 		isLoading: detailLoading,
@@ -48,6 +50,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		mutate: contributorMutate,
 	} = useSWR(['getContributorList', params.id], () => getContributorList(params.id), {
 		fallbackData: [],
+		onSuccess: data => setContributorList(data),
 	});
 
 	const { address } = useAccount();
@@ -94,41 +97,25 @@ export default function Setting({ params }: { params: { id: string } }) {
 		[data],
 	);
 
-	const compareArrays = (array1: IContributor[], array2: IContributor[]) => {
-		const set1 = new Set(array1.map((item) => item.wallet));
-		const set2 = new Set(array2.map((item) => item.wallet));
-
-		const addList = array2.filter((item) => !set1.has(item.wallet));
-		const removeList = array1.filter((item) => !set2.has(item.wallet));
-
-		return {
-			addList: addList.map((item) => item.wallet),
-			removeList: removeList.map((item) => item.wallet),
-		};
-	};
-
 	const handleContributorSubmit = useCallback(async () => {
-		const formData = stepContributorRef.current?.getFormData();
 		if (!myAddress) {
 			openConnectModal?.();
 			return false;
 		}
 
 		let saveContractFail = false;
+		const formData = stepContributorRef.current?.getFormData();
 		try {
-			const { addList, removeList } = compareArrays(
-				contributorsData,
-				formData?.contributors as IContributor[],
-			);
-			console.log('addList', addList, removeList);
-			// 合约只存wallet
-			if (addList.length > 0 || removeList.length > 0) {
+			const diffRes = compareMemberArrays(contributorList, formData?.contributors as IContributor[]);
+			const { addAdminList, removeAdminList, addMemberList, removeMemberList } = diffRes;
+			const isChange = addAdminList.length > 0 || removeAdminList.length > 0 || addMemberList.length > 0 || removeMemberList.length > 0;
+			if (isChange) {
 				const projectContract = new ethers.Contract(
 					ContractAddressMap.Project,
 					ProjectABI,
 					signer,
 				);
-				const res = await projectContract.setMembers(addList, removeList);
+				const res = await projectContract.setMembers(addAdminList, removeAdminList, addMemberList, removeMemberList);
 				if (!res) {
 					saveContractFail = true;
 					throw new Error('【projectContract】 setMembers fail');
@@ -150,7 +137,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			showToast(`Contributors updated successfully`);
 			await contributorMutate();
 		}
-	}, [contributorsData, stepContributorRef.current, myAddress, signer, params.id]);
+	}, [contributorList, stepContributorRef.current, myAddress, signer, params.id]);
 
 	const handleToScan = useCallback(() => {
 		window.open(`${scanUrl}/address/${params.id}`, '_blank');
@@ -231,7 +218,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 						sx={{
 							'& .Mui-disabled input,& .Mui-disabled textarea,& .Mui-disabled div': {
 								cursor: 'no-drop',
-								'text-fill-color': '#000',
+								textFillColor: '#000',
 							},
 						}}
 					>
