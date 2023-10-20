@@ -23,7 +23,7 @@ import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
 
-import { createProject, getProjectList } from '@/services/project';
+import { createProject, getProjectList, PermissionEnum } from '@/services/project';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
@@ -32,6 +32,7 @@ import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
+import { generateWeightArray } from '@/utils/weight';
 
 const steps = [
 	{
@@ -99,8 +100,6 @@ export default function Page() {
 		const { avatar, name, intro } = profileFormData!;
 		const { symbol, period, network } = strategyFormData!;
 		const { contributors } = contributorFormData!;
-		const owner = myAddress;
-		const members = contributors.map((contributor) => contributor.wallet);
 		try {
 			openGlobalLoading();
 
@@ -122,14 +121,17 @@ export default function Page() {
 				signer,
 			);
 
+			const admins = contributors.filter(contributor => contributor.permission === PermissionEnum.Owner || contributor.permission === PermissionEnum.Admin).map(item => item.wallet)
+			const members = contributors.map((contributor) => contributor.wallet);
 			const registerProjectContractParams = {
-				admin: owner,
+				admins: admins,
 				members: members,
 				tokenName: name,
 				tokenSymbol: symbol,
 				voteStrategy: ContractAddressMap.VotingStrategy,
 				voteStrategyData: ethers.toUtf8Bytes(''),
-				votePassingRate: 50,
+				voteWeights: generateWeightArray(members.length, 100),// uint256[]
+				voteThreshold: 50 // uint256
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(
@@ -141,7 +143,7 @@ export default function Page() {
 			}
 			const count: bigint = await projectRegistryContract.projectsCount();
 			const projectAddress = await projectRegistryContract.getOwnerLatestProject(
-				owner,
+				myAddress,
 				0,
 				Number(count) - 1,
 			);
