@@ -273,7 +273,7 @@ const PostContribution = ({
 					value={proof}
 					size={'small'}
 					onChange={handleProofInputChange}
-					placeholder={'https: //notion.so/1234'}
+					placeholder={'https: //notion.so/1234,https: //notion.so/1234'}
 				/>
 			</StyledFlexBox>
 
