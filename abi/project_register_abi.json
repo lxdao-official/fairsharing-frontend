@@ -136,9 +136,9 @@
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "admin",
-            "type": "address"
+            "internalType": "address[]",
+            "name": "admins",
+            "type": "address[]"
           },
           {
             "internalType": "address[]",
@@ -161,14 +161,19 @@
             "type": "address"
           },
           {
-            "internalType": "bytes",
-            "name": "voteStrategyData",
-            "type": "bytes"
+            "internalType": "uint256[]",
+            "name": "voteWeights",
+            "type": "uint256[]"
           },
           {
             "internalType": "uint256",
-            "name": "votePassingRate",
+            "name": "voteThreshold",
             "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "voteStrategyData",
+            "type": "bytes"
           }
         ],
         "internalType": "struct CreateParams",
