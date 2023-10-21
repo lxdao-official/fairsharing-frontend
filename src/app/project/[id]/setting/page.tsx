@@ -37,7 +37,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 	const signer = useEthersSigner();
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
-	const [contributorList, setContributorList] = useState<IContributor[]>([])
+	const [contributorList, setContributorList] = useState<IContributor[]>([]);
 
 	const {
 		isLoading: detailLoading,
@@ -110,11 +110,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			const { addAdminList, removeAdminList, addMemberList, removeMemberList } = diffRes;
 			const isChange = addAdminList.length > 0 || removeAdminList.length > 0 || addMemberList.length > 0 || removeMemberList.length > 0;
 			if (isChange) {
-				const projectContract = new ethers.Contract(
-					ContractAddressMap.Project,
-					ProjectABI,
-					signer,
-				);
+				const projectContract = new ethers.Contract(params.id, ProjectABI, signer);
 				const res = await projectContract.setMembers(addAdminList, removeAdminList, addMemberList, removeMemberList);
 				if (!res) {
 					saveContractFail = true;
