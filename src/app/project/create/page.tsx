@@ -33,6 +33,7 @@ import { setUserProjectList, useProjectStore } from '@/store/project';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
 import { generateWeightArray } from '@/utils/weight';
+import { isAdmin } from '@/utils/member';
 
 const steps = [
 	{
@@ -121,7 +122,7 @@ export default function Page() {
 				signer,
 			);
 
-			const admins = contributors.filter(contributor => contributor.permission === PermissionEnum.Owner || contributor.permission === PermissionEnum.Admin).map(item => item.wallet)
+			const admins = contributors.filter(contributor => isAdmin(contributor.permission)).map(item => item.wallet)
 			const members = contributors.map((contributor) => contributor.wallet);
 			const registerProjectContractParams = {
 				admins: admins,
