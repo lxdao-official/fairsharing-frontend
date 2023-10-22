@@ -48,9 +48,12 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 ];
 
 export const EasSchemaMap = {
-	contribution: '0xa7dca651e011d44363742bddfde1f72c5cec536858589b89778efc5bcdff868b',
-	vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
-	claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
+	// contribution: '0xa7dca651e011d44363742bddfde1f72c5cec536858589b89778efc5bcdff868b',
+	// vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
+	// claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
+	contribution: process.env.NEXT_PUBLIC_EAS_SCHEMA_CONTRIBUTION as string,
+	vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
+	claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
 };
 
 export const EasSchemaTemplateMap = {
