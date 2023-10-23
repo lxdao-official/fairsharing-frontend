@@ -118,9 +118,8 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				sx={{ width: '320px', marginTop: '32px' }}
 				disabled={isSettingPage}
 			>
-				{/*<MenuItem value={'5'}>MainNet</MenuItem>*/}
+				<MenuItem value={'10'}>Optimism</MenuItem>
 				<MenuItem value={'420'}>Optimism Goerli</MenuItem>
-				{/*<MenuItem value={'1'}>Georily</MenuItem>*/}
 			</Select>
 
 			<div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>
