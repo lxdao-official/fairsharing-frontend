@@ -26,7 +26,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	{
 		chainId: 10,
 		chainName: 'optimism',
-		subdomain: '',
+		subdomain: 'optimism.',
 		version: '1.0.1',
 		contractAddress: '0x4200000000000000000000000000000000000021',
 		schemaRegistryAddress: '0x4200000000000000000000000000000000000020',
