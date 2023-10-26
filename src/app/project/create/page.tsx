@@ -122,7 +122,9 @@ export default function Page() {
 				signer,
 			);
 
-			const admins = contributors.filter(contributor => isAdmin(contributor.permission)).map(item => item.wallet)
+			const admins = contributors
+				.filter((contributor) => isAdmin(contributor.permission))
+				.map((item) => item.wallet);
 			const members = contributors.map((contributor) => contributor.wallet);
 			const registerProjectContractParams = {
 				admins: admins,
@@ -131,8 +133,8 @@ export default function Page() {
 				tokenSymbol: symbol,
 				voteStrategy: ContractAddressMap.VotingStrategy,
 				voteStrategyData: ethers.toUtf8Bytes(''),
-				voteWeights: generateWeightArray(members.length, 100),// uint256[]
-				voteThreshold: 50 // uint256
+				voteWeights: generateWeightArray(members.length, 100), // uint256[]
+				voteThreshold: 50, // uint256
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(

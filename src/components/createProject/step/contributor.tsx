@@ -1,7 +1,10 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
-	Dialog, DialogActions, DialogContent, DialogContentText,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
 	FormControl,
 	IconButton,
 	MenuItem,
@@ -22,6 +25,8 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { ethers } from 'ethers';
 
+import { useAccount } from 'wagmi';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
@@ -30,9 +35,11 @@ import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
-import { useAccount } from 'wagmi';
 import { isAdmin } from '@/utils/member';
-import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
+import {
+	DialogButton,
+	DialogConfirmButton,
+} from '@/components/project/contribution/contributionList';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -66,7 +73,6 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const isSettingPage = !!data;
 
-
 	const isContributorRepeat = useMemo(() => {
 		const wallets = contributors.map((item) => item.wallet);
 		const unique = Array.from(new Set(wallets));
@@ -74,7 +80,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	}, [contributors]);
 
 	const isOwnerAdminDeleted = useMemo(() => {
-		const ownerInfo = contributors.find(item => item.wallet === myAddress);
+		const ownerInfo = contributors.find((item) => item.wallet === myAddress);
 		if (!ownerInfo) return true;
 		if (!isAdmin(ownerInfo.permission)) return true;
 		return false;
@@ -92,7 +98,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			showToast('Repeated [wallet] address', 'error');
 			return false;
 		}
-		if (contributors.filter(item => isAdmin(item.permission)).length === 0) {
+		if (contributors.filter((item) => isAdmin(item.permission)).length === 0) {
 			showToast('At least one admin is required', 'error');
 			return false;
 		}
@@ -194,7 +200,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const onCloseDialog = () => {
 		setShowRevokeOwnerDialog(false);
-	}
+	};
 
 	const onRevokeOwnerAdmin = () => {
 		handleSubmit('NEXT');
@@ -273,7 +279,9 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											}
 											sx={{ width: 140 }}
 										>
-											<MenuItem value={PermissionEnum.Owner} disabled>Owner</MenuItem>
+											<MenuItem value={PermissionEnum.Owner} disabled>
+												Owner
+											</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
 											<MenuItem value={PermissionEnum.Contributor}>
 												Contributor

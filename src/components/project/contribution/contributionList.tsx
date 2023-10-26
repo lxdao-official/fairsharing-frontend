@@ -170,7 +170,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		contributionList,
 		contributorList,
 		projectDetail,
-		easVoteMap
+		easVoteMap,
 	});
 
 	useEffect(() => {
@@ -285,7 +285,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	return (
 		<>
 			{showHeader ? (
-				<StyledFlexBox sx={{ justifyContent: 'space-between', marginTop: '16px', marginBottom: '16px' }}>
+				<StyledFlexBox
+					sx={{
+						justifyContent: 'space-between',
+						marginTop: '16px',
+						marginBottom: '16px',
+					}}
+				>
 					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
 						Contributions
 					</Typography>

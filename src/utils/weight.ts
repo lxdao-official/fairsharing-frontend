@@ -4,7 +4,7 @@
  */
 export function generateWeightArray(len: number, sums?: number): number[] {
 	if (len < 1) {
-		throw new Error("数组长度必须大于等于1");
+		throw new Error('数组长度必须大于等于1');
 	}
 
 	const arr: number[] = [];

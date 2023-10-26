@@ -11,10 +11,11 @@ import {
 	startOfYear,
 } from 'date-fns';
 
+import { startOfMonth } from 'date-fns/fp';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { EasAttestation, IContribution, IContributor, IProject } from '@/services';
 import { EasSchemaVoteKey } from '@/constant/eas';
-import { startOfMonth } from 'date-fns/fp';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -53,7 +54,7 @@ const useContributionListFilter = ({
 	const filterByPeriod = (list: IContribution[]) => {
 		if (!projectDetail) return list;
 		const [filterStart, filterEnd] = timestamp;
-		console.log('timestamp', [new Date(filterStart), new Date(filterEnd)])
+		console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
 		return list.filter(({ createAt }) => {
 			const startTime = new Date(createAt).getTime();
 			// const endTime = new Date(createAt).getTime() + Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000;
@@ -67,12 +68,16 @@ const useContributionListFilter = ({
 		} else if (filterVoteStatus === VoteStatusEnum.VoteEnded) {
 			if (!projectDetail) return list;
 			return list.filter(({ createAt }) => {
-				return Date.now() > new Date(createAt).getTime() + Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000;
+				return (
+					Date.now() >
+					new Date(createAt).getTime() +
+						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+				);
 			});
 		} else {
 			console.log('filterVoteStatus in vote', list);
 			// TODO 选取投票数据
-			const res = list.filter(item => {
+			const res = list.filter((item) => {
 				const { uId } = item;
 				console.log('uId', uId);
 				console.log('easVoteMap', easVoteMap);
@@ -113,10 +118,7 @@ const useContributionListFilter = ({
 		const value = event.target.value;
 		setFilterPeriod(value as PeriodEnum);
 		if (value === PeriodEnum.All) {
-			settTimestamp([
-				addYears(new Date(), -5).getTime(),
-				addYears(new Date(), 10).getTime(),
-			]);
+			settTimestamp([addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()]);
 		} else if (value === PeriodEnum.Year) {
 			settTimestamp([startOfYear(new Date()).getTime(), endOfYear(new Date()).getTime()]);
 		} else if (value === PeriodEnum.Season) {
