@@ -189,6 +189,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return contributorList.find(item => item.id === contribution.ownerId) || {
 			nickName: 'FS member',
 			user: { avatar: LogoImage },
+			wallet: '',
 		};
 	}, [contribution, contributorList]);
 
@@ -439,22 +440,26 @@ const ContributionItem = (props: IContributionItemProps) => {
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
-					<Img3
-						src={contributionOwner.user.avatar || LogoImage}
-						style={{
-							width: '48px',
-							height: '48px',
-							borderRadius: '48px',
-							border: '1px solid rgba(15,23,42,0.12)',
-						}}
-					/>
+					<Link href={`/profile/${contributionOwner.wallet}`}>
+						<Img3
+							src={contributionOwner.user.avatar || LogoImage}
+							style={{
+								width: '48px',
+								height: '48px',
+								borderRadius: '48px',
+								border: '1px solid rgba(15,23,42,0.12)',
+							}}
+						/>
+					</Link>
 				</StyledFlexBox>
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
-								{contributionOwner.nickName}
-							</Typography>
+							<Link href={`/profile/${contributionOwner.wallet}`}>
+								<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
+									{contributionOwner.nickName}
+								</Typography>
+							</Link>
 							<Typography
 								variant={'body2'}
 								sx={{ marginLeft: '12px', color: '#64748B' }}
