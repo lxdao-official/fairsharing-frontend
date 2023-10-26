@@ -3,12 +3,18 @@
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Typography, TextField } from '@mui/material';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 
+import { Img3, Img3Provider } from '@lxdao/img3';
+
+import Link from 'next/link';
+
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IMintRecord, getMintRecord } from '@/services';
+import { IMintRecord, getMintRecord, getContributorList } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
+import { defaultGateways, LogoImage } from '@/constant/img3';
+
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
@@ -21,6 +27,14 @@ export default function Page({ params }: { params: { id: string } }) {
 		},
 	);
 
+	const { data: contributorList } = useSWR(
+		['contributor/list', params.id],
+		() => getContributorList(params.id),
+		{
+			fallbackData: [],
+		},
+	);
+
 	const claimedAmount = useMemo(() => {
 		return recordList.reduce((acc, cur) => {
 			return acc + cur.credit;
@@ -30,9 +44,40 @@ export default function Page({ params }: { params: { id: string } }) {
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
 			{
-				...nickNameCell,
+				field: 'nickName',
+				headerName: 'Name',
+				sortable: false,
+				flex: 1,
+				minWidth: 150,
 				valueGetter: (params) => {
 					return params.row.contributor.nickName;
+				},
+				renderCell: (item) => {
+					const contributor = contributorList.find(
+						(contributor) => contributor.id === item.row.contributorId,
+					);
+					return (
+						<Link href={`/profile/${contributor?.wallet}`}>
+							<Img3Provider defaultGateways={defaultGateways}>
+								<StyledFlexBox sx={{ gap: '8px' }}>
+									<Img3
+										src={contributor?.user?.avatar || LogoImage}
+										alt="logo"
+										style={{
+											width: 40,
+											height: 40,
+											borderRadius: '40px',
+											border: '1px solid rgba(15,23,42,0.12)',
+										}}
+									/>
+									<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
+										{item.value}
+									</Typography>
+									{item.row.user}
+								</StyledFlexBox>
+							</Img3Provider>
+						</Link>
+					);
 				},
 			},
 			{
@@ -79,7 +124,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 		];
 		return columns;
-	}, [claimedAmount]);
+	}, [claimedAmount, contributorList]);
 
 	const handleSearch = useCallback(
 		(e: any) => {

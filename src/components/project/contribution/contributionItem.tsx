@@ -186,11 +186,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [contributionList]);
 
 	const contributionOwner = useMemo(() => {
-		return contributorList.find(item => item.id === contribution.ownerId) || {
-			nickName: 'FS member',
-			user: { avatar: LogoImage },
-			wallet: '',
-		};
+		return (
+			contributorList.find((item) => item.id === contribution.ownerId) || {
+				nickName: 'FS member',
+				user: { avatar: LogoImage },
+				wallet: '',
+			}
+		);
 	}, [contribution, contributorList]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {

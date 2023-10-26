@@ -20,7 +20,8 @@ import {
 	editProject,
 	getContributorList,
 	getProjectDetail,
-	IContributor, PermissionEnum,
+	IContributor,
+	PermissionEnum,
 } from '@/services';
 
 import { showToast } from '@/store/utils';
@@ -50,7 +51,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		mutate: contributorMutate,
 	} = useSWR(['getContributorList', params.id], () => getContributorList(params.id), {
 		fallbackData: [],
-		onSuccess: data => setContributorList(data),
+		onSuccess: (data) => setContributorList(data),
 	});
 
 	const { address } = useAccount();
@@ -106,12 +107,24 @@ export default function Setting({ params }: { params: { id: string } }) {
 		let saveContractFail = false;
 		const formData = stepContributorRef.current?.getFormData();
 		try {
-			const diffRes = compareMemberArrays(contributorList, formData?.contributors as IContributor[]);
+			const diffRes = compareMemberArrays(
+				contributorList,
+				formData?.contributors as IContributor[],
+			);
 			const { addAdminList, removeAdminList, addMemberList, removeMemberList } = diffRes;
-			const isChange = addAdminList.length > 0 || removeAdminList.length > 0 || addMemberList.length > 0 || removeMemberList.length > 0;
+			const isChange =
+				addAdminList.length > 0 ||
+				removeAdminList.length > 0 ||
+				addMemberList.length > 0 ||
+				removeMemberList.length > 0;
 			if (isChange) {
 				const projectContract = new ethers.Contract(params.id, ProjectABI, signer);
-				const res = await projectContract.setMembers(addAdminList, removeAdminList, addMemberList, removeMemberList);
+				const res = await projectContract.setMembers(
+					addAdminList,
+					removeAdminList,
+					addMemberList,
+					removeMemberList,
+				);
 				if (!res) {
 					saveContractFail = true;
 					throw new Error('【projectContract】 setMembers fail');

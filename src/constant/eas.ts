@@ -32,7 +32,7 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 		schemaRegistryAddress: '0x4200000000000000000000000000000000000020',
 		etherscanURL: 'https://optimism.easscan.org',
 		rpcProvider: 'https://opt-mainnet.g.alchemy.com/v2',
-		graphQLEndpoint: 'https://optimism.easscan.org/graphql'
+		graphQLEndpoint: 'https://optimism.easscan.org/graphql',
 	},
 	{
 		chainId: 420,
