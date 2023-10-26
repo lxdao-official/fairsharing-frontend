@@ -30,6 +30,7 @@ import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
+import { useAccount } from 'wagmi';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -45,14 +46,15 @@ export interface StepContributorRef {
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
 	const { step, setActiveStep, onCreateProject, data, onSave, canEdit = true } = props;
+	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data ?? [
 			{
 				nickName: '',
-				wallet: '',
+				wallet: myAddress || '',
 				role: '',
-				permission: PermissionEnum.Owner,
+				permission: PermissionEnum.Admin,
 			},
 		],
 	);
@@ -243,7 +245,6 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											}
 											sx={{ width: 140 }}
 										>
-											<MenuItem value={PermissionEnum.Owner}>Owner</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
 											<MenuItem value={PermissionEnum.Contributor}>
 												Contributor
