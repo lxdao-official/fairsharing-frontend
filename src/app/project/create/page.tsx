@@ -23,7 +23,7 @@ import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
 
-import { createProject, getProjectList, PermissionEnum } from '@/services/project';
+import { createProject, getProjectList } from '@/services/project';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 

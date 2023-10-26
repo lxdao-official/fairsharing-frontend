@@ -279,9 +279,9 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											}
 											sx={{ width: 140 }}
 										>
-											<MenuItem value={PermissionEnum.Owner} disabled>
-												Owner
-											</MenuItem>
+											{/*<MenuItem value={PermissionEnum.Owner} disabled>*/}
+											{/*	Owner*/}
+											{/*</MenuItem>*/}
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
 											<MenuItem value={PermissionEnum.Contributor}>
 												Contributor
