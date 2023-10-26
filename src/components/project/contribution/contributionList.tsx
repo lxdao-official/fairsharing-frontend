@@ -397,9 +397,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					<DialogButton onClick={onCloseDialog} variant={'outlined'}>
 						Cancel
 					</DialogButton>
-					<RevokeButton onClick={onDelete} autoFocus>
+					<DialogConfirmButton onClick={onDelete} autoFocus>
 						Revoke
-					</RevokeButton>
+					</DialogConfirmButton>
 				</DialogActions>
 			</Dialog>
 		</>
@@ -408,7 +408,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 export default ContributionList;
 
-const DialogButton = styled(Button)({
+export const DialogButton = styled(Button)({
 	minWidth: 80,
 	width: 80,
 	height: 34,
@@ -416,7 +416,7 @@ const DialogButton = styled(Button)({
 	padding: 0,
 });
 
-const RevokeButton = styled(DialogButton)({
+export const DialogConfirmButton = styled(DialogButton)({
 	backgroundColor: '#0F172A',
 	color: '#fff',
 	'&:hover': {

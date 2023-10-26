@@ -8,6 +8,7 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 import UploadImage from '@/components/uploadImage/uploadImage';
 import { CreateProjectParams } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
+import { LogoImage } from '@/constant/img3';
 
 export interface IStepProfileProps extends Partial<IStepBaseProps> {
 	data?: Pick<CreateProjectParams, 'intro' | 'logo' | 'name'>;
@@ -30,10 +31,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 		const [intro, setIntro] = useState(data?.intro ?? '');
 		const [nameError, setNameError] = useState(false);
 		const [introError, setIntroError] = useState(false);
-		const [avatar, setAvatar] = useState(
-			data?.logo ??
-				'https://bafkreig4ikgldw4nnfkflakfq43r7inam2bi52na2tngm5sxluqwwdqcim.ipfs.nftstorage.link/',
-		);
+		const [avatar, setAvatar] = useState(data?.logo ?? LogoImage);
 		const [isEdited, setIsEdited] = useState(false);
 
 		const isSettingPage = !!data;

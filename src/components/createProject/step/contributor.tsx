@@ -1,7 +1,7 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
-	Button,
+	Dialog, DialogActions, DialogContent, DialogContentText,
 	FormControl,
 	IconButton,
 	MenuItem,
@@ -30,6 +30,9 @@ import { showToast } from '@/store/utils';
 import { IContributor } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
+import { useAccount } from 'wagmi';
+import { isAdmin } from '@/utils/member';
+import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -45,21 +48,37 @@ export interface StepContributorRef {
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
 	const { step, setActiveStep, onCreateProject, data, onSave, canEdit = true } = props;
+	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data ?? [
 			{
 				nickName: '',
-				wallet: '',
+				wallet: myAddress || '',
 				role: '',
-				permission: PermissionEnum.Owner,
+				permission: PermissionEnum.Admin,
 			},
 		],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
+	const [showRevokeOwnerDialog, setShowRevokeOwnerDialog] = useState(false);
 
 	const isSettingPage = !!data;
+
+
+	const isContributorRepeat = useMemo(() => {
+		const wallets = contributors.map((item) => item.wallet);
+		const unique = Array.from(new Set(wallets));
+		return unique.length !== contributors.length;
+	}, [contributors]);
+
+	const isOwnerAdminDeleted = useMemo(() => {
+		const ownerInfo = contributors.find(item => item.wallet === myAddress);
+		if (!ownerInfo) return true;
+		if (!isAdmin(ownerInfo.permission)) return true;
+		return false;
+	}, [myAddress, contributors]);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
 		if (action === 'BACK') {
@@ -73,6 +92,14 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			showToast('Repeated [wallet] address', 'error');
 			return false;
 		}
+		if (contributors.filter(item => isAdmin(item.permission)).length === 0) {
+			showToast('At least one admin is required', 'error');
+			return false;
+		}
+		if (isOwnerAdminDeleted && !showRevokeOwnerDialog) {
+			setShowRevokeOwnerDialog(true);
+			return false;
+		}
 		if (isSettingPage) {
 			onSave?.();
 			setIsEdited(false);
@@ -81,16 +108,10 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		}
 	};
 
-	const isContributorRepeat = useMemo(() => {
-		const wallets = contributors.map((item) => item.wallet);
-		const unique = Array.from(new Set(wallets));
-		return unique.length !== contributors.length;
-	}, [contributors]);
-
 	const validContributors = () => {
 		let valid = true;
 		contributors.forEach((item) => {
-			const { nickName, wallet } = item;
+			const { nickName, wallet, permission } = item;
 			if (!nickName) {
 				showToast('Empty Nickname', 'error');
 				valid = false;
@@ -171,6 +192,15 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		}
 	};
 
+	const onCloseDialog = () => {
+		setShowRevokeOwnerDialog(false);
+	}
+
+	const onRevokeOwnerAdmin = () => {
+		handleSubmit('NEXT');
+		setShowRevokeOwnerDialog(false);
+	};
+
 	useImperativeHandle(
 		ref,
 		() => ({
@@ -243,7 +273,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 											}
 											sx={{ width: 140 }}
 										>
-											<MenuItem value={PermissionEnum.Owner}>Owner</MenuItem>
+											<MenuItem value={PermissionEnum.Owner} disabled>Owner</MenuItem>
 											<MenuItem value={PermissionEnum.Admin}>Admin</MenuItem>
 											<MenuItem value={PermissionEnum.Contributor}>
 												Contributor
@@ -297,6 +327,27 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				handlePrimary={() => handleClick('primary')}
 				handleSecondary={() => handleClick('secondary')}
 			/>
+
+			<Dialog
+				open={showRevokeOwnerDialog}
+				onClose={onCloseDialog}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<DialogContent>
+					<DialogContentText id="alert-dialog-description">
+						Are you sure to revoke your admin permission?
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<DialogButton onClick={onCloseDialog} variant={'outlined'}>
+						Cancel
+					</DialogButton>
+					<DialogConfirmButton onClick={onRevokeOwnerAdmin} autoFocus>
+						Revoke
+					</DialogConfirmButton>
+				</DialogActions>
+			</Dialog>
 		</>
 	);
 });

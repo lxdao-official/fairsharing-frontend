@@ -60,6 +60,7 @@ import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { prepareClaim, updateContributionStatus } from '@/services';
+import { LogoImage } from '@/constant/img3';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -184,6 +185,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 			.map((item) => item.uId) as string[];
 	}, [contributionList]);
 
+	const contributionOwner = useMemo(() => {
+		return contributorList.find(item => item.id === contribution.ownerId) || {
+			nickName: 'FS member',
+			user: { avatar: LogoImage },
+			wallet: '',
+		};
+	}, [contribution, contributorList]);
+
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
@@ -297,10 +306,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		// 非本人的不允许claim
+		if (contribution.toIds[0] !== operatorId) {
+			showToast(`This contribution isn't yours to claim.`, 'error');
+			return false;
+		}
 		const { voters, voterValues } = getVoteResult();
 
-		console.log('voters', voters);
-		console.log('voterValues', voterValues);
 		submitClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
@@ -319,11 +331,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			// 默认选第一个To里面的人
 			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
-			const signature = await prepareClaim( {
+			const signature = await prepareClaim({
 				wallet: myAddress as string,
 				toWallet: toWallet,
 				chainId: chain?.id as number,
-				contributionIds: String(contributionId)
+				contributionIds: String(contributionId),
 			});
 			console.log('signature', signature);
 
@@ -428,24 +440,26 @@ const ContributionItem = (props: IContributionItemProps) => {
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
-					{/*TODO 改为贡献人的logo 不是project*/}
-					<Img3
-						src={projectDetail.logo}
-						style={{
-							width: '48px',
-							height: '48px',
-							borderRadius: '48px',
-							border: '1px solid rgba(15,23,42,0.12)',
-						}}
-					/>
+					<Link href={`/profile/${contributionOwner.wallet}`}>
+						<Img3
+							src={contributionOwner.user.avatar || LogoImage}
+							style={{
+								width: '48px',
+								height: '48px',
+								borderRadius: '48px',
+								border: '1px solid rgba(15,23,42,0.12)',
+							}}
+						/>
+					</Link>
 				</StyledFlexBox>
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							{/*TODO 改为贡献人的名字*/}
-							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
-								{projectDetail.name}
-							</Typography>
+							<Link href={`/profile/${contributionOwner.wallet}`}>
+								<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
+									{contributionOwner.nickName}
+								</Typography>
+							</Link>
 							<Typography
 								variant={'body2'}
 								sx={{ marginLeft: '12px', color: '#64748B' }}
