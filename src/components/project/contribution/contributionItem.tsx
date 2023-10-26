@@ -297,10 +297,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		// 非本人的不允许claim
+		if (contribution.toIds[0] !== operatorId) {
+			showToast(`This contribution isn't yours to claim.`, 'error');
+			return false;
+		}
 		const { voters, voterValues } = getVoteResult();
 
-		console.log('voters', voters);
-		console.log('voterValues', voterValues);
 		submitClaim({
 			contributionId: contribution.id,
 			uId: contribution.uId || ('' as string),
@@ -311,6 +314,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 	};
 
+
 	const submitClaim = async (claimParams: IClaimParams) => {
 		const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
 		try {
@@ -319,11 +323,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			// 默认选第一个To里面的人
 			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
-			const signature = await prepareClaim( {
+			const signature = await prepareClaim({
 				wallet: myAddress as string,
 				toWallet: toWallet,
 				chainId: chain?.id as number,
-				contributionIds: String(contributionId)
+				contributionIds: String(contributionId),
 			});
 			console.log('signature', signature);
 
