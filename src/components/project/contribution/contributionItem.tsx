@@ -60,6 +60,7 @@ import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { prepareClaim, updateContributionStatus } from '@/services';
+import { LogoImage } from '@/constant/img3';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -183,6 +184,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 			.filter((contribution) => !!contribution.uId)
 			.map((item) => item.uId) as string[];
 	}, [contributionList]);
+
+	const contributionOwner = useMemo(() => {
+		return contributorList.find(item => item.id === contribution.ownerId) || {
+			nickName: 'FS member',
+			user: { avatar: LogoImage },
+		};
+	}, [contribution, contributorList]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		console.log('handleCheckboxChange', event.target.checked);
@@ -314,7 +322,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 		});
 	};
 
-
 	const submitClaim = async (claimParams: IClaimParams) => {
 		const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
 		try {
@@ -432,9 +439,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
-					{/*TODO 改为贡献人的logo 不是project*/}
 					<Img3
-						src={projectDetail.logo}
+						src={contributionOwner.user.avatar || LogoImage}
 						style={{
 							width: '48px',
 							height: '48px',
@@ -446,9 +452,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<div style={{ flex: 1 }}>
 					<StyledFlexBox sx={{ height: 28, justifyContent: 'space-between' }}>
 						<StyledFlexBox>
-							{/*TODO 改为贡献人的名字*/}
 							<Typography variant={'body1'} sx={{ fontWeight: 500 }}>
-								{projectDetail.name}
+								{contributionOwner.nickName}
 							</Typography>
 							<Typography
 								variant={'body2'}
