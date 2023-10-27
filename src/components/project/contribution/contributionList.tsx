@@ -126,6 +126,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		},
 	);
 
+	/**
+	 * 基于contribution.uID为key，将所有的投票数据分类
+	 */
 	const easVoteMap = useMemo(() => {
 		if (easVoteList.length === 0) return {};
 		const map = contributionUIds.reduce(
@@ -170,15 +173,12 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
-	const readyContributionList = useMemo(() => {
-		return contributionList.filter(item => item.status !== Status.UNREADY)
-	}, [contributionList])
-
 	const { renderFilter, filterContributionList } = useContributionListFilter({
 		contributionList,
 		contributorList,
 		projectDetail,
 		easVoteMap,
+		myVoteInfo
 	});
 
 	useEffect(() => {
@@ -379,8 +379,8 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				</StyledFlexBox>
 			) : null}
 
-			{projectDetail && readyContributionList.length > 0
-				? readyContributionList.filter(item => item.status !== Status.UNREADY).map((contribution, idx) => (
+			{projectDetail && filterContributionList.length > 0
+				? filterContributionList.filter(item => item.status !== Status.UNREADY).map((contribution, idx) => (
 					<ContributionItem
 						key={contribution.id}
 						contribution={contribution}
@@ -392,7 +392,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 						easVoteList={easVoteMap[contribution.uId as string]}
 						myVoteNumber={myVoteInfo[contribution.id]}
 						contributorList={contributorList}
-						contributionList={readyContributionList}
+						contributionList={filterContributionList}
 					/>
 				))
 				: null}
