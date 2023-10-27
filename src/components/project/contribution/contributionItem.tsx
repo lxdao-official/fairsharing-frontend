@@ -72,6 +72,7 @@ export interface IContributionItemProps {
 	easVoteList: EasAttestation<EasSchemaVoteKey>[];
 	contributorList: IContributor[];
 	contributionList: IContribution[];
+	myVoteNumber?: number;
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -84,6 +85,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		projectDetail,
 		easVoteList,
 		contributorList,
+		myVoteNumber,
 		contributionList,
 	} = props;
 
@@ -630,6 +632,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 								isEnd={isEnd}
+								isUserVoted={myVoteNumber === IVoteValueEnum.FOR}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
@@ -638,6 +641,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 								isEnd={isEnd}
+								isUserVoted={myVoteNumber === IVoteValueEnum.AGAINST}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
@@ -646,6 +650,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 								isEnd={isEnd}
+								isUserVoted={myVoteNumber === IVoteValueEnum.ABSTAIN}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>

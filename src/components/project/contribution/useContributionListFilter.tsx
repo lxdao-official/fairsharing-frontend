@@ -54,7 +54,7 @@ const useContributionListFilter = ({
 	const filterByPeriod = (list: IContribution[]) => {
 		if (!projectDetail) return list;
 		const [filterStart, filterEnd] = timestamp;
-		console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
+		// console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
 		return list.filter(({ createAt }) => {
 			const startTime = new Date(createAt).getTime();
 			// const endTime = new Date(createAt).getTime() + Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000;
@@ -94,9 +94,9 @@ const useContributionListFilter = ({
 
 	const filterContributionList = useMemo(() => {
 		const filterTimeList = filterByPeriod(contributionList);
-		console.log('filterTimeList', filterTimeList);
+		// console.log('filterTimeList', filterTimeList);
 		const filterVoteList = filterByVoteStatus(filterTimeList);
-		console.log('filterVoteList', filterVoteList);
+		// console.log('filterVoteList', filterVoteList);
 		if (filterContributor !== 'All') {
 			return filterVoteList.filter((contribution) =>
 				contribution.toIds.includes(filterContributor),
