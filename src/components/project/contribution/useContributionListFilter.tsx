@@ -14,7 +14,7 @@ import {
 import { startOfMonth } from 'date-fns/fp';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { EasAttestation, IContribution, IContributor, IProject } from '@/services';
+import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
 import { EasSchemaVoteKey } from '@/constant/eas';
 
 export enum PeriodEnum {
@@ -54,7 +54,7 @@ const useContributionListFilter = ({
 	const filterByPeriod = (list: IContribution[]) => {
 		if (!projectDetail) return list;
 		const [filterStart, filterEnd] = timestamp;
-		console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
+		// console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
 		return list.filter(({ createAt }) => {
 			const startTime = new Date(createAt).getTime();
 			// const endTime = new Date(createAt).getTime() + Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000;
@@ -93,10 +93,11 @@ const useContributionListFilter = ({
 	};
 
 	const filterContributionList = useMemo(() => {
-		const filterTimeList = filterByPeriod(contributionList);
-		console.log('filterTimeList', filterTimeList);
+		const list = contributionList.filter(contributor => contributor.status !== Status.UNREADY)
+		const filterTimeList = filterByPeriod(list);
+		// console.log('filterTimeList', filterTimeList);
 		const filterVoteList = filterByVoteStatus(filterTimeList);
-		console.log('filterVoteList', filterVoteList);
+		// console.log('filterVoteList', filterVoteList);
 		if (filterContributor !== 'All') {
 			return filterVoteList.filter((contribution) =>
 				contribution.toIds.includes(filterContributor),
@@ -104,6 +105,7 @@ const useContributionListFilter = ({
 		} else {
 			return filterVoteList;
 		}
+		return list;
 	}, [
 		contributionList,
 		contributorList,

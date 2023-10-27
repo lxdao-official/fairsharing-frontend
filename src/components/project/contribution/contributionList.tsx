@@ -1,28 +1,17 @@
 'use client';
 
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	MenuItem,
-	Select,
-	SelectChangeEvent,
-	styled,
-	Typography,
-} from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, styled, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 
 import useSWR from 'swr';
 
-import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
+import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
 	EasAttestation,
@@ -36,20 +25,14 @@ import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
-import {
-	deleteContribution,
-	getContributionList,
-	getContributorList,
-	getProjectDetail,
-} from '@/services';
+import { deleteContribution, getContributionList, getContributorList, getProjectDetail, Status } from '@/services';
 
 import { FilterIcon } from '@/icons';
-
-import CustomCheckbox from '@/components/checkbox';
 
 import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
 
 import ContributionItem from './contributionItem';
+import { ethers } from 'ethers';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -92,6 +75,7 @@ BigInt.prototype.toJSON = function () {
 const ContributionList = ({ projectId, showHeader = true }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
 	const network = useNetwork();
+	const { address: myAddress } = useAccount();
 
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
@@ -159,12 +143,36 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return map;
 	}, [easVoteList, contributionUIds]);
 
+	const myVoteInfo = useMemo(() => {
+		const map: Record<string, number> = {};
+		if (!myAddress) return map;
+		easVoteList?.forEach(vote => {
+			const { signer } = vote.data as EasAttestationData;
+			if (signer === myAddress) {
+				const decodedDataJson =
+					vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
+				const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
+				const voteNumber = voteValueItem?.value.value as IVoteValueEnum;
+				const contributionIdItem = decodedDataJson.find((item) => item.name === 'ContributionID');
+				// @ts-ignore
+				const hex = contributionIdItem?.value.value.hex as number;
+				const contributionId = ethers.toNumber(hex);
+				map[contributionId] = voteNumber;
+			}
+		});
+		return map;
+	}, [easVoteList, myAddress]);
+
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
 			return '';
 		}
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
+
+	const readyContributionList = useMemo(() => {
+		return contributionList.filter(item => item.status !== Status.UNREADY)
+	}, [contributionList])
 
 	const { renderFilter, filterContributionList } = useContributionListFilter({
 		contributionList,
@@ -371,21 +379,22 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				</StyledFlexBox>
 			) : null}
 
-			{projectDetail && contributionList.length > 0
-				? contributionList.map((contribution, idx) => (
-						<ContributionItem
-							key={contribution.id}
-							contribution={contribution}
-							showSelect={showMultiSelect}
-							selected={selected}
-							onSelect={onSelect}
-							showDeleteDialog={showDeleteDialog}
-							projectDetail={projectDetail}
-							easVoteList={easVoteMap[contribution.uId as string]}
-							contributorList={contributorList}
-							contributionList={filterContributionList}
-						/>
-				  ))
+			{projectDetail && readyContributionList.length > 0
+				? readyContributionList.filter(item => item.status !== Status.UNREADY).map((contribution, idx) => (
+					<ContributionItem
+						key={contribution.id}
+						contribution={contribution}
+						showSelect={showMultiSelect}
+						selected={selected}
+						onSelect={onSelect}
+						showDeleteDialog={showDeleteDialog}
+						projectDetail={projectDetail}
+						easVoteList={easVoteMap[contribution.uId as string]}
+						myVoteNumber={myVoteInfo[contribution.id]}
+						contributorList={contributorList}
+						contributionList={readyContributionList}
+					/>
+				))
 				: null}
 
 			<Dialog

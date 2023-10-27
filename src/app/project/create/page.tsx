@@ -279,6 +279,7 @@ export default function Page() {
 							step={3}
 							setActiveStep={setActiveStep}
 							onCreateProject={handleCreateProject}
+							canEdit={true}
 						/>
 					</StepContent>
 				</Box>
