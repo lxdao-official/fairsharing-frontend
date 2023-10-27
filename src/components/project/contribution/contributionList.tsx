@@ -21,6 +21,10 @@ import useSWR from 'swr';
 
 import { ethers } from 'ethers';
 
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+
+import { MultiAttestationRequest } from '@ethereum-attestation-service/eas-sdk/dist/request';
+
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
@@ -30,7 +34,14 @@ import {
 	getEASContributionList,
 	getEASVoteRecord,
 } from '@/services/eas';
-import { EasSchemaContributionKey, EasSchemaVoteKey } from '@/constant/eas';
+import {
+	EasSchemaClaimKey,
+	EasSchemaContributionKey,
+	EasSchemaData,
+	EasSchemaMap,
+	EasSchemaTemplateMap,
+	EasSchemaVoteKey,
+} from '@/constant/eas';
 import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
@@ -40,12 +51,17 @@ import {
 	getContributionList,
 	getContributorList,
 	getProjectDetail,
+	IContribution,
+	prepareClaim,
 	Status,
+	updateContributionStatus,
 } from '@/services';
 
 import { FilterIcon } from '@/icons';
 
 import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
+
+import useEas from '@/hooks/useEas';
 
 import ContributionItem from './contributionItem';
 
@@ -91,6 +107,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const { myInfo } = useUserStore();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
+	const { eas } = useEas();
 
 	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
@@ -173,9 +190,8 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				const decodedDataJson =
 					vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
 				const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
-				const voteNumber = voteValueItem?.value.value as IVoteValueEnum;
 				// 同一用户用最新的进行覆盖
-				signerMap[signer] = voteNumber;
+				signerMap[signer] = voteValueItem?.value.value as IVoteValueEnum;
 			});
 			map[cId] = signerMap;
 		}
@@ -331,6 +347,104 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		}
 	};
 
+	const getVoteResult = () => {
+		const voters: string[] = [];
+		const voteValues: number[] = [];
+		for (const [cId, record] of Object.entries(easVoteNumberBySigner)) {
+			for (const [signer, value] of Object.entries(record)) {
+				voters.push(signer);
+				voteValues.push(value);
+			}
+		}
+		return {
+			voters: voters,
+			voteValues: voteValues,
+		};
+	};
+
+	const claimHandler = async () => {
+		if (!canClaimedContributionList || canClaimedContributionList.length == 0) {
+			return;
+		}
+		try {
+			openGlobalLoading();
+			const claimSchemaUid = EasSchemaMap.claim;
+
+			const sortCanClaimedContributionList = canClaimedContributionList.sort(
+				(c1: any, c2: any) => {
+					return c1.id - c2.id;
+				},
+			);
+			const toUserId = sortCanClaimedContributionList[0].toIds[0];
+			const toWallet = contributorList.find((item) => item.id === toUserId)?.wallet as string;
+			let contributionIds: string = '';
+			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
+				const contribution: IContribution = sortCanClaimedContributionList[i];
+				if (contributionIds.length > 0) {
+					contributionIds += `,${contribution.id}`;
+				} else {
+					contributionIds += `${contribution.id}`;
+				}
+			}
+
+			const signatures = await prepareClaim({
+				wallet: myAddress as string,
+				toWallet: toWallet,
+				chainId: network.chain?.id as number,
+				contributionIds: contributionIds,
+			});
+
+			const dataList: any[] = [];
+			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
+				const { id, credit } = sortCanClaimedContributionList[i];
+				const { voters, voteValues } = getVoteResult();
+
+				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
+				const data: EasSchemaData<EasSchemaClaimKey>[] = [
+					{ name: 'ProjectAddress', value: projectDetail?.id, type: 'address' },
+					{ name: 'ContributionID', value: id, type: 'uint64' },
+					{ name: 'Voters', value: voters, type: 'address[]' },
+					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
+					{ name: 'Recipient', value: toWallet, type: 'address' },
+					{ name: 'Token', value: ethers.parseUnits(credit.toString()), type: 'uint256' },
+					{ name: 'Signatures', value: signatures[i], type: 'bytes' },
+				];
+				const encodedData = schemaEncoder.encodeData(data);
+
+				dataList.push({
+					recipient: toWallet,
+					expirationTime: BigInt(0),
+					revocable: false,
+					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+					data: encodedData,
+					value: BigInt(0),
+				});
+			}
+
+			const tx = await eas.multiAttest([{ schema: claimSchemaUid, data: dataList }]);
+			console.log('Make multi attestation on chain:', tx);
+
+			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
+				const { id, uId } = sortCanClaimedContributionList[i];
+				await updateContributionStatus(id, {
+					type: 'claim',
+					uId: uId,
+					operatorId: operatorId,
+				});
+			}
+
+			showToast('Claim success', 'success');
+			await mutateContributorList();
+		} catch (err: any) {
+			console.error('claim all error', err);
+			if (err.message) {
+				showToast(err.message, 'error');
+			}
+		} finally {
+			closeGlobalLoading();
+		}
+	};
+
 	return (
 		<>
 			{showHeader ? (
@@ -346,7 +460,11 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					</Typography>
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
-						<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
+						<Button
+							variant={'outlined'}
+							sx={{ marginLeft: '16px' }}
+							onClick={claimHandler}
+						>
 							Claim({canClaimedContributionList.length})
 						</Button>
 					</StyledFlexBox>

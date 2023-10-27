@@ -17,7 +17,7 @@
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@ethereum-attestation-service/eas-sdk": "^1.1.0-beta.3",
+    "@ethereum-attestation-service/eas-sdk": "^1.2.1-beta.2",
     "@hookform/resolvers": "^3.3.1",
     "@lxdao/img3": "^1.1.0",
     "@lxdao/uploader3": "^1.2.2",

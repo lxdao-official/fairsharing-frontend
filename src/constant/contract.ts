@@ -7,8 +7,6 @@ export const ProjectRegisterABI = project_register_abi;
 export const ProjectABI = project_abi;
 
 export const ContractAddressMap = {
-	// Project: '0x168dEF42CdD95b574c704a7d00284e5c81514e59',
-	Project: process.env.NEXT_PUBLIC_CONTRACT_PROJECT as string,
 	/**
 	 * use ProjectRegisterUpgradeableProxy
 	 */
