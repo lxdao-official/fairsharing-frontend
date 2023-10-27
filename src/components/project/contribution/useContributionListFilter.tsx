@@ -14,7 +14,7 @@ import {
 import { startOfMonth } from 'date-fns/fp';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { EasAttestation, IContribution, IContributor, IProject } from '@/services';
+import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
 import { EasSchemaVoteKey } from '@/constant/eas';
 
 export enum PeriodEnum {
@@ -93,7 +93,8 @@ const useContributionListFilter = ({
 	};
 
 	const filterContributionList = useMemo(() => {
-		const filterTimeList = filterByPeriod(contributionList);
+		const list = contributionList.filter(contributor => contributor.status !== Status.UNREADY)
+		const filterTimeList = filterByPeriod(list);
 		// console.log('filterTimeList', filterTimeList);
 		const filterVoteList = filterByVoteStatus(filterTimeList);
 		// console.log('filterVoteList', filterVoteList);
@@ -104,6 +105,7 @@ const useContributionListFilter = ({
 		} else {
 			return filterVoteList;
 		}
+		return list;
 	}, [
 		contributionList,
 		contributorList,

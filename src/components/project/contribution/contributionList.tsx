@@ -1,17 +1,6 @@
 'use client';
 
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	MenuItem,
-	Select,
-	SelectChangeEvent,
-	styled,
-	Typography,
-} from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, styled, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
@@ -22,7 +11,7 @@ import { useAccount, useNetwork } from 'wagmi';
 
 import useSWR from 'swr';
 
-import Checkbox, { CheckboxTypeEnum } from '@/components/checkbox';
+import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
 	EasAttestation,
@@ -36,16 +25,9 @@ import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
-import {
-	deleteContribution,
-	getContributionList,
-	getContributorList,
-	getProjectDetail,
-} from '@/services';
+import { deleteContribution, getContributionList, getContributorList, getProjectDetail, Status } from '@/services';
 
 import { FilterIcon } from '@/icons';
-
-import CustomCheckbox from '@/components/checkbox';
 
 import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
 
@@ -187,6 +169,10 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		}
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
+
+	const readyContributionList = useMemo(() => {
+		return contributionList.filter(item => item.status !== Status.UNREADY)
+	}, [contributionList])
 
 	const { renderFilter, filterContributionList } = useContributionListFilter({
 		contributionList,
@@ -393,8 +379,8 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				</StyledFlexBox>
 			) : null}
 
-			{projectDetail && contributionList.length > 0
-				? contributionList.map((contribution, idx) => (
+			{projectDetail && readyContributionList.length > 0
+				? readyContributionList.filter(item => item.status !== Status.UNREADY).map((contribution, idx) => (
 					<ContributionItem
 						key={contribution.id}
 						contribution={contribution}
@@ -406,7 +392,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 						easVoteList={easVoteMap[contribution.uId as string]}
 						myVoteNumber={myVoteInfo[contribution.id]}
 						contributorList={contributorList}
-						contributionList={filterContributionList}
+						contributionList={readyContributionList}
 					/>
 				))
 				: null}
