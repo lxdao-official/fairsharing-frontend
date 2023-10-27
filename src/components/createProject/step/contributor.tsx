@@ -54,7 +54,7 @@ export interface StepContributorRef {
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep, onCreateProject, data, onSave, canEdit = true } = props;
+	const { step, setActiveStep, onCreateProject, data, onSave, canEdit } = props;
 	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
@@ -188,6 +188,9 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		const action = type === 'primary' ? 'NEXT' : 'BACK';
 		if (!isSettingPage) {
 			handleSubmit(action);
+			return;
+		}
+		if (!canEdit) {
 			return;
 		}
 		if (type === 'primary') {
@@ -328,7 +331,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			) : null}
 
 			<ButtonGroup
-				canEdit={canEdit}
+				canEdit={!!canEdit}
 				isEdited={isEdited}
 				isSettingPage={isSettingPage}
 				isLatest

@@ -31,7 +31,7 @@ import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
 import { ContractAddressMap, ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
-import { compareMemberArrays } from '@/utils/member';
+import { compareMemberArrays, isAdmin } from '@/utils/member';
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -58,8 +58,11 @@ export default function Setting({ params }: { params: { id: string } }) {
 
 	const [activeTab, setActiveTab] = useState('profile');
 
-	const isContributor = useMemo(
-		() => contributorsData?.some((item) => item.wallet === address),
+	const isProjectAdmin = useMemo(
+		() => {
+			const user = contributorsData?.find((item) => item.wallet === address);
+			return user && isAdmin(user.permission);
+		},
 		[contributorsData, address],
 	);
 
@@ -159,7 +162,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 					<StepProfile
 						ref={stepProfileRef}
 						data={data}
-						canEdit={isContributor}
+						canEdit={isProjectAdmin}
 						onSave={() => handleProjectInfoSubmit('profile')}
 					/>
 				);
@@ -168,7 +171,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 					<StepStrategy
 						ref={stepStrategyRef}
 						data={data}
-						canEdit={isContributor}
+						canEdit={isProjectAdmin}
 						onSave={() => handleProjectInfoSubmit('strategy')}
 					/>
 				);
@@ -177,14 +180,14 @@ export default function Setting({ params }: { params: { id: string } }) {
 					<StepContributor
 						ref={stepContributorRef}
 						data={contributorsData}
-						canEdit={isContributor}
+						canEdit={isProjectAdmin}
 						onSave={handleContributorSubmit}
 					/>
 				);
 			default:
 				return null;
 		}
-	}, [data, activeTab, isContributor, handleProjectInfoSubmit, contributorsData]);
+	}, [data, activeTab, isProjectAdmin, handleProjectInfoSubmit, contributorsData]);
 
 	return (
 		<div>
@@ -231,7 +234,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 							},
 						}}
 					>
-						{!isContributor ? (
+						{!isProjectAdmin ? (
 							<Alert
 								severity="info"
 								style={{ marginBottom: 32, display: 'flex', alignItems: 'center' }}
