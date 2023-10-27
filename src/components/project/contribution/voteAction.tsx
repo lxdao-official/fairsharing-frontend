@@ -29,7 +29,7 @@ export interface IVoteActionProps {
 	isEnd: boolean;
 	contribution: IContribution;
 	onConfirm: () => void;
-	isUserVoted: boolean
+	isUserVoted: boolean;
 }
 
 const Colors = {
@@ -56,7 +56,14 @@ const IconMap = {
 	},
 };
 
-const VoteAction = ({ type, count, isEnd, onConfirm, contributionStatus, isUserVoted }: IVoteActionProps) => {
+const VoteAction = ({
+	type,
+	count,
+	isEnd,
+	onConfirm,
+	contributionStatus,
+	isUserVoted,
+}: IVoteActionProps) => {
 	const isVoteDisabled = useMemo(() => {
 		return isEnd || contributionStatus === Status.UNREADY;
 	}, [isEnd, contributionStatus]);
@@ -66,7 +73,7 @@ const VoteAction = ({ type, count, isEnd, onConfirm, contributionStatus, isUserV
 			return IconMap[type].disabled;
 		} else {
 			// 只有自己投过票的才是面性
-			return isUserVoted ? IconMap[type].normal : IconMap[type].ready
+			return isUserVoted ? IconMap[type].normal : IconMap[type].ready;
 			// return count > 0 ? IconMap[type].normal : IconMap[type].ready;
 		}
 	}, [isEnd, type, count, isUserVoted]);

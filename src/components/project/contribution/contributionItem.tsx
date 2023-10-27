@@ -198,7 +198,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [contribution, contributorList]);
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
 		const newList = checked
 			? [...selected, contribution.id]
@@ -341,7 +340,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 				chainId: chain?.id as number,
 				contributionIds: String(contributionId),
 			});
-			console.log('signature', signature);
 
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 			const data: EasSchemaData<EasSchemaClaimKey>[] = [
@@ -373,7 +371,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 				operatorId: operatorId,
 			});
 			showToast('Claim success', 'success');
-			console.log('claim updateStatus success', updateStatus);
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);

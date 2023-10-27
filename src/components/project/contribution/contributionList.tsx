@@ -1,6 +1,14 @@
 'use client';
 
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, styled, Typography } from '@mui/material';
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	styled,
+	Typography,
+} from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
@@ -10,6 +18,8 @@ import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import { useAccount, useNetwork } from 'wagmi';
 
 import useSWR from 'swr';
+
+import { ethers } from 'ethers';
 
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -25,14 +35,19 @@ import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
-import { deleteContribution, getContributionList, getContributorList, getProjectDetail, Status } from '@/services';
+import {
+	deleteContribution,
+	getContributionList,
+	getContributorList,
+	getProjectDetail,
+	Status,
+} from '@/services';
 
 import { FilterIcon } from '@/icons';
 
 import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
 
 import ContributionItem from './contributionItem';
-import { ethers } from 'ethers';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -146,17 +161,40 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return map;
 	}, [easVoteList, contributionUIds]);
 
+	/**
+	 * Record<cId, Record<signer, IVoteValueEnum>>
+	 */
+	const easVoteNumberBySigner = useMemo(() => {
+		const map: Record<string, Record<string, IVoteValueEnum>> = {};
+		for (const [cId, voteList] of Object.entries(easVoteMap)) {
+			const signerMap: Record<string, IVoteValueEnum> = {};
+			voteList.forEach((vote) => {
+				const signer = (vote.data as EasAttestationData).signer;
+				const decodedDataJson =
+					vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
+				const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
+				const voteNumber = voteValueItem?.value.value as IVoteValueEnum;
+				// 同一用户用最新的进行覆盖
+				signerMap[signer] = voteNumber;
+			});
+			map[cId] = signerMap;
+		}
+		return map;
+	}, [easVoteMap]);
+
 	const myVoteInfo = useMemo(() => {
 		const map: Record<string, number> = {};
 		if (!myAddress) return map;
-		easVoteList?.forEach(vote => {
+		easVoteList?.forEach((vote) => {
 			const { signer } = vote.data as EasAttestationData;
 			if (signer === myAddress) {
 				const decodedDataJson =
 					vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
 				const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
 				const voteNumber = voteValueItem?.value.value as IVoteValueEnum;
-				const contributionIdItem = decodedDataJson.find((item) => item.name === 'ContributionID');
+				const contributionIdItem = decodedDataJson.find(
+					(item) => item.name === 'ContributionID',
+				);
 				// @ts-ignore
 				const hex = contributionIdItem?.value.value.hex as number;
 				const contributionId = ethers.toNumber(hex);
@@ -173,19 +211,25 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
-	const { renderFilter, filterContributionList } = useContributionListFilter({
-		contributionList,
-		contributorList,
-		projectDetail,
-		easVoteMap,
-		myVoteInfo
-	});
+	const { renderFilter, filterContributionList, canClaimedContributionList } =
+		useContributionListFilter({
+			contributionList,
+			contributorList,
+			projectDetail,
+			easVoteMap,
+			myVoteInfo,
+			easVoteNumberBySigner,
+		});
 
 	useEffect(() => {
 		mutateProjectDetail();
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
+
+	useEffect(() => {
+		console.log('canClaimedContributionList', canClaimedContributionList);
+	}, [canClaimedContributionList]);
 
 	const fetchContributionList = async (projectId: string) => {
 		try {
@@ -194,7 +238,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				currentPage: 1,
 				projectId: projectId,
 			});
-			console.log('getContributionList', list);
 			return list;
 		} catch (err) {
 			return Promise.reject(err);
@@ -251,7 +294,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	};
 
 	const onClickSelectParent = (type: Exclude<CheckboxTypeEnum, 'Partial'>) => {
-		console.log('type', type);
 		if (type === 'All') {
 			setSelected(contributionList.map((item, idx) => item.id));
 		} else {
@@ -277,7 +319,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			if (!activeCId) return false;
 			// TODO 合约也需要revoke
 			const res = await deleteContribution(activeCId, operatorId);
-			console.log('deleteContribution res', res);
 			setShowDialog(false);
 			await mutateContributionList();
 		} catch (err: any) {
@@ -306,7 +347,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
-							Claim({claimTotal})
+							Claim({canClaimedContributionList.length})
 						</Button>
 					</StyledFlexBox>
 				</StyledFlexBox>
@@ -380,21 +421,23 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			) : null}
 
 			{projectDetail && filterContributionList.length > 0
-				? filterContributionList.filter(item => item.status !== Status.UNREADY).map((contribution, idx) => (
-					<ContributionItem
-						key={contribution.id}
-						contribution={contribution}
-						showSelect={showMultiSelect}
-						selected={selected}
-						onSelect={onSelect}
-						showDeleteDialog={showDeleteDialog}
-						projectDetail={projectDetail}
-						easVoteList={easVoteMap[contribution.uId as string]}
-						myVoteNumber={myVoteInfo[contribution.id]}
-						contributorList={contributorList}
-						contributionList={filterContributionList}
-					/>
-				))
+				? filterContributionList
+						.filter((item) => item.status !== Status.UNREADY)
+						.map((contribution, idx) => (
+							<ContributionItem
+								key={contribution.id}
+								contribution={contribution}
+								showSelect={showMultiSelect}
+								selected={selected}
+								onSelect={onSelect}
+								showDeleteDialog={showDeleteDialog}
+								projectDetail={projectDetail}
+								easVoteList={easVoteMap[contribution.uId as string]}
+								myVoteNumber={myVoteInfo[contribution.id]}
+								contributorList={contributorList}
+								contributionList={filterContributionList}
+							/>
+						))
 				: null}
 
 			<Dialog

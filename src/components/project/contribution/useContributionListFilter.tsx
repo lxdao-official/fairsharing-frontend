@@ -16,6 +16,7 @@ import { startOfMonth } from 'date-fns/fp';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
 import { EasSchemaVoteKey } from '@/constant/eas';
+import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -38,6 +39,7 @@ export interface IProps {
 	projectDetail?: IProject;
 	easVoteMap: Record<string, EasAttestation<EasSchemaVoteKey>[]>;
 	myVoteInfo: Record<string, number>;
+	easVoteNumberBySigner: Record<string, Record<string, IVoteValueEnum>>;
 }
 
 const useContributionListFilter = ({
@@ -46,6 +48,7 @@ const useContributionListFilter = ({
 	projectDetail,
 	easVoteMap,
 	myVoteInfo,
+	easVoteNumberBySigner,
 }: IProps) => {
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
 	const [filterVoteStatus, setFilterVoteStatus] = useState(VoteStatusEnum.All);
@@ -85,22 +88,24 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {
 			const myVoteCids = Object.keys(myVoteInfo);
 			if (filterVoteStatus === VoteStatusEnum.VoteByMe) {
-				return list.filter(item => myVoteCids.includes(item.id.toString()));
+				return list.filter((item) => myVoteCids.includes(item.id.toString()));
 			} else if (filterVoteStatus === VoteStatusEnum.UnVotedByMe) {
-				return list.filter(item => !myVoteCids.includes(item.id.toString()));
+				return list.filter((item) => !myVoteCids.includes(item.id.toString()));
 			}
 			return list;
 		}
 	};
 
 	const filterContributionList = useMemo(() => {
-		const list = contributionList.filter(contributor => contributor.status !== Status.UNREADY);
+		const list = contributionList.filter(
+			(contributor) => contributor.status !== Status.UNREADY,
+		);
 		const filterTimeList = filterByPeriod(list);
 		const filterVoteList = filterByVoteStatus(filterTimeList);
 		if (filterContributor === 'All') {
@@ -119,21 +124,35 @@ const useContributionListFilter = ({
 		easVoteMap,
 	]);
 
-	const canClaimedContributionList = useMemo(() => {
-		// TODO canClaim
-		return filterContributionList.filter(item => item.status === Status.READY)
-	}, [filterContributionList])
-
 	const canClaim = (contribution: IContribution) => {
 		if (contribution.status !== Status.READY) {
-			return false
+			return false;
 		} else {
-			const targetTime = new Date(contribution.createAt).getTime() + Number(projectDetail?.votePeriod) * 24 * 60 * 60 * 1000
+			const targetTime =
+				new Date(contribution.createAt).getTime() +
+				Number(projectDetail?.votePeriod) * 24 * 60 * 60 * 1000;
 			const isEnd = Date.now() > targetTime;
-			// TODO vote info
-			return isEnd;
+			if (!isEnd) return false;
+			const voteNumberBySigner = easVoteNumberBySigner[contribution.uId!];
+			const [forCount, againstCount] = Object.keys(voteNumberBySigner || {}).reduce(
+				(pre, cur) => {
+					if (voteNumberBySigner[cur] === IVoteValueEnum.FOR) {
+						pre[0] += 1;
+					}
+					if (voteNumberBySigner[cur] === IVoteValueEnum.AGAINST) {
+						pre[1] += 1;
+					}
+					return pre;
+				},
+				[0, 0],
+			);
+			return forCount >= againstCount;
 		}
-	}
+	};
+
+	const canClaimedContributionList = useMemo(() => {
+		return filterContributionList.filter((item) => canClaim(item));
+	}, [filterContributionList]);
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;
@@ -203,7 +222,7 @@ const useContributionListFilter = ({
 		</StyledFlexBox>
 	);
 
-	return { filterContributionList, renderFilter };
+	return { filterContributionList, renderFilter, canClaimedContributionList };
 };
 
 export default useContributionListFilter;

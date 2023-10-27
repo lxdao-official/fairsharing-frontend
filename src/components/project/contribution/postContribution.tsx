@@ -176,7 +176,6 @@ const PostContribution = ({
 				toIds: postData.contributors,
 			});
 			// UNREADY 状态
-			console.log('createContribution res', contribution);
 
 			// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
 			const offchain = await eas.getOffchain();
