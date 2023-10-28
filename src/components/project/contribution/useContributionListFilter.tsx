@@ -146,7 +146,7 @@ const useContributionListFilter = ({
 				},
 				[0, 0],
 			);
-			return forCount >= againstCount;
+			return forCount > 0 && forCount >= againstCount;
 		}
 	};
 
