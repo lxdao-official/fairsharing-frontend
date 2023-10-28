@@ -398,12 +398,10 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			const dataList: any[] = [];
 			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
-				const { id, credit, toIds } = sortCanClaimedContributionList[i];
+				const { id, credit } = sortCanClaimedContributionList[i];
 				const { voters, voteValues } = getVoteResult();
 
-				const toUserId = sortCanClaimedContributionList[0].toIds[0];
-				const toWallet = contributorList.find((item) => item.id === toUserId)
-					?.wallet as string;
+				const toWallet = toWallets[i];
 
 				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 				const data: EasSchemaData<EasSchemaClaimKey>[] = [
