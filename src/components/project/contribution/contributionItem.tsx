@@ -336,7 +336,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
 			const signature = await prepareClaim({
 				wallet: myAddress as string,
-				toWallet: toWallet,
+				toWallets: [toWallet],
 				chainId: chain?.id as number,
 				contributionIds: String(contributionId),
 			});

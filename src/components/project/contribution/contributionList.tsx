@@ -375,11 +375,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					return c1.id - c2.id;
 				},
 			);
-			const toUserId = sortCanClaimedContributionList[0].toIds[0];
-			const toWallet = contributorList.find((item) => item.id === toUserId)?.wallet as string;
+			const toWallets: string[] = [];
 			let contributionIds: string = '';
 			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
 				const contribution: IContribution = sortCanClaimedContributionList[i];
+				const toUserId = contribution.toIds[0];
+				const wallet = contributorList.find((item) => item.id === toUserId)?.wallet;
+				wallet && toWallets.push(wallet);
 				if (contributionIds.length > 0) {
 					contributionIds += `,${contribution.id}`;
 				} else {
@@ -389,15 +391,19 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			const signatures = await prepareClaim({
 				wallet: myAddress as string,
-				toWallet: toWallet,
+				toWallets,
 				chainId: network.chain?.id as number,
 				contributionIds: contributionIds,
 			});
 
 			const dataList: any[] = [];
 			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
-				const { id, credit } = sortCanClaimedContributionList[i];
+				const { id, credit, toIds } = sortCanClaimedContributionList[i];
 				const { voters, voteValues } = getVoteResult();
+
+				const toUserId = sortCanClaimedContributionList[0].toIds[0];
+				const toWallet = contributorList.find((item) => item.id === toUserId)
+					?.wallet as string;
 
 				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 				const data: EasSchemaData<EasSchemaClaimKey>[] = [

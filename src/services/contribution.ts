@@ -45,13 +45,13 @@ export const getContributionList = (params: PageListParams & { projectId: string
 	return request<PageListData<IContribution>>('contribution/list', 1, params);
 };
 
-export const prepareClaim = (query: {
+export const prepareClaim = (data: {
 	wallet: string;
-	toWallet: string;
+	toWallets: string[];
 	chainId: number;
 	contributionIds: string;
 }) => {
-	return request<string[]>(`contribution/prepareClaim`, 1, query);
+	return request.post<string[]>(`contribution/prepareClaim`, 1, data);
 };
 
 export const deleteContribution = (contributionId: number, operatorId: string) => {
