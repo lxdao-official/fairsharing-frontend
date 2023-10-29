@@ -405,7 +405,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			}
 
 			showToast('Claim success', 'success');
-			await mutateContributorList();
+			await mutateContributionList();
 		} catch (err: any) {
 			console.error('claim all error', err);
 			if (err.message) {
