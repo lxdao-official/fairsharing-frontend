@@ -23,8 +23,6 @@ import { ethers } from 'ethers';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
-import { MultiAttestationRequest } from '@ethereum-attestation-service/eas-sdk/dist/request';
-
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
@@ -314,14 +312,12 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		}
 	};
 
-	const getVoteResult = () => {
+	const getVoteResult = (uId: string) => {
 		const voters: string[] = [];
 		const voteValues: number[] = [];
-		for (const [cId, record] of Object.entries(easVoteNumberBySigner)) {
-			for (const [signer, value] of Object.entries(record)) {
-				voters.push(signer);
-				voteValues.push(value);
-			}
+		for (const [signer, value] of Object.entries(easVoteNumberBySigner[uId])) {
+			voters.push(signer);
+			voteValues.push(value);
 		}
 		return {
 			voters: voters,
@@ -365,8 +361,8 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			const dataList: any[] = [];
 			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
-				const { id, credit } = sortCanClaimedContributionList[i];
-				const { voters, voteValues } = getVoteResult();
+				const { id, credit, uId } = sortCanClaimedContributionList[i];
+				const { voters, voteValues } = getVoteResult(uId!);
 
 				const toWallet = toWallets[i];
 
@@ -511,21 +507,21 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-						.filter((item) => item.status !== Status.UNREADY)
-						.map((contribution, idx) => (
-							<ContributionItem
-								key={contribution.id}
-								contribution={contribution}
-								showSelect={showMultiSelect}
-								selected={selected}
-								onSelect={onSelect}
-								showDeleteDialog={showDeleteDialog}
-								projectDetail={projectDetail}
-								contributorList={contributorList}
-								contributionList={filterContributionList}
-								voteData={easVoteNumberBySigner[contribution.uId!] || null}
-							/>
-						))
+					.filter((item) => item.status !== Status.UNREADY)
+					.map((contribution, idx) => (
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showMultiSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							contributorList={contributorList}
+							contributionList={filterContributionList}
+							voteData={easVoteNumberBySigner[contribution.uId!] || null}
+						/>
+					))
 				: null}
 
 			<Dialog
