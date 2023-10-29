@@ -1,5 +1,5 @@
 import { MenuItem, Select, SelectChangeEvent, styled } from '@mui/material';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
 	addYears,
 	endOfMonth,
@@ -17,6 +17,7 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
 import { EasSchemaVoteKey } from '@/constant/eas';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
+import { useAccount } from 'wagmi';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -37,8 +38,6 @@ export interface IProps {
 	contributionList: IContribution[];
 	contributorList: IContributor[];
 	projectDetail?: IProject;
-	easVoteMap: Record<string, EasAttestation<EasSchemaVoteKey>[]>;
-	myVoteInfo: Record<string, number>;
 	easVoteNumberBySigner: Record<string, Record<string, IVoteValueEnum>>;
 }
 
@@ -46,10 +45,9 @@ const useContributionListFilter = ({
 	contributionList,
 	contributorList,
 	projectDetail,
-	easVoteMap,
-	myVoteInfo,
 	easVoteNumberBySigner,
 }: IProps) => {
+	const { address: myAddress } = useAccount();
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
 	const [filterVoteStatus, setFilterVoteStatus] = useState(VoteStatusEnum.All);
 	const [filterContributor, setFilterContributor] = useState('All');
@@ -88,15 +86,21 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {
-			const myVoteCids = Object.keys(myVoteInfo);
+			const myVoteCidList: string[] = [];
+			for (const [cId, value] of Object.entries(easVoteNumberBySigner)) {
+				const signers = Object.keys(value);
+				if (signers.includes(myAddress!)) {
+					myVoteCidList.push(cId);
+				}
+			}
 			if (filterVoteStatus === VoteStatusEnum.VoteByMe) {
-				return list.filter((item) => myVoteCids.includes(item.id.toString()));
+				return list.filter((item) => myVoteCidList.includes(item.uId!.toString()));
 			} else if (filterVoteStatus === VoteStatusEnum.UnVotedByMe) {
-				return list.filter((item) => !myVoteCids.includes(item.id.toString()));
+				return list.filter((item) => !myVoteCidList.includes(item.uId!.toString()));
 			}
 			return list;
 		}
@@ -121,7 +125,8 @@ const useContributionListFilter = ({
 		filterVoteStatus,
 		filterContributor,
 		projectDetail,
-		easVoteMap,
+		myAddress,
+		easVoteNumberBySigner,
 	]);
 
 	const canClaim = (contribution: IContribution) => {

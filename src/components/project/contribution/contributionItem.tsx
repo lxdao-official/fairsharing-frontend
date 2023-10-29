@@ -62,6 +62,11 @@ import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 
+/**
+ * Record<signer, IVoteValueEnum>
+ */
+export type IVoteData = Record<string, IVoteValueEnum>
+
 export interface IContributionItemProps {
 	contribution: IContribution;
 	projectDetail: IProject;
@@ -69,10 +74,9 @@ export interface IContributionItemProps {
 	selected: number[];
 	onSelect: (idList: number[]) => void;
 	showDeleteDialog: (contributionId: number) => void;
-	easVoteList: EasAttestation<EasSchemaVoteKey>[];
 	contributorList: IContributor[];
 	contributionList: IContribution[];
-	myVoteNumber?: number;
+	voteData: IVoteData | null;
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -83,10 +87,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 		showSelect,
 		showDeleteDialog,
 		projectDetail,
-		easVoteList,
 		contributorList,
-		myVoteNumber,
 		contributionList,
+		voteData,
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -103,35 +106,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
 	const [showEdit, setShowEdit] = useState(false);
-
 	const { targetTime, isEnd, timeLeft } = useCountDownTime(contribution.createAt, projectDetail.votePeriod, 10000);
-
-	const userVoteInfoMap = useMemo(() => {
-		const userVoterMap: Record<string, number[]> = {};
-		easVoteList?.forEach((vote) => {
-			const { signer } = vote.data as EasAttestationData;
-			const decodedDataJson =
-				vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
-			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
-			if (voteValueItem) {
-				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
-				if (userVoterMap[signer]) {
-					userVoterMap[signer].push(voteNumber);
-				} else {
-					userVoterMap[signer] = [voteNumber];
-				}
-			}
-		});
-		return userVoterMap;
-	}, [easVoteList]);
 
 	const voteNumbers = useMemo(() => {
 		let For = 0,
 			Against = 0,
 			Abstain = 0;
-		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
-			// 同一用户取最新投票
-			const voteNumber = value[value.length - 1];
+		for (const [signer, voteNumber] of Object.entries(voteData || {})) {
 			if (voteNumber === IVoteValueEnum.FOR) {
 				For += 1;
 			} else if (voteNumber === IVoteValueEnum.AGAINST) {
@@ -141,7 +122,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			}
 		}
 		return { For, Against, Abstain };
-	}, [userVoteInfoMap]);
+	}, [voteData]);
+
+	const myVoteNumber = useMemo(() => {
+		return voteData?.[myAddress!] || 9999;
+	}, [voteData, myAddress]);
 
 	const EasLink = useMemo(() => {
 		const activeChainConfig =
@@ -168,9 +153,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 		}
 	}, [matchContributors]);
 
-	const hasVoted = useMemo(() => {
+	const voteResult = useMemo(() => {
 		const { For, Against, Abstain } = voteNumbers;
-		return !(For === 0 && Against === 0 && Abstain === 0);
+		const hasVoted = !(For === 0 && Against === 0 && Abstain === 0);
+		const votePass = For > 0 && For >= Against;
+		return { hasVoted, votePass };
 	}, [voteNumbers]);
 
 	const operatorId = useMemo(() => {
@@ -291,11 +278,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const getVoteResult = () => {
 		const voters: string[] = [];
 		const voterValues: number[] = [];
-		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+		for (const [signer, value] of Object.entries(voteData || {})) {
 			voters.push(signer);
-			// 同一用户取最新投票
-			const lastVote = value[value.length - 1];
-			voterValues.push(lastVote);
+			voterValues.push(value);
 		}
 		return {
 			voters: voters,
@@ -474,13 +459,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<StatusText
 								contribution={contribution}
 								onClaim={handleClaim}
-								hasVoted={hasVoted}
+								hasVoted={voteResult.hasVoted}
 								isEnd={isEnd}
-								votePass={
-									hasVoted &&
-									voteNumbers.For > 0 &&
-									voteNumbers.For >= voteNumbers.Against
-								}
+								votePass={voteResult.votePass}
 								timeLeft={timeLeft}
 							/>
 							<Tooltip title="View on chain" placement="top" arrow={true}>
@@ -534,11 +515,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Pizza
 								credit={contribution.credit}
 								status={contribution.status}
-								votePass={
-									hasVoted &&
-									voteNumbers.For > 0 &&
-									voteNumbers.For >= voteNumbers.Against
-								}
+								votePass={voteResult.votePass}
 								isEnd={isEnd}
 							/>
 

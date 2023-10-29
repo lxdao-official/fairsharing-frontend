@@ -63,7 +63,7 @@ import useContributionListFilter from '@/components/project/contribution/useCont
 
 import useEas from '@/hooks/useEas';
 
-import ContributionItem from './contributionItem';
+import ContributionItem, { IVoteData } from './contributionItem';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -154,38 +154,30 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		{
 			fallbackData: [],
 			onSuccess: (data) => {
-				console.log('[EAS:toteList]', data);
+				console.log('[EAS:voteList]', data);
 			},
 			refreshInterval: 15000, // 15s刷一次
 		},
 	);
-
 	/**
-	 * 基于contribution.uID为key，将所有的投票数据分类
+	 * Record<uId, Record<signer, IVoteValueEnum>>
 	 */
-	const easVoteMap = useMemo(() => {
-		if (easVoteList.length === 0) return {};
-		const map = contributionUIds.reduce(
+	const easVoteNumberBySigner = useMemo(() => {
+		if (easVoteList.length === 0 || contributionUIds.length === 0) {
+			return {}
+		}
+		const easVoteMap = contributionUIds.reduce(
 			(pre, cur) => {
 				return {
 					...pre,
-					[cur]: [],
+					[cur]: easVoteList.filter(item => item.refUID == cur),
 				};
 			},
 			{} as Record<string, EasAttestation<EasSchemaVoteKey>[]>,
 		);
-		easVoteList.forEach((item) => {
-			map[item.refUID].push(item);
-		});
-		return map;
-	}, [easVoteList, contributionUIds]);
 
-	/**
-	 * Record<cId, Record<signer, IVoteValueEnum>>
-	 */
-	const easVoteNumberBySigner = useMemo(() => {
-		const map: Record<string, Record<string, IVoteValueEnum>> = {};
-		for (const [cId, voteList] of Object.entries(easVoteMap)) {
+		const map: Record<string, IVoteData> = {};
+		for (const [uId, voteList] of Object.entries(easVoteMap)) {
 			const signerMap: Record<string, IVoteValueEnum> = {};
 			voteList.forEach((vote) => {
 				const signer = (vote.data as EasAttestationData).signer;
@@ -195,32 +187,10 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				// 同一用户用最新的进行覆盖
 				signerMap[signer] = voteValueItem?.value.value as IVoteValueEnum;
 			});
-			map[cId] = signerMap;
+			map[uId] = signerMap;
 		}
 		return map;
-	}, [easVoteMap]);
-
-	const myVoteInfo = useMemo(() => {
-		const map: Record<string, number> = {};
-		if (!myAddress) return map;
-		easVoteList?.forEach((vote) => {
-			const { signer } = vote.data as EasAttestationData;
-			if (signer === myAddress) {
-				const decodedDataJson =
-					vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
-				const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
-				const voteNumber = voteValueItem?.value.value as IVoteValueEnum;
-				const contributionIdItem = decodedDataJson.find(
-					(item) => item.name === 'ContributionID',
-				);
-				// @ts-ignore
-				const hex = contributionIdItem?.value.value.hex as number;
-				const contributionId = ethers.toNumber(hex);
-				map[contributionId] = voteNumber;
-			}
-		});
-		return map;
-	}, [easVoteList, myAddress]);
+	}, [easVoteList, contributionUIds]);
 
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
@@ -234,8 +204,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			contributionList,
 			contributorList,
 			projectDetail,
-			easVoteMap,
-			myVoteInfo,
 			easVoteNumberBySigner,
 		});
 
@@ -244,11 +212,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
-
-	useEffect(() => {
-		console.log('filterContributionList', filterContributionList);
-		console.log('canClaimedContributionList', canClaimedContributionList);
-	}, [canClaimedContributionList, filterContributionList]);
 
 	const fetchContributionList = async (projectId: string) => {
 		try {
@@ -280,6 +243,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			console.error('EAS Data[graphql] -> getEASContributionList error', err);
 		}
 	};
+
 	const fetchEasVoteList = async (uIds: string[]) => {
 		if (uIds.length === 0) return Promise.resolve([]);
 		try {
@@ -557,10 +521,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 							onSelect={onSelect}
 							showDeleteDialog={showDeleteDialog}
 							projectDetail={projectDetail}
-							easVoteList={easVoteMap[contribution.uId as string]}
-							myVoteNumber={myVoteInfo[contribution.id]}
 							contributorList={contributorList}
 							contributionList={filterContributionList}
+							voteData={easVoteNumberBySigner[contribution.uId!] || null}
 						/>
 					))
 				: null}

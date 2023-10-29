@@ -79,7 +79,7 @@ const StatusText = (props: IStatusTextProps) => {
 				setCursor('not-allowed');
 			}
 		}
-	}, [status, hasVoted, isEnd, countdownText, votePass]);
+	}, [status, isEnd, countdownText, votePass]);
 
 	const handleClaim = () => {
 		if (!isEnd) {
