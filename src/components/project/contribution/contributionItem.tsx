@@ -65,7 +65,7 @@ import useCountDownTime from '@/hooks/useCountdownTime';
 /**
  * Record<signer, IVoteValueEnum>
  */
-export type IVoteData = Record<string, IVoteValueEnum>
+export type IVoteData = Record<string, IVoteValueEnum>;
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -106,7 +106,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
 	const [showEdit, setShowEdit] = useState(false);
-	const { targetTime, isEnd, timeLeft } = useCountDownTime(contribution.createAt, projectDetail.votePeriod, 10000);
+	const { targetTime, isEnd, timeLeft } = useCountDownTime(
+		contribution.createAt,
+		projectDetail.votePeriod,
+		10000,
+	);
 
 	const voteNumbers = useMemo(() => {
 		let For = 0,

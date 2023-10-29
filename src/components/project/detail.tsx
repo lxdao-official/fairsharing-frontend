@@ -13,7 +13,7 @@ export default function ProjectDetail() {
 		getProjectList({
 			currentPage: 1,
 			pageSize: 20,
-		})
+		});
 	}, []);
 
 	return <div>My Project: {pathname}</div>;

@@ -164,13 +164,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	 */
 	const easVoteNumberBySigner = useMemo(() => {
 		if (easVoteList.length === 0 || contributionUIds.length === 0) {
-			return {}
+			return {};
 		}
 		const easVoteMap = contributionUIds.reduce(
 			(pre, cur) => {
 				return {
 					...pre,
-					[cur]: easVoteList.filter(item => item.refUID == cur),
+					[cur]: easVoteList.filter((item) => item.refUID == cur),
 				};
 			},
 			{} as Record<string, EasAttestation<EasSchemaVoteKey>[]>,
@@ -511,21 +511,21 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-					.filter((item) => item.status !== Status.UNREADY)
-					.map((contribution, idx) => (
-						<ContributionItem
-							key={contribution.id}
-							contribution={contribution}
-							showSelect={showMultiSelect}
-							selected={selected}
-							onSelect={onSelect}
-							showDeleteDialog={showDeleteDialog}
-							projectDetail={projectDetail}
-							contributorList={contributorList}
-							contributionList={filterContributionList}
-							voteData={easVoteNumberBySigner[contribution.uId!] || null}
-						/>
-					))
+						.filter((item) => item.status !== Status.UNREADY)
+						.map((contribution, idx) => (
+							<ContributionItem
+								key={contribution.id}
+								contribution={contribution}
+								showSelect={showMultiSelect}
+								selected={selected}
+								onSelect={onSelect}
+								showDeleteDialog={showDeleteDialog}
+								projectDetail={projectDetail}
+								contributorList={contributorList}
+								contributionList={filterContributionList}
+								voteData={easVoteNumberBySigner[contribution.uId!] || null}
+							/>
+						))
 				: null}
 
 			<Dialog

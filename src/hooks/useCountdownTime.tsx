@@ -11,10 +11,7 @@ function useCountDownTime(baseTime: string | number, period: string | number, in
 	const [now, setNow] = useState(Date.now());
 
 	const targetTime = useMemo(() => {
-		return (
-			new Date(baseTime).getTime() +
-			Number(period) * 24 * 60 * 60 * 1000
-		);
+		return new Date(baseTime).getTime() + Number(period) * 24 * 60 * 60 * 1000;
 	}, [baseTime, period]);
 
 	const isEnd = useMemo(() => {

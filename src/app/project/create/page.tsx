@@ -179,7 +179,7 @@ export default function Page() {
 	const getOwnerLatestProject = async () => {
 		try {
 			const contract = new ethers.Contract(
-				`${process.env.NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER}`,
+				ContractAddressMap.ProjectRegistry,
 				ProjectRegisterABI,
 				signer,
 			);

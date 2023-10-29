@@ -13,11 +13,11 @@ import {
 
 import { startOfMonth } from 'date-fns/fp';
 
-import { StyledFlexBox } from '@/components/styledComponents';
-import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
-import { EasSchemaVoteKey } from '@/constant/eas';
-import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 import { useAccount } from 'wagmi';
+
+import { StyledFlexBox } from '@/components/styledComponents';
+import { IContribution, IContributor, IProject, Status } from '@/services';
+import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -86,7 +86,7 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {

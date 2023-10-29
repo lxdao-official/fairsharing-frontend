@@ -21,14 +21,7 @@ enum StatusColorEnum {
 }
 
 const StatusText = (props: IStatusTextProps) => {
-	const {
-		contribution,
-		onClaim,
-		hasVoted,
-		votePass,
-		timeLeft,
-		isEnd,
-	} = props;
+	const { contribution, onClaim, hasVoted, votePass, timeLeft, isEnd } = props;
 
 	const { status } = contribution;
 	const [showText, setShowText] = useState('');

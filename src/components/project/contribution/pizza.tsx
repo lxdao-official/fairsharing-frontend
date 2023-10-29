@@ -10,7 +10,7 @@ export interface IPizzaProps {
 	credit: number;
 	status: Status;
 	votePass: boolean;
-	isEnd: boolean
+	isEnd: boolean;
 }
 
 const TextColor = {
@@ -32,7 +32,7 @@ const Border = {
 };
 
 const Pizza = (props: IPizzaProps) => {
-	const { credit, status,isEnd, votePass } = props;
+	const { credit, status, isEnd, votePass } = props;
 
 	const canClaim = useMemo(() => {
 		if (status === Status.READY && isEnd && votePass) {
