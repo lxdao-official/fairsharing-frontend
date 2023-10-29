@@ -2,15 +2,16 @@ import { Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 
 import { IContribution, Status } from '@/services/types';
-import useCountdown from '@/hooks/useCountdown';
 import { showToast } from '@/store/utils';
+import { ITimeLeft } from '@/hooks/useCountdownTime';
 
 export interface IStatusTextProps {
 	contribution: IContribution;
 	onClaim: () => void;
 	hasVoted: boolean;
 	votePass: boolean;
-	targetTime: number;
+	isEnd: boolean;
+	timeLeft: ITimeLeft;
 }
 
 enum StatusColorEnum {
@@ -19,24 +20,38 @@ enum StatusColorEnum {
 	RED = '#D32F2F',
 }
 
-const StatusText = ({
-	contribution,
-	onClaim,
-	hasVoted,
-	targetTime,
-	votePass,
-}: IStatusTextProps) => {
-	const { status } = contribution;
-	const { days, hours, minutes, seconds, isEnd } = useCountdown(targetTime);
-	const [countdownText, setCountdownText] = useState('');
+const StatusText = (props: IStatusTextProps) => {
+	const {
+		contribution,
+		onClaim,
+		hasVoted,
+		votePass,
+		timeLeft,
+		isEnd,
+	} = props;
 
+	const { status } = contribution;
 	const [showText, setShowText] = useState('');
 	const [color, setColor] = useState(StatusColorEnum.GRAY);
 	const [cursor, setCursor] = useState('wait');
 
-	useEffect(() => {
-		setCountdownText(getCountDownText(days, hours, minutes, seconds));
-	}, [days, hours, minutes, seconds]);
+	const countdownText = useMemo(() => {
+		const { days, hours, minutes, seconds } = timeLeft;
+		if (isEnd) {
+			return 'Vote ended';
+		}
+		if (days > 0) {
+			return `Vote ends in ${days}d ${hours}h`;
+		} else if (hours > 0) {
+			return `Vote ends in ${hours}h ${minutes}m`;
+		} else if (minutes > 0) {
+			return `Vote ends in ${minutes}m`;
+		} else if (seconds > 0) {
+			return `Vote ends in 1m`;
+		} else {
+			return 'Vote is ended';
+		}
+	}, [timeLeft, isEnd]);
 
 	useEffect(() => {
 		if (status === Status.UNREADY) {
@@ -65,23 +80,6 @@ const StatusText = ({
 			}
 		}
 	}, [status, hasVoted, isEnd, countdownText, votePass]);
-
-	const getCountDownText = (days: number, hours: number, minutes: number, seconds: number) => {
-		if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
-			return 'Vote ended';
-		}
-		if (days > 0) {
-			return `Vote ends in ${days}d ${hours}h`;
-		} else if (hours > 0) {
-			return `Vote ends in ${hours}h ${minutes}m`;
-		} else if (minutes > 0) {
-			return `Vote ends in ${minutes}m ${seconds}s`;
-		} else if (seconds > 0) {
-			return `Vote ends in ${seconds}s`;
-		} else {
-			return 'Vote is ended';
-		}
-	};
 
 	const handleClaim = () => {
 		if (!isEnd) {

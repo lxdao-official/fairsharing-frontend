@@ -54,13 +54,13 @@ import {
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
-import useCountdown from '@/hooks/useCountdown';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
+import useCountDownTime from '@/hooks/useCountdownTime';
 
 export interface IContributionItemProps {
 	contribution: IContribution;
@@ -104,8 +104,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openContributor, setOpenContributor] = useState(false);
 	const [showEdit, setShowEdit] = useState(false);
 
-	const targetTime = useCountdownTarget(contribution, projectDetail);
-	const { isEnd } = useCountdown(targetTime);
+	const { targetTime, isEnd, timeLeft } = useCountDownTime(contribution.createAt, projectDetail.votePeriod, 10000);
 
 	const userVoteInfoMap = useMemo(() => {
 		const userVoterMap: Record<string, number[]> = {};
@@ -475,13 +474,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<StatusText
 								contribution={contribution}
 								onClaim={handleClaim}
-								targetTime={targetTime}
 								hasVoted={hasVoted}
+								isEnd={isEnd}
 								votePass={
 									hasVoted &&
 									voteNumbers.For > 0 &&
 									voteNumbers.For >= voteNumbers.Against
 								}
+								timeLeft={timeLeft}
 							/>
 							<Tooltip title="View on chain" placement="top" arrow={true}>
 								<Link
@@ -534,12 +534,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Pizza
 								credit={contribution.credit}
 								status={contribution.status}
-								targetTime={targetTime}
 								votePass={
 									hasVoted &&
 									voteNumbers.For > 0 &&
 									voteNumbers.For >= voteNumbers.Against
 								}
+								isEnd={isEnd}
 							/>
 
 							{/*proof*/}
@@ -668,17 +668,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 };
 
 export default ContributionItem;
-
-export function useCountdownTarget(contribution: IContribution, projectDetail: IProject) {
-	const targetTime = useMemo(() => {
-		return (
-			new Date(contribution.createAt).getTime() +
-			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
-		);
-	}, [contribution.createAt, projectDetail.votePeriod]);
-
-	return targetTime;
-}
 
 export const CustomHoverButton = styled(StyledFlexBox)({
 	borderRadius: 4,

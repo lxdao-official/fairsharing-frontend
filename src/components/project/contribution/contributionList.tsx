@@ -109,7 +109,6 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const { address: myAddress } = useAccount();
 	const { eas } = useEas();
 
-	const [claimTotal, getClaimTotal] = useState(0);
 	const [showFilter, setShowFilter] = useState(false);
 	const [showMultiSelect, setShowMultiSelect] = useState(false);
 
@@ -121,7 +120,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		['project/detail', projectId],
 		() => getProjectDetail(projectId),
 		{
-			onSuccess: (data) => console.log('[useSWR] -> getProjectDetail', data),
+			onSuccess: (data) => console.log('[projectDetail]', data),
 		},
 	);
 
@@ -130,7 +129,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		() => getContributorList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('[useSWR] -> getContributorList', data),
+			onSuccess: (data) => console.log('[contributorList]', data),
 		},
 	);
 
@@ -139,7 +138,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		() => fetchContributionList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('[useSWR] -> fetchContributionList', data),
+			onSuccess: (data) => console.log('[contributionList]', data),
 		},
 	);
 
@@ -154,7 +153,10 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		() => fetchEasVoteList(contributionUIds),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('[useSWR EAS] -> fetchEasVoteList', data),
+			onSuccess: (data) => {
+				console.log('[EAS:toteList]', data);
+			},
+			refreshInterval: 15000, // 15s刷一次
 		},
 	);
 
@@ -244,8 +246,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	}, [projectId]);
 
 	useEffect(() => {
+		console.log('filterContributionList', filterContributionList);
 		console.log('canClaimedContributionList', canClaimedContributionList);
-	}, [canClaimedContributionList]);
+	}, [canClaimedContributionList, filterContributionList]);
 
 	const fetchContributionList = async (projectId: string) => {
 		try {
@@ -363,7 +366,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	};
 
 	const claimHandler = async () => {
-		if (!canClaimedContributionList || canClaimedContributionList.length == 0) {
+		if (!canClaimedContributionList || canClaimedContributionList.length === 0) {
 			return;
 		}
 		try {
@@ -544,22 +547,22 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-						.filter((item) => item.status !== Status.UNREADY)
-						.map((contribution, idx) => (
-							<ContributionItem
-								key={contribution.id}
-								contribution={contribution}
-								showSelect={showMultiSelect}
-								selected={selected}
-								onSelect={onSelect}
-								showDeleteDialog={showDeleteDialog}
-								projectDetail={projectDetail}
-								easVoteList={easVoteMap[contribution.uId as string]}
-								myVoteNumber={myVoteInfo[contribution.id]}
-								contributorList={contributorList}
-								contributionList={filterContributionList}
-							/>
-						))
+					.filter((item) => item.status !== Status.UNREADY)
+					.map((contribution, idx) => (
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showMultiSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							easVoteList={easVoteMap[contribution.uId as string]}
+							myVoteNumber={myVoteInfo[contribution.id]}
+							contributorList={contributorList}
+							contributionList={filterContributionList}
+						/>
+					))
 				: null}
 
 			<Dialog

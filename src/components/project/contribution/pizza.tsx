@@ -4,14 +4,13 @@ import { useMemo } from 'react';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { Status } from '@/services/types';
-import useCountdown from '@/hooks/useCountdown';
 import { PizzaGrayIcon, PizzaOrangeIcon } from '@/icons';
 
 export interface IPizzaProps {
 	credit: number;
 	status: Status;
 	votePass: boolean;
-	targetTime: number;
+	isEnd: boolean
 }
 
 const TextColor = {
@@ -33,9 +32,7 @@ const Border = {
 };
 
 const Pizza = (props: IPizzaProps) => {
-	const { credit, status, targetTime, votePass } = props;
-
-	const { isEnd } = useCountdown(targetTime);
+	const { credit, status,isEnd, votePass } = props;
 
 	const canClaim = useMemo(() => {
 		if (status === Status.READY && isEnd && votePass) {
