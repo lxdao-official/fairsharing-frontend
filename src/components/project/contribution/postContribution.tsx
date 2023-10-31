@@ -1,6 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Autocomplete, Button, styled, TextField, Typography } from '@mui/material';
+import {
+	Autocomplete,
+	Button,
+	InputAdornment,
+	Paper,
+	Popover,
+	styled,
+	TextField,
+	Tooltip,
+	Typography,
+} from '@mui/material';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -30,6 +40,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
+import MiniContributorList from '@/components/project/contribution/miniContributorList';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -53,6 +64,8 @@ export interface AutoCompleteValue {
 	id: string;
 }
 
+const TokenTips = '$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there\'s no limit to their supply.\n';
+
 const PostContribution = ({
 	projectId,
 	contribution,
@@ -68,13 +81,13 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
 			: null,
 	);
-
+	const [showTokenTip, setShowTokenTip] = useState(false);
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
@@ -248,6 +261,12 @@ const PostContribution = ({
 	const onEditContribution = async (postData: PostData) => {
 		showToast('Edit contribution is in progress, please wait.', 'warning');
 	};
+	const onFocusTokenInput = (event: React.FocusEvent<HTMLInputElement>) => {
+		setShowTokenTip(true);
+	};
+	const onBlurTokenInput = () => {
+		setShowTokenTip(false);
+	};
 
 	return (
 		<PostContainer>
@@ -279,13 +298,6 @@ const PostContribution = ({
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
-				{/*多选*/}
-				{/*<MultipleContributorSelector*/}
-				{/*	contributors={contributors}*/}
-				{/*	contributorList={contributorList}*/}
-				{/*	onChange={handleContributorChange}*/}
-				{/*/>*/}
-				{/*单选*/}
 				<Autocomplete
 					id="contributor-select"
 					sx={{
@@ -318,16 +330,37 @@ const PostContribution = ({
 
 			<CreditContainer>
 				<PizzaGrayIcon width={24} height={24} />
-				<StyledInput
-					sx={{ marginLeft: '4px', marginTop: '4px' }}
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
-					value={credit}
-					size={'small'}
-					onChange={handleCreditInputChange}
-					placeholder={'Pizza slices, e.g. 120'}
-				/>
+				<Tooltip title={
+					<ToolTipContainer>
+						<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
+						<Typography variant={'body1'}>{TokenTips}</Typography>
+					</ToolTipContainer>
+				} placement="bottom" arrow={true} open={showTokenTip}>
+					<StyledInput
+						sx={{ marginLeft: '4px', marginTop: '4px' }}
+						variant={'standard'}
+						required
+						onChange={handleCreditInputChange}
+						value={credit}
+						size={'small'}
+						placeholder={'$LXFS tokens, e.g. 60'}
+						onFocus={onFocusTokenInput}
+						onBlur={onBlurTokenInput}
+						InputProps={{
+							disableUnderline: true,
+							startAdornment: credit ? (
+								<InputAdornment position="start">
+									<Typography variant="body1">$</Typography>
+								</InputAdornment>
+							) : null,
+							endAdornment: credit ? (
+								<InputAdornment position="end">
+									<Typography variant="body1">tokens</Typography>
+								</InputAdornment>
+							) : null,
+						}}
+					/>
+				</Tooltip>
 			</CreditContainer>
 
 			<PostButton>
@@ -379,7 +412,7 @@ const StyledInput = styled(TextField)({
 const CreditContainer = styled(StyledFlexBox)({
 	justifyContent: 'center',
 	marginTop: '8px',
-	width: '200px',
+	width: '220px',
 	height: '30px',
 	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
@@ -389,3 +422,8 @@ const CreditContainer = styled(StyledFlexBox)({
 const BaseButton = styled(Button)({
 	minWidth: '64px',
 });
+
+const ToolTipContainer = styled('div')({
+	padding: '8px 12px',
+	backgroundColor: 'rgba(51, 65, 85, 0.9)'
+})
