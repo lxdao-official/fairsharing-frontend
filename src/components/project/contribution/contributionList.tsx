@@ -205,6 +205,12 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 			easVoteNumberBySigner,
 		});
 
+	const canClaimTotalCredit = useMemo(() => {
+		return canClaimedContributionList.reduce((pre, cur) => {
+			return pre + cur.credit;
+		}, 0);
+	}, [canClaimedContributionList]);
+
 	useEffect(() => {
 		mutateProjectDetail();
 		mutateContributorList();
@@ -432,7 +438,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 							sx={{ marginLeft: '16px' }}
 							onClick={claimHandler}
 						>
-							Claim({canClaimedContributionList.length})
+							Claim ({canClaimTotalCredit})
 						</Button>
 					</StyledFlexBox>
 				</StyledFlexBox>
