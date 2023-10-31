@@ -117,6 +117,7 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
+		setValue(null);
 		setContributors([]);
 		setCredit('');
 	};
