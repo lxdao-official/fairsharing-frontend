@@ -227,16 +227,15 @@ export default function Page() {
 				<Box sx={{ maxWidth: 200 }}>
 					<Stepper activeStep={activeStep} orientation="vertical">
 						{steps.map((step, index) => (
-							<Step sx={{ cursor: 'pointer' }} key={step.label}>
+							<Step sx={{ cursor: 'pointer' }} key={step.label} onClick={() => handleClickStepLabel(index)}>
 								<StepLabel
-									onClick={() => handleClickStepLabel(index)}
 									StepIconProps={{
 										sx: {
 											'& text': {
 												fill: activeStep >= index ? '#fff' : '#CBD5E1',
 											},
 											borderColor: activeStep >= index ? '#000' : '#CBD5E1',
-											background: activeStep >= index ? '#000' : '#fff',
+											// background: activeStep >= index ? '#000' : '#fff',
 										},
 									}}
 								>
