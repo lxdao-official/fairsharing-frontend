@@ -171,6 +171,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
+	const isOwner = useMemo(() => {
+		return contribution.ownerId === operatorId;
+	}, [contribution.ownerId, operatorId]);
+
 	const contributionUIds = useMemo(() => {
 		return contributionList
 			.filter((contribution) => !!contribution.uId)
@@ -494,14 +498,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 										<List>
 											{isEnd ? null : (
 												<ListItem disablePadding>
-													<ListItemButton onClick={onEdit}>
+													<ListItemButton onClick={onEdit} disabled={!isOwner}>
 														Edit
 													</ListItemButton>
 												</ListItem>
 											)}
 
 											<ListItem disablePadding>
-												<ListItemButton onClick={onDelete}>
+												<ListItemButton onClick={onDelete} disabled={!isOwner}>
 													Revoke
 												</ListItemButton>
 											</ListItem>
