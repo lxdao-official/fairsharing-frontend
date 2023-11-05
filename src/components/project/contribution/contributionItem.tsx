@@ -237,7 +237,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
 			const data: EasSchemaData<EasSchemaVoteKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contributionId)), type: 'bytes32' },
 				{ name: 'VoteChoice', value: value, type: 'uint8' },
 				{ name: 'Comment', value: 'Good contribution', type: 'string' },
 			];
@@ -336,7 +336,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 			const data: EasSchemaData<EasSchemaClaimKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contributionId)), type: 'bytes32' },
 				{ name: 'Voters', value: voters, type: 'address[]' },
 				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 				{ name: 'Recipient', value: myAddress, type: 'address' },

@@ -375,7 +375,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 				const data: EasSchemaData<EasSchemaClaimKey>[] = [
 					{ name: 'ProjectAddress', value: projectDetail?.id, type: 'address' },
-					{ name: 'ContributionID', value: id, type: 'uint64' },
+					{ name: 'ContributionID', value: ethers.encodeBytes32String(String(id)), type: 'bytes32' },
 					{ name: 'Voters', value: voters, type: 'address[]' },
 					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 					{ name: 'Recipient', value: toWallet, type: 'address' },

@@ -47,10 +47,10 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	},
 ];
 
+/**
+ * 本地开发，使用.env.local里的变量
+ */
 export const EasSchemaMap = {
-	// contribution: '0xa7dca651e011d44363742bddfde1f72c5cec536858589b89778efc5bcdff868b',
-	// vote: '0x1654a49365e83e920d7444dc48423cf16be33f9f902dca8500d00766cb9b8fd2',
-	// claim: '0x7cc6a5995560f61cf4f77c00facfc83f93ec3ca95aad9a57e80504efb92a438a',
 	contribution: process.env.NEXT_PUBLIC_EAS_SCHEMA_CONTRIBUTION as string,
 	vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
 	claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
@@ -58,17 +58,16 @@ export const EasSchemaMap = {
 
 export const EasSchemaTemplateMap = {
 	contribution:
-		'address ProjectAddress, bytes32 ContributionID, string Details, string Type, string Proof, uint256 StartDate, uint256 EndDate, uint256 TokenAmount, string Extended',
+		'address ProjectAddress, bytes32 ContributionID, string Detail, string Type, string Proof, uint256 StartDate, uint256 EndDate, uint256 TokenAmount, string Extended',
 	vote: 'address ProjectAddress, bytes32 ContributionID, uint8 VoteChoice, string Comment',
 	claim: 'address ProjectAddress, bytes32 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 TokenAmount, bytes Signatures',
 };
 
 
-// TODO 更新Schema字段类型
 export type EasSchemaContributionKey =
 	| 'ProjectAddress'
 	| 'ContributionID'
-	| 'Details'
+	| 'Detail'
 	| 'Type'
 	| 'Proof'
 	| 'StartDate'

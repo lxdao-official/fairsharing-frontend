@@ -143,6 +143,7 @@ const PostContribution = ({
 				projectId: '****',
 				color: 'red',
 			}],
+			onSuccess: (data) => console.log('contributionType', data),
 		},
 	);
 
@@ -273,8 +274,8 @@ const PostContribution = ({
 
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
-				{ name: 'ContributionID', value: contribution.id, type: 'uint64' },
-				{ name: 'Details', value: postData.detail, type: 'string' },
+				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contribution.id)), type: 'bytes32' },
+				{ name: 'Detail', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: 'default contribution type', type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
 				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
