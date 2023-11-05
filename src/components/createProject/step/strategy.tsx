@@ -133,7 +133,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				value={symbol}
 				placeholder={'Token Symbol *'}
 				onChange={handleSymbolInputChange}
-				sx={{ display: 'block', minWidth: '' }}
+				sx={{ display: 'block', minWidth: '', width: '200px' }}
 				error={symbolError}
 				disabled={isSettingPage}
 			/>
@@ -144,7 +144,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				value={network.toString()}
 				onChange={handleNetworkChange}
 				placeholder={'Select network'}
-				sx={{ width: '320px', marginTop: '32px' }}
+				sx={{ minWidth: '', marginTop: '32px', width: '200px' }}
 				disabled={isSettingPage}
 			>
 				<MenuItem value={'10'}>Optimism</MenuItem>
@@ -160,6 +160,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					onChange={handlePeriodInputChange}
 					error={periodError}
 					disabled={!canEdit}
+					sx={{ display: 'block', minWidth: '', width: '200px' }}
 				/>
 				<span style={{ marginLeft: '12px' }}>days</span>
 			</div>
@@ -199,99 +200,107 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				</RadioGroup>
 			</FormControl>
 
-			{
-				voteSystem !== '1' ? <>
-					<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>Voting approved: </Typography>
+			<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>Voting approved: </Typography>
 
-					<FormControl>
-						{/*<FormLabel id="demo-controlled-radio-buttons-group">Gender</FormLabel>*/}
-						<RadioGroup
-							aria-labelledby="demo-controlled-radio-buttons-group"
-							name="controlled-radio-buttons-group"
-							value={voteApproveType}
-							onChange={handleVoteApproveChange}
-						>
-							<FormControlLabel
-								value="1"
-								sx={{ marginTop: '12px' }}
-								control={<Radio />}
-								label={
-									<>
-										<Typography variant={'subtitle2'}>Number of for ≥ number of
-											against（Requirement: for ≥ 1)</Typography>
-										<Typography variant={'body2'} color={'#64748B'}>No votes, or
-											equally split between for and against.</Typography>
-									</>
-								} />
-							<FormControlLabel
-								value="2"
-								sx={{ marginTop: '20px' }}
-								control={<Radio />}
-								label={
+			<FormControl>
+				<RadioGroup
+					aria-labelledby="demo-controlled-radio-buttons-group"
+					name="controlled-radio-buttons-group"
+					value={voteApproveType}
+					onChange={handleVoteApproveChange}
+				>
+					<FormControlLabel
+						value="1"
+						sx={{ marginTop: '12px' }}
+						control={<Radio />}
+						label={
+							<>
+								<Typography variant={'subtitle2'}>Number of for {'>'} number of against</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>The majority wins the vote, regardless of the total votes.</Typography>
+							</>
+						}
+					/>
+					<FormControlLabel
+						value="2"
+						sx={{ marginTop: '12px' }}
+						control={<Radio />}
+						label={
+							<>
+								<Typography variant={'subtitle2'}>Number of for ≥ number of
+									against（Requirement: for ≥ 1)</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>No votes, or
+									equally split between for and against.</Typography>
+							</>
+						}
+					/>
+					<FormControlLabel
+						value="3"
+						sx={{ marginTop: '20px' }}
+						control={<Radio />}
+						label={
 
-									<>
-										<StyledFlexBox>
-											<Typography variant={'subtitle2'}>Number of for / total votes *
-												100% ≥ </Typography>
-											<TextField
-												sx={{ marginLeft: '12px', width: '60px' }}
-												variant={'standard'}
-												required
-												onChange={handleForWeightInputChange}
-												value={forWeightOfTotal}
-												size={'small'}
-												placeholder={'50.00'}
-												InputProps={{
-													disableUnderline: true,
-													endAdornment: (
-														<InputAdornment position="end">
-															<Typography variant="body1">%</Typography>
-														</InputAdornment>
-													),
-												}}
-											/>
-										</StyledFlexBox>
-										<Typography variant={'body2'} color={'#64748B'}>The ratio of "for"
-											votes to the total votes satisfies a specified
-											threshold.</Typography>
-									</>
-								} />
-							<FormControlLabel
-								value="3" sx={{ marginTop: '20px' }}
-								control={<Radio />}
-								label={
-									<>
-										<StyledFlexBox>
-											<Typography variant={'subtitle2'}>(Number of for - number of
-												against) / total votes * 100% ≥ </Typography>
+							<>
+								<StyledFlexBox>
+									<Typography variant={'subtitle2'}>Number of for / total votes *
+										100% ≥ </Typography>
+									<TextField
+										sx={{ marginLeft: '12px', width: '60px' }}
+										variant={'standard'}
+										required
+										onChange={handleForWeightInputChange}
+										value={forWeightOfTotal}
+										size={'small'}
+										placeholder={'50.00'}
+										InputProps={{
+											disableUnderline: true,
+											endAdornment: (
+												<InputAdornment position="end">
+													<Typography variant="body1">%</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</StyledFlexBox>
+								<Typography variant={'body2'} color={'#64748B'}>The ratio of "for"
+									votes to the total votes satisfies a specified
+									threshold.</Typography>
+							</>
+						} />
+					<FormControlLabel
+						value="4"
+						sx={{ marginTop: '20px' }}
+						control={<Radio />}
+						label={
+							<>
+								<StyledFlexBox>
+									<Typography variant={'subtitle2'}>(Number of for - number of
+										against) / total votes * 100% ≥ </Typography>
 
-											<TextField
-												sx={{ marginLeft: '12px', width: '60px' }}
-												variant={'standard'}
-												required
-												onChange={handleDifferWeightInputChange}
-												value={differWeightOfTotal}
-												size={'small'}
-												placeholder={'50.00'}
-												InputProps={{
-													disableUnderline: true,
-													endAdornment: (
-														<InputAdornment position="end">
-															<Typography variant="body1">%</Typography>
-														</InputAdornment>
-													),
-												}}
-											/>
-										</StyledFlexBox>
-										<Typography variant={'body2'} color={'#64748B'}>The ratio of
-											"for-against" votes to the total votes satisfies a specified
-											threshold.</Typography>
-									</>
-								} />
-						</RadioGroup>
-					</FormControl>
-				</> : null
-			}
+									<TextField
+										sx={{ marginLeft: '12px', width: '60px' }}
+										variant={'standard'}
+										required
+										onChange={handleDifferWeightInputChange}
+										value={differWeightOfTotal}
+										size={'small'}
+										placeholder={'50.00'}
+										InputProps={{
+											disableUnderline: true,
+											endAdornment: (
+												<InputAdornment position="end">
+													<Typography variant="body1">%</Typography>
+												</InputAdornment>
+											),
+										}}
+									/>
+								</StyledFlexBox>
+								<Typography variant={'body2'} color={'#64748B'}>The ratio of
+									"for-against" votes to the total votes satisfies a specified
+									threshold.</Typography>
+							</>
+						} />
+				</RadioGroup>
+			</FormControl>
 
 			<ButtonGroup
 				canEdit={canEdit}
