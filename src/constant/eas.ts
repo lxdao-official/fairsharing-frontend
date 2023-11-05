@@ -58,18 +58,23 @@ export const EasSchemaMap = {
 
 export const EasSchemaTemplateMap = {
 	contribution:
-		'address ProjectAddress, uint64 ContributionID, string Detail, string Type, string Proof, uint256 Token',
-	vote: 'address ProjectAddress, uint64 ContributionID, uint8 VoteChoice, string Comment',
-	claim: 'address ProjectAddress, uint64 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 Token, bytes Signatures',
+		'address ProjectAddress, bytes32 ContributionID, string Details, string Type, string Proof, uint256 StartDate, uint256 EndDate, uint256 TokenAmount, string Extended',
+	vote: 'address ProjectAddress, bytes32 ContributionID, uint8 VoteChoice, string Comment',
+	claim: 'address ProjectAddress, bytes32 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 TokenAmount, bytes Signatures',
 };
 
+
+// TODO 更新Schema字段类型
 export type EasSchemaContributionKey =
 	| 'ProjectAddress'
 	| 'ContributionID'
-	| 'Detail'
+	| 'Details'
 	| 'Type'
 	| 'Proof'
-	| 'Token';
+	| 'StartDate'
+	| 'EndDate'
+	| 'TokenAmount'
+	| 'Extended'
 export type EasSchemaVoteKey = 'ProjectAddress' | 'ContributionID' | 'VoteChoice' | 'Comment';
 export type EasSchemaClaimKey =
 	| 'ProjectAddress'
@@ -77,7 +82,7 @@ export type EasSchemaClaimKey =
 	| 'Voters'
 	| 'VoteChoices'
 	| 'Recipient'
-	| 'Token'
+	| 'TokenAmount'
 	| 'Signatures';
 
 export type EasSchemaData<T> = {
