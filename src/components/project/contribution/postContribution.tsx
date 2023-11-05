@@ -11,6 +11,9 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -40,7 +43,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
-import { endOfDay, startOfDay } from 'date-fns';
+import { endOfDay, format, startOfDay } from 'date-fns';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -88,6 +91,10 @@ const PostContribution = ({
 			: null,
 	);
 	const [showTokenTip, setShowTokenTip] = useState(false);
+
+	const [startDate, setStartDate] = useState<Date>(new Date());
+	const [endDate, setEndDate] = useState<Date>(new Date());
+
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
@@ -309,7 +316,11 @@ const PostContribution = ({
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#date</TagLabel>
-				组件待补充
+				<LocalizationProvider dateAdapter={AdapterDateFns}>
+					<DatePicker label={'Start Date'} value={startDate} onChange={date => setStartDate(date!)} />
+					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>to</Typography>
+					<DatePicker label={'End Date'} value={endDate} onChange={(date) => setEndDate(date!)} />
+				</LocalizationProvider>
 			</StyledFlexBox>
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>

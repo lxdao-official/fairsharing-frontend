@@ -2247,21 +2247,7 @@
     prop-types "^15.8.1"
     reselect "^4.1.8"
 
-"@mui/x-date-pickers-pro@^6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@mui/x-date-pickers-pro/-/x-date-pickers-pro-6.18.0.tgz#d40f0e8a7f3cad7045cfd55eee158f132d297a2a"
-  integrity sha512-Fk1txiINyBLndu04tezdu+7FqoDf4AdamkK2z/R5YSUKA8tpjh+B6LSlvKN+4og3S6BpNHgrXqMLR3WXqP6tgQ==
-  dependencies:
-    "@babel/runtime" "^7.23.2"
-    "@mui/base" "^5.0.0-beta.22"
-    "@mui/utils" "^5.14.16"
-    "@mui/x-date-pickers" "6.18.0"
-    "@mui/x-license-pro" "6.10.2"
-    clsx "^2.0.0"
-    prop-types "^15.8.1"
-    react-transition-group "^4.4.5"
-
-"@mui/x-date-pickers@6.18.0":
+"@mui/x-date-pickers@^6.18.0":
   version "6.18.0"
   resolved "https://registry.npmjs.org/@mui/x-date-pickers/-/x-date-pickers-6.18.0.tgz#3bc439d246315e957858f08a8c4a3a8fbe95adfd"
   integrity sha512-y4UlkHQXiNRfb6FWQ/GWir0sZ+9kL+GEEZssG+XWP3KJ+d3lONRteusl4AJkYJBdIAOh+5LnMV9RAQKq9Sl7yw==
@@ -2273,14 +2259,6 @@
     clsx "^2.0.0"
     prop-types "^15.8.1"
     react-transition-group "^4.4.5"
-
-"@mui/x-license-pro@6.10.2":
-  version "6.10.2"
-  resolved "https://registry.npmjs.org/@mui/x-license-pro/-/x-license-pro-6.10.2.tgz#68b069214efb085f7f8c34b73d450743857e0aea"
-  integrity sha512-Baw3shilU+eHgU+QYKNPFUKvfS5rSyNJ98pQx02E0gKA22hWp/XAt88K1qUfUMPlkPpvg/uci6gviQSSLZkuKw==
-  dependencies:
-    "@babel/runtime" "^7.22.6"
-    "@mui/utils" "^5.13.7"
 
 "@mui/x-tree-view@6.0.0-alpha.1":
   version "6.0.0-alpha.1"
