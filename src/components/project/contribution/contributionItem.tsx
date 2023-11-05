@@ -340,7 +340,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'Voters', value: voters, type: 'address[]' },
 				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 				{ name: 'Recipient', value: myAddress, type: 'address' },
-				{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
+				{ name: 'TokenAmount', value: ethers.parseUnits(token.toString()), type: 'uint256' },
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);

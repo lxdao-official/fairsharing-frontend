@@ -40,6 +40,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
+import { endOfDay, startOfDay } from 'date-fns';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -194,17 +195,23 @@ const PostContribution = ({
 			const offchain = await eas.getOffchain();
 			const contributionSchemaUid = EasSchemaMap.contribution;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
+			const startDate = startOfDay(Date.now()).getTime().toString();
+			const endDate = endOfDay(Date.now()).getDate().toString();
+
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
 				{ name: 'ContributionID', value: contribution.id, type: 'uint64' },
-				{ name: 'Detail', value: postData.detail, type: 'string' },
+				{ name: 'Details', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: 'default contribution type', type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
+				{ name: 'StartDate', value: ethers.parseUnits(startDate), type: 'uint256' },
+				{ name: 'EndDate', value: ethers.parseUnits(endDate), type: 'uint256' },
 				{
-					name: 'Token',
+					name: 'TokenAmount',
 					value: ethers.parseUnits(postData.credit.toString()),
 					type: 'uint256',
 				},
+				{ name: 'Extended', value: '', type: 'string' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
 			const block = await provider.getBlock('latest');
@@ -434,5 +441,5 @@ const BaseButton = styled(Button)({
 
 const ToolTipContainer = styled('div')({
 	padding: '8px 12px',
-	backgroundColor: 'rgba(51, 65, 85, 0.9)'
-})
+	backgroundColor: 'rgba(51, 65, 85, 0.9)',
+});
