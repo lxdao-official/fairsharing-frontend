@@ -40,7 +40,6 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
-import MiniContributorList from '@/components/project/contribution/miniContributorList';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -283,6 +282,11 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			<StyledFlexBox>
+				<TagLabel>#type</TagLabel>
+				Type类型待补充
+			</StyledFlexBox>
+
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#proof</TagLabel>
 				<StyledInput
@@ -294,6 +298,11 @@ const PostContribution = ({
 					onChange={handleProofInputChange}
 					placeholder={'https: //notion.so/1234,https: //notion.so/1234'}
 				/>
+			</StyledFlexBox>
+
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<TagLabel>#date</TagLabel>
+				组件待补充
 			</StyledFlexBox>
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
