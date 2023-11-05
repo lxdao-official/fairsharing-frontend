@@ -42,11 +42,11 @@ const theme = createTheme({
 		},
 		subtitle1: {
 			fontSize: 20,
-			fontWeight: 'bold',
+			fontWeight: '500',
 		},
 		subtitle2: {
 			fontSize: 18,
-			fontWeight: 'bold',
+			fontWeight: '500',
 		},
 		body1: {
 			fontSize: 16,
