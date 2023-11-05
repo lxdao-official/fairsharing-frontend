@@ -15,6 +15,8 @@ export interface ICreateContributionParams extends IAuthBody {
 	credit: number;
 	toIds: string[];
 	uId?: string;
+	type: string[]
+	contributionDate: string
 }
 
 export interface IUpdateContributionParams {

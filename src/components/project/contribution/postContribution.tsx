@@ -4,8 +4,6 @@ import {
 	Autocomplete,
 	Button,
 	InputAdornment,
-	Paper,
-	Popover,
 	styled,
 	TextField,
 	Tooltip,
@@ -30,7 +28,13 @@ import useSWR, { useSWRConfig } from 'swr';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
-import { createContribution, getContributorList, updateContributionStatus } from '@/services';
+import {
+	createContribution,
+	createContributionType,
+	getContributionTypeList,
+	getContributorList,
+	updateContributionStatus,
+} from '@/services';
 import {
 	EasSchemaContributionKey,
 	EasSchemaData,
@@ -43,7 +47,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
-import { endOfDay, format, startOfDay } from 'date-fns';
+import { endOfDay, startOfDay } from 'date-fns';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -63,9 +67,18 @@ export interface PostData {
 
 export interface AutoCompleteValue {
 	label: string;
-	wallet: string;
 	id: string;
+
+	[key: string]: any;
 }
+
+// TODO 默认替project创建一个kudos
+const DefaultContributionType = {
+	id: '*****',
+	name: '❤️ Kudos',
+	projectId: '****',
+	color: 'red',
+};
 
 const TokenTips = '$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there\'s no limit to their supply.\n';
 
@@ -92,8 +105,15 @@ const PostContribution = ({
 	);
 	const [showTokenTip, setShowTokenTip] = useState(false);
 
-	const [startDate, setStartDate] = useState<Date>(new Date());
-	const [endDate, setEndDate] = useState<Date>(new Date());
+	const [startDate, setStartDate] = useState<Date>(() => {
+		return contribution?.contributionDate ? JSON.parse(contribution.contributionDate).startDate || new Date() : new Date();
+	});
+	const [endDate, setEndDate] = useState<Date>(() => {
+		return contribution?.contributionDate ? JSON.parse(contribution.contributionDate).endDate || new Date() : new Date();
+	});
+
+	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
+	const [inputText, setInputText] = useState('');
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -112,6 +132,27 @@ const PostContribution = ({
 			onSuccess: (data) => console.log('getContributorList', data),
 		},
 	);
+
+	const { data: contributionTypeList, mutate: mutateContributionTypeList } = useSWR(
+		['project/contributionType', projectId],
+		() => getContributionTypeList(projectId),
+		{
+			fallbackData: [{
+				id: '*****',
+				name: '❤️ Kudos',
+				projectId: '****',
+				color: 'red',
+			}],
+		},
+	);
+
+	const tagOptions = useMemo(() => {
+		return [DefaultContributionType, ...contributionTypeList].map(item => ({
+			label: item.name,
+			id: item.id,
+			color: item.color,
+		}));
+	}, [contributionTypeList]);
 
 	useEffect(() => {
 		mutateContributorList();
@@ -151,6 +192,29 @@ const PostContribution = ({
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
+	};
+
+	const onTypeKeyDown = async (event: React.KeyboardEvent<HTMLDivElement>) => {
+		if (event.key === 'Enter') {
+			// @ts-ignore
+			event.defaultMuiPrevented = true;
+			const label = inputText.trim();
+			if (tagOptions.find(item => item.label === label)) {
+				setInputText('');
+				return false;
+			}
+			setInputText('');
+			const { name, id, color } = await createContributionType(projectId, {
+				name: label,
+				color: 'red', // TODO 随机颜色
+			});
+			await mutateContributionTypeList();
+			if (tags.find(tag => tag.label === label)) {
+				setInputText('');
+				return false;
+			}
+			setTags([...tags, { id, color, label: name }]);
+		}
 	};
 
 	const onSubmit = () => {
@@ -195,6 +259,8 @@ const PostContribution = ({
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
+				type: tags.map(item => item.label),
+				contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
 
@@ -202,8 +268,8 @@ const PostContribution = ({
 			const offchain = await eas.getOffchain();
 			const contributionSchemaUid = EasSchemaMap.contribution;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
-			const startDate = startOfDay(Date.now()).getTime().toString();
-			const endDate = endOfDay(Date.now()).getDate().toString();
+			const startDay = startOfDay(startDate).getTime().toString();
+			const endDay = endOfDay(endDate).getTime().toString();
 
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
@@ -211,8 +277,8 @@ const PostContribution = ({
 				{ name: 'Details', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: 'default contribution type', type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
-				{ name: 'StartDate', value: ethers.parseUnits(startDate), type: 'uint256' },
-				{ name: 'EndDate', value: ethers.parseUnits(endDate), type: 'uint256' },
+				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
+				{ name: 'EndDate', value: ethers.parseUnits(endDay), type: 'uint256' },
 				{
 					name: 'TokenAmount',
 					value: ethers.parseUnits(postData.credit.toString()),
@@ -296,9 +362,42 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
-			<StyledFlexBox>
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#type</TagLabel>
-				Type类型待补充
+				<Autocomplete
+					multiple
+					id="contributor-select"
+					sx={{
+						width: '100%',
+						border: 'none',
+						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+					}}
+					size={'small'}
+					options={tagOptions}
+					getOptionLabel={(option) => `${option.label}`} // 设置显示格式
+					value={tags}
+					isOptionEqualToValue={(option, value) => option.id === value.id}
+					onChange={(event, newValue: AutoCompleteValue[]) => {
+						console.log('newValue', newValue);
+						setTags(newValue);
+					}}
+					onInputChange={(event, value) => {
+						setInputText(value);
+					}}
+					onKeyDown={onTypeKeyDown}
+					popupIcon={''}
+					renderInput={(params) => (
+						<TextField key={params.id} {...params} sx={{ '& input': { color: '#437EF7' } }} />
+					)}
+				/>
 			</StyledFlexBox>
 
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
@@ -314,12 +413,22 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
+			<StyledFlexBox sx={{ marginTop: '16px' }}>
 				<TagLabel>#date</TagLabel>
 				<LocalizationProvider dateAdapter={AdapterDateFns}>
-					<DatePicker label={'Start Date'} value={startDate} onChange={date => setStartDate(date!)} />
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						label={'Start Date'}
+						value={startDate}
+						onChange={date => setStartDate(date!)}
+					/>
 					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>to</Typography>
-					<DatePicker label={'End Date'} value={endDate} onChange={(date) => setEndDate(date!)} />
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						label={'End Date'}
+						value={endDate}
+						onChange={(date) => setEndDate(date!)}
+					/>
 				</LocalizationProvider>
 			</StyledFlexBox>
 
