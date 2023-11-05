@@ -1,9 +1,12 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import {
 	Box,
-	FormControl, FormControlLabel,
-	FormLabel, InputAdornment,
-	MenuItem, Radio,
+	FormControl,
+	FormControlLabel,
+	FormLabel,
+	InputAdornment,
+	MenuItem,
+	Radio,
 	RadioGroup,
 	Select,
 	SelectChangeEvent,
@@ -14,11 +17,14 @@ import {
 import { IStepBaseProps } from '@/components/createProject/step/start';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { showToast } from '@/store/utils';
-import { CreateProjectParams } from '@/services';
+import { CreateProjectParams, VoteApproveEnum, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 
 export interface IStepStrategyProps extends Partial<IStepBaseProps> {
-	data?: Pick<CreateProjectParams, 'network' | 'votePeriod' | 'symbol'>;
+	data?: Pick<
+		CreateProjectParams,
+		'network' | 'votePeriod' | 'symbol' | 'voteSystem' | 'voteApprove' | 'voteThreshold'
+	>;
 	onSave?: () => void;
 	canEdit?: boolean;
 }
@@ -28,6 +34,10 @@ export interface StepStrategyRef {
 		symbol: string;
 		network: number;
 		period: string;
+		voteSystem: VoteSystemEnum;
+		voteApproveType: VoteApproveEnum;
+		forWeightOfTotal: string;
+		differWeightOfTotal: string;
 	};
 }
 
@@ -37,16 +47,26 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const [network, setNetwork] = useState(data?.network ?? 420);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
 
-	const [voteSystem, setVoteSystem] = useState('1');
-	const [voteApproveType, setVoteApproveType] = useState('1');
-	const [forWeightOfTotal, setForWeightOfTotal] = useState('');
-	const [differWeightOfTotal, setDifferWeightOfTotal] = useState('');
+	const [voteSystem, setVoteSystem] = useState<VoteSystemEnum>(
+		data?.voteSystem ?? VoteSystemEnum.EQUAL,
+	);
+	const [voteApproveType, setVoteApproveType] = useState<VoteApproveEnum>(
+		data?.voteApprove ?? VoteApproveEnum.RELATIVE1,
+	);
+	const [forWeightOfTotal, setForWeightOfTotal] = useState(
+		data?.voteThreshold ? String(data?.voteThreshold * 100) : '',
+	);
+	const [differWeightOfTotal, setDifferWeightOfTotal] = useState(
+		data?.voteThreshold ? String(data?.voteThreshold * 100) : '',
+	);
 
 	const handleVoteSystemChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setVoteSystem((event.target as HTMLInputElement).value);
+		const value = Number((event.target as HTMLInputElement).value);
+		setVoteSystem(value as VoteSystemEnum);
 	};
 	const handleVoteApproveChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setVoteApproveType((event.target as HTMLInputElement).value);
+		const value = Number((event.target as HTMLInputElement).value);
+		setVoteApproveType(value as VoteApproveEnum);
 	};
 
 	const handleForWeightInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,9 +100,25 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	useImperativeHandle(
 		ref,
 		() => ({
-			getFormData: () => ({ network, period, symbol }),
+			getFormData: () => ({
+				network,
+				period,
+				symbol,
+				voteSystem,
+				voteApproveType,
+				forWeightOfTotal,
+				differWeightOfTotal,
+			}),
 		}),
-		[network, period, symbol],
+		[
+			network,
+			period,
+			symbol,
+			voteSystem,
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		],
 	);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
@@ -165,7 +201,9 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				<span style={{ marginLeft: '12px' }}>days</span>
 			</div>
 
-			<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>Voting system: </Typography>
+			<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>
+				Voting system:{' '}
+			</Typography>
 			<FormControl>
 				{/*<FormLabel id="demo-controlled-radio-buttons-group">Gender</FormLabel>*/}
 				<RadioGroup
@@ -175,32 +213,39 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					onChange={handleVoteSystemChange}
 				>
 					<FormControlLabel
-						value="1"
+						value={VoteSystemEnum.EQUAL}
 						control={<Radio />}
 						sx={{ marginTop: '12px' }}
 						label={
 							<>
 								<Typography variant={'subtitle2'}>One person, one vote</Typography>
-								<Typography variant={'body2'} color={'#64748B'}>All contributors in this project can
-									vote,
-									and each vote is equal.</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									All contributors in this project can vote, and each vote is
+									equal.
+								</Typography>
 							</>
-						} />
+						}
+					/>
 					<FormControlLabel
-						value="2"
+						value={VoteSystemEnum.WEIGHT}
 						control={<Radio />}
 						sx={{ marginTop: '20px' }}
 						label={
 							<>
 								<Typography variant={'subtitle2'}>Weighted voting</Typography>
-								<Typography variant={'body2'} color={'#64748B'}>Votes are weighted by admin settings,
-									configured in the next step.</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									Votes are weighted by admin settings, configured in the next
+									step.
+								</Typography>
 							</>
-						} />
+						}
+					/>
 				</RadioGroup>
 			</FormControl>
 
-			<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>Voting approved: </Typography>
+			<Typography variant={'subtitle1'} sx={{ marginTop: '32px' }}>
+				Voting approved:{' '}
+			</Typography>
 
 			<FormControl>
 				<RadioGroup
@@ -210,39 +255,45 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					onChange={handleVoteApproveChange}
 				>
 					<FormControlLabel
-						value="1"
+						value={VoteApproveEnum.RELATIVE2}
 						sx={{ marginTop: '12px' }}
 						control={<Radio />}
 						label={
 							<>
-								<Typography variant={'subtitle2'}>Number of for {'>'} number of against</Typography>
-								<Typography variant={'body2'} color={'#64748B'}>The majority wins the vote, regardless of the total votes.</Typography>
+								<Typography variant={'subtitle2'}>
+									Number of for {'>'} number of against
+								</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									The majority wins the vote, regardless of the total votes.
+								</Typography>
 							</>
 						}
 					/>
 					<FormControlLabel
-						value="2"
+						value={VoteApproveEnum.RELATIVE1}
 						sx={{ marginTop: '12px' }}
 						control={<Radio />}
 						label={
 							<>
-								<Typography variant={'subtitle2'}>Number of for ≥ number of
-									against（Requirement: for ≥ 1)</Typography>
-								<Typography variant={'body2'} color={'#64748B'}>No votes, or
-									equally split between for and against.</Typography>
+								<Typography variant={'subtitle2'}>
+									Number of for ≥ number of against（Requirement: for ≥ 1)
+								</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									No votes, or equally split between for and against.
+								</Typography>
 							</>
 						}
 					/>
 					<FormControlLabel
-						value="3"
+						value={VoteApproveEnum.ABSOLUTE1}
 						sx={{ marginTop: '20px' }}
 						control={<Radio />}
 						label={
-
 							<>
 								<StyledFlexBox>
-									<Typography variant={'subtitle2'}>Number of for / total votes *
-										100% ≥ </Typography>
+									<Typography variant={'subtitle2'}>
+										Number of for / total votes * 100% ≥{' '}
+									</Typography>
 									<TextField
 										sx={{ marginLeft: '12px', width: '60px' }}
 										variant={'standard'}
@@ -261,20 +312,23 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 										}}
 									/>
 								</StyledFlexBox>
-								<Typography variant={'body2'} color={'#64748B'}>The ratio of "for"
-									votes to the total votes satisfies a specified
-									threshold.</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									The ratio of "for" votes to the total votes satisfies a
+									specified threshold.
+								</Typography>
 							</>
-						} />
+						}
+					/>
 					<FormControlLabel
-						value="4"
+						value={VoteApproveEnum.ABSOLUTE2}
 						sx={{ marginTop: '20px' }}
 						control={<Radio />}
 						label={
 							<>
 								<StyledFlexBox>
-									<Typography variant={'subtitle2'}>(Number of for - number of
-										against) / total votes * 100% ≥ </Typography>
+									<Typography variant={'subtitle2'}>
+										(Number of for - number of against) / total votes * 100% ≥{' '}
+									</Typography>
 
 									<TextField
 										sx={{ marginLeft: '12px', width: '60px' }}
@@ -294,11 +348,13 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 										}}
 									/>
 								</StyledFlexBox>
-								<Typography variant={'body2'} color={'#64748B'}>The ratio of
-									"for-against" votes to the total votes satisfies a specified
-									threshold.</Typography>
+								<Typography variant={'body2'} color={'#64748B'}>
+									The ratio of "for-against" votes to the total votes satisfies a
+									specified threshold.
+								</Typography>
 							</>
-						} />
+						}
+					/>
 				</RadioGroup>
 			</FormControl>
 

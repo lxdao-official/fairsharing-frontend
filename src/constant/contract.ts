@@ -6,7 +6,6 @@ import project_abi = require('../../abi/project_abi.json');
 export const ProjectRegisterABI = project_register_abi;
 export const ProjectABI = project_abi;
 
-
 const {
 	NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER,
 	NEXT_PUBLIC_CONTRACT_VOTING_STRATEGY,
@@ -33,8 +32,8 @@ export const VoteStrategyMap = {
 	/**
 	 * default vote strategy
 	 */
-	RelativeV1: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V1,
-	RelativeV2: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V2,
-	AbsoluteV1: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_ABSOLUTE_V1,
-	AbsoluteV2: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_ABSOLUTE_V2,
+	RelativeV1: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V1 as string,
+	RelativeV2: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V2 as string,
+	AbsoluteV1: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_ABSOLUTE_V1 as string,
+	AbsoluteV2: NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_ABSOLUTE_V2 as string,
 };

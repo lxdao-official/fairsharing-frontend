@@ -1,7 +1,5 @@
 'use client';
 
-import process from 'process';
-
 import { Box, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 
@@ -31,9 +29,10 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
-import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
+import { ContractAddressMap, ProjectRegisterABI, VoteStrategyMap } from '@/constant/contract';
 import { generateWeightArray } from '@/utils/weight';
 import { isAdmin } from '@/utils/member';
+import { VoteApproveEnum, VoteSystemEnum } from '@/services';
 
 const steps = [
 	{
@@ -99,8 +98,25 @@ export default function Page() {
 	const handleCreateProject = async () => {
 		const { profileFormData, strategyFormData, contributorFormData } = handleGetFormData();
 		const { avatar, name, intro } = profileFormData!;
-		const { symbol, period, network } = strategyFormData!;
+		const {
+			symbol,
+			period,
+			network,
+			voteSystem,
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		} = strategyFormData!;
 		const { contributors } = contributorFormData!;
+
+		const { voteStrategyAddress, voteThreshold, weights } = getVoteStrategyData({
+			voteSystem,
+			voteApproveType,
+			voteWeights: contributors.map((item) => item.voteWeight),
+			memberNum: contributors.length,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		});
 		try {
 			openGlobalLoading();
 
@@ -112,7 +128,13 @@ export default function Page() {
 				symbol: symbol,
 				network: network,
 				votePeriod: String(period),
-				contributors: contributors,
+				contributors: contributors.map((contributor) => ({
+					...contributor,
+					voteWeight: contributor.voteWeight / 100,
+				})),
+				voteSystem,
+				voteApprove: voteApproveType,
+				voteThreshold: voteThreshold / 100,
 			};
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
 
@@ -131,10 +153,10 @@ export default function Page() {
 				members: members,
 				tokenName: name,
 				tokenSymbol: symbol,
-				voteStrategy: ContractAddressMap.VotingStrategy,
+				voteStrategy: voteStrategyAddress,
+				voteWeights: weights, // uint256[]
+				voteThreshold: voteThreshold, // uint256
 				voteStrategyData: ethers.toUtf8Bytes(''),
-				voteWeights: generateWeightArray(members.length, 100), // uint256[]
-				voteThreshold: 50, // uint256
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(
@@ -163,6 +185,50 @@ export default function Page() {
 		} finally {
 			closeGlobalLoading();
 		}
+	};
+
+	const getVoteStrategyData = (args: {
+		voteSystem: VoteSystemEnum;
+		voteApproveType: VoteApproveEnum;
+		memberNum: number;
+		voteWeights: number[];
+		forWeightOfTotal: string;
+		differWeightOfTotal: string;
+	}) => {
+		const {
+			voteSystem,
+			voteApproveType,
+			memberNum,
+			voteWeights,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		} = args;
+		let voteStrategyAddress: string;
+		let weights: number[] = voteWeights;
+		let voteThreshold = 50;
+		if (voteApproveType === VoteApproveEnum.RELATIVE1) {
+			voteStrategyAddress = VoteStrategyMap.RelativeV1;
+		} else if (voteApproveType === VoteApproveEnum.RELATIVE2) {
+			voteStrategyAddress = VoteStrategyMap.RelativeV2;
+		} else if (voteApproveType === VoteApproveEnum.ABSOLUTE1) {
+			voteStrategyAddress = VoteStrategyMap.AbsoluteV1;
+			voteThreshold = Number(forWeightOfTotal);
+		} else if (voteApproveType === VoteApproveEnum.ABSOLUTE2) {
+			voteStrategyAddress = VoteStrategyMap.AbsoluteV2;
+			voteThreshold = Number(differWeightOfTotal);
+		} else {
+			voteStrategyAddress = VoteStrategyMap.RelativeV1;
+		}
+		if (voteSystem === VoteSystemEnum.EQUAL) {
+			const weight = Math.floor(100 / memberNum);
+			weights = Array(memberNum).fill(weight);
+		}
+
+		return {
+			voteStrategyAddress,
+			weights,
+			voteThreshold,
+		};
 	};
 
 	const getUserProjectList = async () => {
@@ -227,7 +293,11 @@ export default function Page() {
 				<Box sx={{ maxWidth: 200 }}>
 					<Stepper activeStep={activeStep} orientation="vertical">
 						{steps.map((step, index) => (
-							<Step sx={{ cursor: 'pointer' }} key={step.label} onClick={() => handleClickStepLabel(index)}>
+							<Step
+								sx={{ cursor: 'pointer' }}
+								key={step.label}
+								onClick={() => handleClickStepLabel(index)}
+							>
 								<StepLabel
 									StepIconProps={{
 										sx: {
