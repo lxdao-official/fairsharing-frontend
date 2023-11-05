@@ -375,11 +375,19 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 				const data: EasSchemaData<EasSchemaClaimKey>[] = [
 					{ name: 'ProjectAddress', value: projectDetail?.id, type: 'address' },
-					{ name: 'ContributionID', value: ethers.encodeBytes32String(String(id)), type: 'bytes32' },
+					{
+						name: 'ContributionID',
+						value: ethers.encodeBytes32String(String(id)),
+						type: 'bytes32',
+					},
 					{ name: 'Voters', value: voters, type: 'address[]' },
 					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 					{ name: 'Recipient', value: toWallet, type: 'address' },
-					{ name: 'TokenAmount', value: ethers.parseUnits(credit.toString()), type: 'uint256' },
+					{
+						name: 'TokenAmount',
+						value: ethers.parseUnits(credit.toString()),
+						type: 'uint256',
+					},
 					{ name: 'Signatures', value: signatures[i], type: 'bytes' },
 				];
 				const encodedData = schemaEncoder.encodeData(data);
@@ -513,21 +521,21 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-					.filter((item) => item.status !== Status.UNREADY)
-					.map((contribution, idx) => (
-						<ContributionItem
-							key={contribution.id}
-							contribution={contribution}
-							showSelect={showMultiSelect}
-							selected={selected}
-							onSelect={onSelect}
-							showDeleteDialog={showDeleteDialog}
-							projectDetail={projectDetail}
-							contributorList={contributorList}
-							contributionList={filterContributionList}
-							voteData={easVoteNumberBySigner[contribution.uId!] || null}
-						/>
-					))
+						.filter((item) => item.status !== Status.UNREADY)
+						.map((contribution, idx) => (
+							<ContributionItem
+								key={contribution.id}
+								contribution={contribution}
+								showSelect={showMultiSelect}
+								selected={selected}
+								onSelect={onSelect}
+								showDeleteDialog={showDeleteDialog}
+								projectDetail={projectDetail}
+								contributorList={contributorList}
+								contributionList={filterContributionList}
+								voteData={easVoteNumberBySigner[contribution.uId!] || null}
+							/>
+						))
 				: null}
 
 			<Dialog

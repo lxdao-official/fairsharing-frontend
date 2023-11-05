@@ -119,7 +119,7 @@ const theme = createTheme({
 		MuiInputBase: {
 			styleOverrides: {
 				input: {
-					padding: '0 0 1px'
+					padding: '0 0 1px',
 				},
 				// 为Select修改
 				root: {

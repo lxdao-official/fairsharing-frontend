@@ -237,7 +237,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
 			const data: EasSchemaData<EasSchemaVoteKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contributionId)), type: 'bytes32' },
+				{
+					name: 'ContributionID',
+					value: ethers.encodeBytes32String(String(contributionId)),
+					type: 'bytes32',
+				},
 				{ name: 'VoteChoice', value: value, type: 'uint8' },
 				{ name: 'Comment', value: 'Good contribution', type: 'string' },
 			];
@@ -336,11 +340,19 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 			const data: EasSchemaData<EasSchemaClaimKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contributionId)), type: 'bytes32' },
+				{
+					name: 'ContributionID',
+					value: ethers.encodeBytes32String(String(contributionId)),
+					type: 'bytes32',
+				},
 				{ name: 'Voters', value: voters, type: 'address[]' },
 				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 				{ name: 'Recipient', value: myAddress, type: 'address' },
-				{ name: 'TokenAmount', value: ethers.parseUnits(token.toString()), type: 'uint256' },
+				{
+					name: 'TokenAmount',
+					value: ethers.parseUnits(token.toString()),
+					type: 'uint256',
+				},
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
@@ -498,14 +510,20 @@ const ContributionItem = (props: IContributionItemProps) => {
 										<List>
 											{isEnd ? null : (
 												<ListItem disablePadding>
-													<ListItemButton onClick={onEdit} disabled={!isOwner}>
+													<ListItemButton
+														onClick={onEdit}
+														disabled={!isOwner}
+													>
 														Edit
 													</ListItemButton>
 												</ListItem>
 											)}
 
 											<ListItem disablePadding>
-												<ListItemButton onClick={onDelete} disabled={!isOwner}>
+												<ListItemButton
+													onClick={onDelete}
+													disabled={!isOwner}
+												>
 													Revoke
 												</ListItemButton>
 											</ListItem>

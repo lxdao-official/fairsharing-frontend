@@ -63,7 +63,6 @@ export const EasSchemaTemplateMap = {
 	claim: 'address ProjectAddress, bytes32 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 TokenAmount, bytes Signatures',
 };
 
-
 export type EasSchemaContributionKey =
 	| 'ProjectAddress'
 	| 'ContributionID'
@@ -73,7 +72,7 @@ export type EasSchemaContributionKey =
 	| 'StartDate'
 	| 'EndDate'
 	| 'TokenAmount'
-	| 'Extended'
+	| 'Extended';
 export type EasSchemaVoteKey = 'ProjectAddress' | 'ContributionID' | 'VoteChoice' | 'Comment';
 export type EasSchemaClaimKey =
 	| 'ProjectAddress'

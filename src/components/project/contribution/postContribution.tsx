@@ -25,6 +25,8 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 import useSWR, { useSWRConfig } from 'swr';
 
+import { endOfDay, startOfDay } from 'date-fns';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
@@ -47,7 +49,6 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { PizzaGrayIcon } from '@/icons';
-import { endOfDay, startOfDay } from 'date-fns';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -80,7 +81,8 @@ const DefaultContributionType = {
 	color: 'red',
 };
 
-const TokenTips = '$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there\'s no limit to their supply.\n';
+const TokenTips =
+	"$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there's no limit to their supply.\n";
 
 const PostContribution = ({
 	projectId,
@@ -97,19 +99,23 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const [showTokenTip, setShowTokenTip] = useState(false);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
-		return contribution?.contributionDate ? JSON.parse(contribution.contributionDate).startDate || new Date() : new Date();
+		return contribution?.contributionDate
+			? JSON.parse(contribution.contributionDate).startDate || new Date()
+			: new Date();
 	});
 	const [endDate, setEndDate] = useState<Date>(() => {
-		return contribution?.contributionDate ? JSON.parse(contribution.contributionDate).endDate || new Date() : new Date();
+		return contribution?.contributionDate
+			? JSON.parse(contribution.contributionDate).endDate || new Date()
+			: new Date();
 	});
 
 	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
@@ -143,7 +149,7 @@ const PostContribution = ({
 	);
 
 	const tagOptions = useMemo(() => {
-		return contributionTypeList.map(item => ({
+		return contributionTypeList.map((item) => ({
 			label: item.name,
 			id: item.id,
 			color: item.color,
@@ -198,7 +204,7 @@ const PostContribution = ({
 			// @ts-ignore
 			event.defaultMuiPrevented = true;
 			const label = inputText.trim();
-			if (tagOptions.find(item => item.label === label)) {
+			if (tagOptions.find((item) => item.label === label)) {
 				setInputText('');
 				return false;
 			}
@@ -209,7 +215,7 @@ const PostContribution = ({
 					color: 'red', // TODO 随机颜色
 				});
 				await mutateContributionTypeList();
-				if (tags.find(tag => tag.label === label)) {
+				if (tags.find((tag) => tag.label === label)) {
 					setInputText('');
 					return false;
 				}
@@ -265,7 +271,7 @@ const PostContribution = ({
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
-				type: tags.map(item => item.label),
+				type: tags.map((item) => item.label),
 				contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
@@ -279,7 +285,11 @@ const PostContribution = ({
 
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
-				{ name: 'ContributionID', value: ethers.encodeBytes32String(String(contribution.id)), type: 'bytes32' },
+				{
+					name: 'ContributionID',
+					value: ethers.encodeBytes32String(String(contribution.id)),
+					type: 'bytes32',
+				},
 				{ name: 'Detail', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: 'default contribution type', type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
@@ -401,7 +411,11 @@ const PostContribution = ({
 					onKeyDown={onTypeKeyDown}
 					popupIcon={''}
 					renderInput={(params) => (
-						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} key={params.id} />
+						<TextField
+							{...params}
+							sx={{ '& input': { color: '#437EF7' } }}
+							key={params.id}
+						/>
 					)}
 				/>
 			</StyledFlexBox>
@@ -426,9 +440,11 @@ const PostContribution = ({
 						format={'MM/dd/yyyy'}
 						label={'Start Date'}
 						value={startDate}
-						onChange={date => setStartDate(date!)}
+						onChange={(date) => setStartDate(date!)}
 					/>
-					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>to</Typography>
+					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
+						to
+					</Typography>
 					<DatePicker
 						format={'MM/dd/yyyy'}
 						label={'End Date'}
@@ -472,12 +488,17 @@ const PostContribution = ({
 
 			<CreditContainer>
 				<PizzaGrayIcon width={24} height={24} />
-				<Tooltip title={
-					<ToolTipContainer>
-						<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
-						<Typography variant={'body1'}>{TokenTips}</Typography>
-					</ToolTipContainer>
-				} placement="bottom" arrow={true} open={showTokenTip}>
+				<Tooltip
+					title={
+						<ToolTipContainer>
+							<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
+							<Typography variant={'body1'}>{TokenTips}</Typography>
+						</ToolTipContainer>
+					}
+					placement="bottom"
+					arrow={true}
+					open={showTokenTip}
+				>
 					<StyledInput
 						sx={{ marginLeft: '4px', marginTop: '4px' }}
 						variant={'standard'}
