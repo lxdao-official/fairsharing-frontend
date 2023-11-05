@@ -1,6 +1,6 @@
 import { request } from '@/common/request';
 import { PageListData, PageListParams } from '@/common/types';
-import { IContributor, IMintRecord, IProject } from '@/services/types';
+import { ContributionType, IMintRecord, IProject } from '@/services/types';
 
 export interface CreateProjectParams {
 	name: string;
@@ -70,4 +70,26 @@ export function getProjectDetail(projectId: string): Promise<IProject> {
 
 export function getMintRecord(projectId: string, wallet: string = '') {
 	return request<IMintRecord[]>(`project/${projectId}/mintRecord?wallet=${wallet}`, 1);
+}
+
+
+export function getContributionTypeList(projectId: string) {
+	return request<ContributionType[]>(`project/${projectId}/contributionTypeList`, 1);
+}
+
+export interface CreateContributionTypeBody {
+	name: string,
+	color: string
+}
+
+export function createContributionType(projectId: string, params: CreateContributionTypeBody) {
+	return request.post<ContributionType>(`project/${projectId}/createContributionType`, 1, params);
+}
+
+export function editContributionType(params: CreateContributionTypeBody & { id: string }) {
+	return request.put<ContributionType>('project/editContributionType', 1, params);
+}
+
+export function deleteContributionType(id: string) {
+	return request.delete('project/deleteContributionType', 1, { id });
 }
