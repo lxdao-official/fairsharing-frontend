@@ -379,7 +379,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					{ name: 'Voters', value: voters, type: 'address[]' },
 					{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 					{ name: 'Recipient', value: toWallet, type: 'address' },
-					{ name: 'Token', value: ethers.parseUnits(credit.toString()), type: 'uint256' },
+					{ name: 'TokenAmount', value: ethers.parseUnits(credit.toString()), type: 'uint256' },
 					{ name: 'Signatures', value: signatures[i], type: 'bytes' },
 				];
 				const encodedData = schemaEncoder.encodeData(data);
