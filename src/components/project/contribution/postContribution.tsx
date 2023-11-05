@@ -182,6 +182,9 @@ const PostContribution = ({
 		setValue(null);
 		setContributors([]);
 		setCredit('');
+		setTags([]);
+		setStartDate(new Date());
+		setEndDate(new Date());
 	};
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
