@@ -137,18 +137,13 @@ const PostContribution = ({
 		['project/contributionType', projectId],
 		() => getContributionTypeList(projectId),
 		{
-			fallbackData: [{
-				id: '*****',
-				name: '❤️ Kudos',
-				projectId: '****',
-				color: 'red',
-			}],
+			fallbackData: [],
 			onSuccess: (data) => console.log('contributionType', data),
 		},
 	);
 
 	const tagOptions = useMemo(() => {
-		return [DefaultContributionType, ...contributionTypeList].map(item => ({
+		return contributionTypeList.map(item => ({
 			label: item.name,
 			id: item.id,
 			color: item.color,
@@ -207,17 +202,24 @@ const PostContribution = ({
 				setInputText('');
 				return false;
 			}
-			setInputText('');
-			const { name, id, color } = await createContributionType(projectId, {
-				name: label,
-				color: 'red', // TODO 随机颜色
-			});
-			await mutateContributionTypeList();
-			if (tags.find(tag => tag.label === label)) {
+			try {
+				openGlobalLoading();
+				const { name, id, color } = await createContributionType(projectId, {
+					name: label,
+					color: 'red', // TODO 随机颜色
+				});
+				await mutateContributionTypeList();
+				if (tags.find(tag => tag.label === label)) {
+					setInputText('');
+					return false;
+				}
+				setTags([...tags, { id, color, label: name }]);
+			} catch (err) {
+				console.error(err);
+			} finally {
 				setInputText('');
-				return false;
+				closeGlobalLoading();
 			}
-			setTags([...tags, { id, color, label: name }]);
 		}
 	};
 
@@ -370,7 +372,7 @@ const PostContribution = ({
 				<TagLabel>#type</TagLabel>
 				<Autocomplete
 					multiple
-					id="contributor-select"
+					id="type-autocomplete"
 					sx={{
 						width: '100%',
 						border: 'none',
@@ -386,7 +388,7 @@ const PostContribution = ({
 					}}
 					size={'small'}
 					options={tagOptions}
-					getOptionLabel={(option) => `${option.label}`} // 设置显示格式
+					getOptionLabel={(option) => option.label} // 设置显示格式
 					value={tags}
 					isOptionEqualToValue={(option, value) => option.id === value.id}
 					onChange={(event, newValue: AutoCompleteValue[]) => {
@@ -399,7 +401,7 @@ const PostContribution = ({
 					onKeyDown={onTypeKeyDown}
 					popupIcon={''}
 					renderInput={(params) => (
-						<TextField key={params.id} {...params} sx={{ '& input': { color: '#437EF7' } }} />
+						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} key={params.id} />
 					)}
 				/>
 			</StyledFlexBox>
