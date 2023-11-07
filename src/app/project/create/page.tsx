@@ -109,6 +109,12 @@ export default function Page() {
 		} = strategyFormData!;
 		const { contributors } = contributorFormData!;
 
+		const totalWeight = contributors.reduce((pre, cur) => pre + cur.voteWeight, 0);
+		if (totalWeight !== 100) {
+			showToast('Weights must add up to 100%.', 'error');
+			return false;
+		}
+
 		const { voteStrategyAddress, voteThreshold, weights } = getVoteStrategyData({
 			voteSystem,
 			voteApproveType,
@@ -143,8 +149,8 @@ export default function Page() {
 				ProjectRegisterABI,
 				signer,
 			);
-			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry)
-			console.log('voteStrategyAddress', voteStrategyAddress)
+			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry);
+			console.log('voteStrategyAddress', voteStrategyAddress);
 
 			const admins = contributors
 				.filter((contributor) => isAdmin(contributor.permission))
@@ -182,8 +188,9 @@ export default function Page() {
 			localStorage.removeItem(ProjectParamStorageKey);
 			await getUserProjectList();
 			router.push(`/project/${result.id}/contribution`);
-		} catch (e) {
-			console.error('createProject', e);
+		} catch (err: any) {
+			console.error('createProject', err);
+			err.message && showToast(err.message, 'error');
 		} finally {
 			closeGlobalLoading();
 		}
