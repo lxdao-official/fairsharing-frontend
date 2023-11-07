@@ -72,15 +72,15 @@ export interface IMintRecord {
 }
 
 export enum VoteSystemEnum {
-	EQUAL,
-	WEIGHT,
+	EQUAL = 'EQUAL',
+	WEIGHT = 'WEIGHT'
 }
 
 export enum VoteApproveEnum {
-	RELATIVE1,
-	RELATIVE2,
-	ABSOLUTE1,
-	ABSOLUTE2,
+	DEFAULT = 'DEFAULT',
+	RELATIVE2 = 'RELATIVE2',
+	ABSOLUTE1 = 'ABSOLUTE1',
+	ABSOLUTE2 = 'ABSOLUTE2',
 }
 
 export interface ContributionType {

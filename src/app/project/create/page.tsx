@@ -143,6 +143,8 @@ export default function Page() {
 				ProjectRegisterABI,
 				signer,
 			);
+			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry)
+			console.log('voteStrategyAddress', voteStrategyAddress)
 
 			const admins = contributors
 				.filter((contributor) => isAdmin(contributor.permission))
@@ -206,7 +208,7 @@ export default function Page() {
 		let voteStrategyAddress: string;
 		let weights: number[] = voteWeights;
 		let voteThreshold = 50;
-		if (voteApproveType === VoteApproveEnum.RELATIVE1) {
+		if (voteApproveType === VoteApproveEnum.DEFAULT) {
 			voteStrategyAddress = VoteStrategyMap.RelativeV1;
 		} else if (voteApproveType === VoteApproveEnum.RELATIVE2) {
 			voteStrategyAddress = VoteStrategyMap.RelativeV2;

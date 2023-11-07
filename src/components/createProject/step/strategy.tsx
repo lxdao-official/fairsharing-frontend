@@ -51,7 +51,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		data?.voteSystem ?? VoteSystemEnum.EQUAL,
 	);
 	const [voteApproveType, setVoteApproveType] = useState<VoteApproveEnum>(
-		data?.voteApprove ?? VoteApproveEnum.RELATIVE1,
+		data?.voteApprove ?? VoteApproveEnum.DEFAULT,
 	);
 	const [forWeightOfTotal, setForWeightOfTotal] = useState(
 		data?.voteThreshold ? String(data?.voteThreshold * 100) : '',
@@ -61,11 +61,11 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	);
 
 	const handleVoteSystemChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const value = Number((event.target as HTMLInputElement).value);
+		const value = (event.target as HTMLInputElement).value;
 		setVoteSystem(value as VoteSystemEnum);
 	};
 	const handleVoteApproveChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const value = Number((event.target as HTMLInputElement).value);
+		const value = (event.target as HTMLInputElement).value;
 		setVoteApproveType(value as VoteApproveEnum);
 	};
 
@@ -270,7 +270,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 						}
 					/>
 					<FormControlLabel
-						value={VoteApproveEnum.RELATIVE1}
+						value={VoteApproveEnum.DEFAULT}
 						sx={{ marginTop: '12px' }}
 						control={<Radio />}
 						label={
