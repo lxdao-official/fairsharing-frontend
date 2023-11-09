@@ -83,7 +83,9 @@ const StatusText = (props: IStatusTextProps) => {
 			showToast('No votes have been recorded for this contribution', 'error');
 			return false;
 		}
-		// 	TODO 如果投票数不通过(同一个人只有一票)
+		if (!votePass) {
+			return false;
+		}
 		if (status === Status.READY) {
 			onClaim();
 		}
