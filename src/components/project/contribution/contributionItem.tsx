@@ -12,7 +12,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import { formatDistance } from 'date-fns';
 
@@ -61,6 +61,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
+import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -105,6 +106,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openMore, setOpenMore] = useState(false);
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
+
+	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
+
 	const [showEdit, setShowEdit] = useState(false);
 	const { targetTime, isEnd, timeLeft } = useCountDownTime(
 		contribution.createAt,
@@ -190,6 +194,38 @@ const ContributionItem = (props: IContributionItemProps) => {
 			}
 		);
 	}, [contribution, contributorList]);
+
+	useEffect(() => {
+		if (projectDetail && voteData && contributorList.length > 0) {
+			getVoteResultFromContract();
+		}
+	}, [projectDetail, voteData]);
+
+	const getVoteResultFromContract = async () => {
+		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
+		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
+		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer);
+
+		// 当前project所有的contributor
+		const voters: string[] = contributorList.map(item => item.wallet);
+		const voteValues: IVoteValueEnum[] = contributorList.map(contributor => {
+			if (voteData![contributor.wallet]) {
+				return voteData![contributor.wallet];
+			} else {
+				return IVoteValueEnum.ABSTAIN;
+			}
+		});
+		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
+		const threshold = projectDetail.voteThreshold;
+		const votingStrategyData = '';
+		console.log('voters', voters);
+		console.log('voteValues', voteValues);
+		console.log('weights', weights);
+		console.log('threshold', threshold);
+		const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
+		console.log('getVoteResultFromContract', contribution.id, result);
+		setVoteResultFromContract(result);
+	};
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const checked = event.target.checked;
@@ -481,7 +517,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								onClaim={handleClaim}
 								hasVoted={voteResult.hasVoted}
 								isEnd={isEnd}
-								votePass={voteResult.votePass}
+								votePass={voteResultFromContract}
 								timeLeft={timeLeft}
 							/>
 							<Tooltip title="View on chain" placement="top" arrow={true}>
@@ -541,7 +577,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Pizza
 								credit={contribution.credit}
 								status={contribution.status}
-								votePass={voteResult.votePass}
+								votePass={voteResultFromContract}
 								isEnd={isEnd}
 							/>
 

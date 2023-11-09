@@ -33,6 +33,7 @@ import { ContractAddressMap, ProjectRegisterABI, VoteStrategyMap } from '@/const
 import { generateWeightArray } from '@/utils/weight';
 import { isAdmin } from '@/utils/member';
 import { VoteApproveEnum, VoteSystemEnum } from '@/services';
+import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
 
 const steps = [
 	{
@@ -114,15 +115,11 @@ export default function Page() {
 			showToast('Weights must add up to 100%.', 'error');
 			return false;
 		}
+		const voteStrategyAddress = getVoteStrategyContract(voteApproveType);
+		const voteThreshold = getVoteThreshold(voteApproveType, forWeightOfTotal, differWeightOfTotal)
+		const voteWeights = contributors.map((item) => item.voteWeight)
+		const weights = getVoteWeights(voteSystem, voteWeights, contributors.length)
 
-		const { voteStrategyAddress, voteThreshold, weights } = getVoteStrategyData({
-			voteSystem,
-			voteApproveType,
-			voteWeights: contributors.map((item) => item.voteWeight),
-			memberNum: contributors.length,
-			forWeightOfTotal,
-			differWeightOfTotal,
-		});
 		try {
 			openGlobalLoading();
 
@@ -194,50 +191,6 @@ export default function Page() {
 		} finally {
 			closeGlobalLoading();
 		}
-	};
-
-	const getVoteStrategyData = (args: {
-		voteSystem: VoteSystemEnum;
-		voteApproveType: VoteApproveEnum;
-		memberNum: number;
-		voteWeights: number[];
-		forWeightOfTotal: string;
-		differWeightOfTotal: string;
-	}) => {
-		const {
-			voteSystem,
-			voteApproveType,
-			memberNum,
-			voteWeights,
-			forWeightOfTotal,
-			differWeightOfTotal,
-		} = args;
-		let voteStrategyAddress: string;
-		let weights: number[] = voteWeights;
-		let voteThreshold = 50;
-		if (voteApproveType === VoteApproveEnum.DEFAULT) {
-			voteStrategyAddress = VoteStrategyMap.RelativeV1;
-		} else if (voteApproveType === VoteApproveEnum.RELATIVE2) {
-			voteStrategyAddress = VoteStrategyMap.RelativeV2;
-		} else if (voteApproveType === VoteApproveEnum.ABSOLUTE1) {
-			voteStrategyAddress = VoteStrategyMap.AbsoluteV1;
-			voteThreshold = Number(forWeightOfTotal);
-		} else if (voteApproveType === VoteApproveEnum.ABSOLUTE2) {
-			voteStrategyAddress = VoteStrategyMap.AbsoluteV2;
-			voteThreshold = Number(differWeightOfTotal);
-		} else {
-			voteStrategyAddress = VoteStrategyMap.RelativeV1;
-		}
-		if (voteSystem === VoteSystemEnum.EQUAL) {
-			const weight = Math.floor(100 / memberNum);
-			weights = Array(memberNum).fill(weight);
-		}
-
-		return {
-			voteStrategyAddress,
-			weights,
-			voteThreshold,
-		};
 	};
 
 	const getUserProjectList = async () => {
