@@ -182,12 +182,17 @@ const PostContribution = ({
 		}
 		try {
 			openGlobalLoading();
+
 			const contribution = await createContribution({
 				projectId: projectId,
 				operatorId: operatorId as string,
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
+				// @ts-ignore
+				type: ['kudos', 'heihei'],
+				// @ts-ignore
+				contributionDate: '{}'
 			});
 			// UNREADY 状态
 
