@@ -12,6 +12,7 @@ export interface IStatusTextProps {
 	votePass: boolean;
 	isEnd: boolean;
 	timeLeft: ITimeLeft;
+	isVoteResultFetched: boolean
 }
 
 enum StatusColorEnum {
@@ -21,7 +22,7 @@ enum StatusColorEnum {
 }
 
 const StatusText = (props: IStatusTextProps) => {
-	const { contribution, onClaim, hasVoted, votePass, timeLeft, isEnd } = props;
+	const { contribution, onClaim, hasVoted, votePass, timeLeft, isEnd, isVoteResultFetched } = props;
 
 	const { status } = contribution;
 	const [showText, setShowText] = useState('');
@@ -57,14 +58,20 @@ const StatusText = (props: IStatusTextProps) => {
 			setColor(StatusColorEnum.GRAY);
 		} else {
 			if (isEnd) {
-				if (votePass) {
-					setShowText('To be claimed');
-					setCursor('pointer');
-					setColor(StatusColorEnum.GREEN);
-				} else {
-					setShowText('Rejected');
+				if (!isVoteResultFetched) {
+					setShowText('fetching...');
 					setCursor('not-allowed');
-					setColor(StatusColorEnum.RED);
+					setColor(StatusColorEnum.GRAY);
+				} else {
+					if (votePass) {
+						setShowText('To be claimed');
+						setCursor('pointer');
+						setColor(StatusColorEnum.GREEN);
+					} else {
+						setShowText('Rejected');
+						setCursor('not-allowed');
+						setColor(StatusColorEnum.RED);
+					}
 				}
 			} else {
 				setShowText(countdownText);
@@ -72,7 +79,7 @@ const StatusText = (props: IStatusTextProps) => {
 				setCursor('not-allowed');
 			}
 		}
-	}, [status, isEnd, countdownText, votePass]);
+	}, [status, isEnd, countdownText, votePass, isVoteResultFetched]);
 
 	const handleClaim = () => {
 		if (!isEnd) {

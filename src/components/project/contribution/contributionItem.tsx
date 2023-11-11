@@ -107,6 +107,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
 
+	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
 	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
 
 	const [showEdit, setShowEdit] = useState(false);
@@ -219,9 +220,15 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
-		const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
-		console.log('getVoteResultFromContract', contribution.detail, result);
-		setVoteResultFromContract(result);
+		try {
+			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
+			console.log('getVoteResultFromContract', contribution.detail, result);
+			setVoteResultFromContract(result);
+		} catch (err) {
+			console.error(`[${contribution.detail}]: getResult error`, err);
+		} finally {
+			setIsVoteResultFetched(true);
+		}
 	};
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -515,6 +522,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								hasVoted={voteResult.hasVoted}
 								isEnd={isEnd}
 								votePass={voteResultFromContract}
+								isVoteResultFetched={isVoteResultFetched}
 								timeLeft={timeLeft}
 							/>
 							<Tooltip title="View on chain" placement="top" arrow={true}>
