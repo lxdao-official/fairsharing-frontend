@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { AttestationShareablePackageObject, EAS } from '@ethereum-attestation-service/eas-sdk';
+import { AttestationShareablePackageObject, EAS, Offchain } from '@ethereum-attestation-service/eas-sdk';
 
 import { useNetwork } from 'wagmi';
 
@@ -21,16 +21,20 @@ const useEas = () => {
 	const signer = useEthersSigner();
 	const network = useNetwork();
 
-	const eas = useMemo(() => {
+	const easConfig = useMemo(() => {
 		const activeChainConfig =
 			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
 			EAS_CHAIN_CONFIGS[2];
-		const EASContractAddress = activeChainConfig?.contractAddress;
+		return activeChainConfig;
+	}, [network]);
+
+	const eas = useMemo(() => {
+		const EASContractAddress = easConfig?.contractAddress;
 		if (!signer) {
 			return new EAS(EASContractAddress);
 		}
 		return new EAS(EASContractAddress, { signerOrProvider: signer });
-	}, [network, signer]);
+	}, [signer, easConfig]);
 
 	const getEasScanURL = () => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
@@ -53,10 +57,23 @@ const useEas = () => {
 		return await axios.post<StoreIPFSActionReturn>(`${baseURL}/offchain/store`, data);
 	};
 
+	const getOffchain = () => {
+		const { contractAddress, chainId, version } = easConfig;
+		return new Offchain(
+			{
+				address: contractAddress,
+				version: version,
+				chainId: BigInt(chainId),
+			},
+			1,
+		);
+	};
+
 	return {
 		eas,
 		getEasScanURL,
 		submitSignedAttestation,
+		getOffchain,
 	};
 };
 

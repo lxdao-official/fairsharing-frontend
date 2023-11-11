@@ -99,10 +99,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
 			: null,
 	);
 	const [showTokenTip, setShowTokenTip] = useState(false);
@@ -127,7 +127,7 @@ const PostContribution = ({
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 
-	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
+	const { getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
 
 	const { mutate } = useSWRConfig();
 	const { data: contributorList, mutate: mutateContributorList } = useSWR(
@@ -277,7 +277,7 @@ const PostContribution = ({
 			// UNREADY 状态
 
 			// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
-			const offchain = await eas.getOffchain();
+			const offchain = getOffchain();
 			const contributionSchemaUid = EasSchemaMap.contribution;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
 			const startDay = startOfDay(startDate).getTime().toString();
@@ -287,7 +287,7 @@ const PostContribution = ({
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
 				{
 					name: 'ContributionID',
-					value: ethers.encodeBytes32String(String(contribution.id)),
+					value: ethers.encodeBytes32String(contribution.id),
 					type: 'bytes32',
 				},
 				{ name: 'Detail', value: postData.detail, type: 'string' },

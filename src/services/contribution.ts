@@ -39,7 +39,7 @@ export const editContribution = (
 	return request.put<IContribution>(`contribution/${cid}/edit`, 1, params);
 };
 
-export const updateContributionStatus = (cid: number, params: IUpdateContributionParams) => {
+export const updateContributionStatus = (cid: string, params: IUpdateContributionParams) => {
 	return request.put<IContribution>(`contribution/${cid}/updateState`, 1, params);
 };
 
