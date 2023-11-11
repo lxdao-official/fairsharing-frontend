@@ -72,9 +72,9 @@ export interface IContributionItemProps {
 	contribution: IContribution;
 	projectDetail: IProject;
 	showSelect: boolean;
-	selected: number[];
-	onSelect: (idList: number[]) => void;
-	showDeleteDialog: (contributionId: number) => void;
+	selected: string[];
+	onSelect: (idList: string[]) => void;
+	showDeleteDialog: (contributionId: string) => void;
 	contributorList: IContributor[];
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
@@ -231,7 +231,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const checked = event.target.checked;
 		const newList = checked
 			? [...selected, contribution.id]
-			: selected.filter((id) => Number(id) !== Number(contribution.id));
+			: selected.filter((id) => id !== contribution.id);
 		onSelect(newList);
 	};
 
@@ -477,7 +477,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
 					{showSelect ? (
 						<Checkbox
-							checked={selected.includes(Number(contribution.id))}
+							checked={selected.includes(contribution.id)}
 							onChange={handleCheckboxChange}
 						/>
 					) : null}

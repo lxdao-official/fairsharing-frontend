@@ -14,7 +14,7 @@ export default function SimpleGlobalLoading() {
 	return (
 		<div>
 			<Backdrop
-				sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+				sx={{ color: '#fff', zIndex: 1400 }}
 				open={open}
 				onClick={handleClose}
 			>

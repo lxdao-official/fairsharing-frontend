@@ -408,6 +408,7 @@ const PostContribution = ({
 					onInputChange={(event, value) => {
 						setInputText(value);
 					}}
+					autoFocus={true}
 					onKeyDown={onTypeKeyDown}
 					popupIcon={''}
 					renderInput={(params) => (

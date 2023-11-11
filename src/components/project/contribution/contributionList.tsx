@@ -70,13 +70,13 @@ export enum IVoteValueEnum {
 }
 
 export interface IVoteParams {
-	contributionId: number;
+	contributionId: string;
 	value: IVoteValueEnum;
 	uId: string;
 }
 
 export interface IClaimParams {
-	contributionId: number;
+	contributionId: string;
 	uId: string;
 	token: number;
 	voters: string[];
@@ -110,9 +110,9 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const [showFilter, setShowFilter] = useState(false);
 	const [showMultiSelect, setShowMultiSelect] = useState(false);
 
-	const [selected, setSelected] = useState<Array<number>>([]);
+	const [selected, setSelected] = useState<Array<string>>([]);
 	const [showDialog, setShowDialog] = useState(false);
-	const [activeCId, setActiveCId] = useState<number>();
+	const [activeCId, setActiveCId] = useState<string>();
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -288,14 +288,14 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		}
 	};
 
-	const onSelect = (idList: number[]) => {
+	const onSelect = (idList: string[]) => {
 		setSelected(idList);
 	};
 
 	const onCloseDialog = () => {
 		setShowDialog(false);
 	};
-	const showDeleteDialog = useCallback((contributionId: number) => {
+	const showDeleteDialog = useCallback((contributionId: string) => {
 		setActiveCId(contributionId);
 		setShowDialog(true);
 	}, []);
