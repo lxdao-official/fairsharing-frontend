@@ -121,11 +121,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 			Against = 0,
 			Abstain = 0;
 		for (const [signer, voteNumber] of Object.entries(voteData || {})) {
-			if (voteNumber === IVoteValueEnum.FOR) {
+			const value = Number(voteNumber);
+			if (value === IVoteValueEnum.FOR) {
 				For += 1;
-			} else if (voteNumber === IVoteValueEnum.AGAINST) {
+			} else if (value === IVoteValueEnum.AGAINST) {
 				Against += 1;
-			} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
+			} else if (value === IVoteValueEnum.ABSTAIN) {
 				Abstain += 1;
 			}
 		}
@@ -218,9 +219,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
-		console.log('voteApprove voters voteValues weights threshold', projectDetail.voteApprove, voters, voteValues, weights);
 		const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
-		console.log('getVoteResultFromContract', contribution.id, result);
+		console.log('getVoteResultFromContract', contribution.detail, result);
 		setVoteResultFromContract(result);
 	};
 
