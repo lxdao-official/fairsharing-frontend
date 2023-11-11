@@ -210,19 +210,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const voters: string[] = contributorList.map(item => item.wallet);
 		const voteValues: IVoteValueEnum[] = contributorList.map(contributor => {
 			if (voteData![contributor.wallet]) {
-				return voteData![contributor.wallet];
+				return Number(voteData![contributor.wallet]);
 			} else {
 				return IVoteValueEnum.ABSTAIN;
 			}
 		});
 		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
-		const threshold = projectDetail.voteThreshold;
-		const votingStrategyData = '';
-		console.log('voters', voters);
-		console.log('voteValues', voteValues);
-		console.log('weights', weights);
-		console.log('threshold', threshold);
-		const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
+		const threshold = Number(projectDetail.voteThreshold) * 100;
+		const votingStrategyData = ethers.toUtf8Bytes('');
+		console.log('voteApprove voters voteValues weights threshold', projectDetail.voteApprove, voters, voteValues, weights);
+		const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
 		console.log('getVoteResultFromContract', contribution.id, result);
 		setVoteResultFromContract(result);
 	};
