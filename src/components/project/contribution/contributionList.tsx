@@ -377,7 +377,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					{ name: 'ProjectAddress', value: projectDetail?.id, type: 'address' },
 					{
 						name: 'ContributionID',
-						value: ethers.encodeBytes32String(String(id)),
+						value: id,
 						type: 'bytes32',
 					},
 					{ name: 'Voters', value: voters, type: 'address[]' },

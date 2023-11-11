@@ -287,7 +287,7 @@ const PostContribution = ({
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
 				{
 					name: 'ContributionID',
-					value: ethers.encodeBytes32String(contribution.id),
+					value: contribution.id,
 					type: 'bytes32',
 				},
 				{ name: 'Detail', value: postData.detail, type: 'string' },
@@ -302,6 +302,7 @@ const PostContribution = ({
 				},
 				{ name: 'Extended', value: '', type: 'string' },
 			];
+			console.log('[EAS postContribution data]', data);
 			const encodedData = schemaEncoder.encodeData(data);
 			const block = await provider.getBlock('latest');
 			if (!signer) {

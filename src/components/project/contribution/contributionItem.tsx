@@ -275,7 +275,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
 				{
 					name: 'ContributionID',
-					value: ethers.encodeBytes32String(String(contributionId)),
+					value: contributionId,
 					type: 'bytes32',
 				},
 				{ name: 'VoteChoice', value: value, type: 'uint8' },
@@ -378,7 +378,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
 				{
 					name: 'ContributionID',
-					value: ethers.encodeBytes32String(String(contributionId)),
+					value: contributionId,
 					type: 'bytes32',
 				},
 				{ name: 'Voters', value: voters, type: 'address[]' },
