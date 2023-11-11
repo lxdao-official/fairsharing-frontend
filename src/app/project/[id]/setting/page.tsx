@@ -1,9 +1,9 @@
 'use client';
 
 import useSWR from 'swr';
-import { Typography, Tabs, Tab, Skeleton, Stack, Alert, Button, Box } from '@mui/material';
+import { Alert, Box, Skeleton, Stack, Tab, Tabs, Typography } from '@mui/material';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 
@@ -21,7 +21,7 @@ import {
 	getContributorList,
 	getProjectDetail,
 	IContributor,
-	PermissionEnum,
+	VoteApproveEnum,
 } from '@/services';
 
 import { showToast } from '@/store/utils';
@@ -29,7 +29,7 @@ import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
-import { ContractAddressMap, ProjectABI } from '@/constant/contract';
+import { ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
 import { compareMemberArrays, isAdmin } from '@/utils/member';
 
@@ -71,6 +71,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		async (type: 'profile' | 'strategy') => {
 			const formData = stepProfileRef.current?.getFormData();
 			const strategyData = stepStrategyRef.current?.getFormData();
+			const { voteSystem, voteApprove, voteThreshold } = data!;
 			if (type === 'profile' && formData) {
 				const { name, intro, avatar } = formData;
 				await editProject({
@@ -79,10 +80,13 @@ export default function Setting({ params }: { params: { id: string } }) {
 					intro,
 					logo: avatar,
 					votePeriod: data!.votePeriod,
+					voteSystem,
+					voteApprove,
+					voteThreshold,
 				});
 			}
 			if (type === 'strategy' && strategyData) {
-				const { period } = strategyData;
+				const { period, voteSystem, voteApproveType, forWeightOfTotal, differWeightOfTotal } = strategyData;
 				const { name, intro, logo } = data!;
 				await editProject({
 					id: params.id,
@@ -90,6 +94,9 @@ export default function Setting({ params }: { params: { id: string } }) {
 					intro,
 					logo,
 					votePeriod: period,
+					voteSystem,
+					voteApprove: voteApproveType,
+					voteThreshold: voteApproveType === VoteApproveEnum.ABSOLUTE1 ? Number(forWeightOfTotal) / 100 : Number(differWeightOfTotal) / 100,
 				});
 			}
 			showToast(`Project ${type} updated successfully`);

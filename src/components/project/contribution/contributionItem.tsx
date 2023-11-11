@@ -95,7 +95,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const { myInfo } = useUserStore();
 	const { chain } = useNetwork();
-	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
+	const { eas, getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
 	const { address: myAddress } = useAccount();
@@ -267,7 +267,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const submitVote = async ({ contributionId, value, uId }: IVoteParams) => {
 		try {
 			openGlobalLoading();
-			const offchain = await eas.getOffchain();
+			const offchain = getOffchain();
 			const voteSchemaUid = EasSchemaMap.vote;
 
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
