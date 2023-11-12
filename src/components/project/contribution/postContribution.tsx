@@ -63,6 +63,7 @@ export interface IPostContributionProps {
 	confirmText?: string;
 	refresh?: number;
 	selectedContributors?: IContributor[];
+	isEdit?: boolean;
 }
 
 export interface PostData {
@@ -97,6 +98,7 @@ const PostContribution = ({
 	onCancel,
 	confirmText,
 	selectedContributors,
+	isEdit,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -116,14 +118,15 @@ const PostContribution = ({
 	const [showTokenTip, setShowTokenTip] = useState(false);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
-		return contribution?.contributionDate
-			? JSON.parse(contribution.contributionDate).startDate || new Date()
-			: new Date();
+		if (!isEdit) return new Date();
+		const endDate = JSON.parse(contribution?.contributionDate || '{}').startDate;
+		return new Date(endDate);
 	});
+
 	const [endDate, setEndDate] = useState<Date>(() => {
-		return contribution?.contributionDate
-			? JSON.parse(contribution.contributionDate).endDate || new Date()
-			: new Date();
+		if (!isEdit) return new Date();
+		const endDate = JSON.parse(contribution?.contributionDate || '{}').endDate;
+		return new Date(endDate);
 	});
 
 	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
@@ -155,6 +158,25 @@ const PostContribution = ({
 			onSuccess: (data) => console.log('contributionType', data),
 		},
 	);
+
+	useEffect(() => {
+		if (isEdit && contributionTypeList.length > 0) {
+			const map = contributionTypeList.reduce((pre, item) => {
+				return {
+					...pre,
+					[item.name]: {
+						id: item.id,
+						label: item.name,
+						color: item.color,
+					},
+				};
+			}, {} as Record<string, AutoCompleteValue>);
+			const tags = contribution!.type.map((typeName) => {
+				return map[typeName];
+			});
+			setTags(tags);
+		}
+	}, [isEdit, contributionTypeList]);
 
 	const tagOptions = useMemo(() => {
 		return contributionTypeList.map((item) => ({
@@ -373,6 +395,7 @@ const PostContribution = ({
 
 	return (
 		<PostContainer>
+			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#detail</TagLabel>
 				<StyledInput
@@ -386,6 +409,7 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*type*/}
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#type</TagLabel>
 				<Autocomplete
@@ -428,6 +452,7 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*proof*/}
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#proof</TagLabel>
 				<StyledInput
@@ -441,6 +466,7 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*date*/}
 			<StyledFlexBox sx={{ marginTop: '16px' }}>
 				<TagLabel>#date</TagLabel>
 				<LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -462,6 +488,7 @@ const PostContribution = ({
 				</LocalizationProvider>
 			</StyledFlexBox>
 
+			{/*to*/}
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
 				<Autocomplete
@@ -494,6 +521,7 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*credit*/}
 			<CreditContainer>
 				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				<Tooltip

@@ -701,6 +701,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			{showEdit ? (
 				<PostContribution
+					isEdit={true}
 					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
