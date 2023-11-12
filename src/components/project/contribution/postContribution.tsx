@@ -276,7 +276,7 @@ const PostContribution = ({
 			showToast('Contribution credit should be a positive integer', 'error');
 			return;
 		}
-		const typeString = tags.reduce((pre, cur) => `${pre},${cur.label}`, '');
+		const typeString = tags.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
 		const params: PostData = { detail, proof, contributors, credit, type: typeString };
 		if (contribution) {
 			onEditContribution(params);
