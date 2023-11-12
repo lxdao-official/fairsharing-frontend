@@ -48,7 +48,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
-import { PizzaGrayIcon } from '@/icons';
+import Image from 'next/image';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -106,7 +106,7 @@ const PostContribution = ({
 			}
 			: null,
 	);
-	const [showTokenTip, setShowTokenTip] = useState(false);
+	const [showTokenTip, setShowTokenTip] = useState(true);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
 		return contribution?.contributionDate
@@ -488,12 +488,13 @@ const PostContribution = ({
 			</StyledFlexBox>
 
 			<CreditContainer>
-				<PizzaGrayIcon width={24} height={24} />
+				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				<Tooltip
 					title={
 						<ToolTipContainer>
 							<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
 							<Typography variant={'body1'}>{TokenTips}</Typography>
+
 						</ToolTipContainer>
 					}
 					placement="bottom"
@@ -578,7 +579,6 @@ const CreditContainer = styled(StyledFlexBox)({
 	marginTop: '8px',
 	width: '220px',
 	height: '30px',
-	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
 	padding: '3px 8px',
 });
@@ -589,5 +589,5 @@ const BaseButton = styled(Button)({
 
 const ToolTipContainer = styled('div')({
 	padding: '8px 12px',
-	backgroundColor: 'rgba(51, 65, 85, 0.9)',
+	position: 'relative'
 });

@@ -78,7 +78,7 @@ export interface IContributionItemProps {
 	contributorList: IContributor[];
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
-	setClaimed: (contribution: IContribution) => void
+	setClaimed: (contribution: IContribution) => void;
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -92,7 +92,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributorList,
 		contributionList,
 		voteData,
-		setClaimed
+		setClaimed,
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -225,7 +225,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		try {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
 			setVoteResultFromContract(result);
-			if (isEnd && result) {
+			if (result) {
 				setClaimed(contribution);
 			}
 		} catch (err) {

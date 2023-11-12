@@ -17,9 +17,6 @@ import AbstainReadySvg from './svg/abstain_ready.svg';
 import AbstainDisabledSvg from './svg/abstain_disbaled.svg';
 import AbstainActionSvg from './svg/action_abstain.svg';
 
-import PizzaGraySvg from './svg/pizza_gray.svg';
-import PizzaOrangeSvg from './svg/pizza_orange.svg';
-
 import FileSvg from './svg/file.svg';
 import EasLogoSvg from './svg/eas.svg';
 import MoreSvg from './svg/more-horizontal.svg';
@@ -46,8 +43,6 @@ const AbstainReadyIcon = (props: SvgIconProps) => <AbstainReadySvg {...props} />
 const AbstainDisabledIcon = (props: SvgIconProps) => <AbstainDisabledSvg {...props} />;
 const AbstainActionIcon = (props: SvgIconProps) => <AbstainActionSvg {...props} />;
 
-const PizzaGrayIcon = (props: SvgIconProps) => <PizzaGraySvg {...props} />;
-const PizzaOrangeIcon = (props: SvgIconProps) => <PizzaOrangeSvg {...props} />;
 const FileIcon = (props: SvgIconProps) => <FileSvg {...props} />;
 const EasLogoIcon = (props: SvgIconProps) => <EasLogoSvg {...props} />;
 const MoreIcon = (props: SvgIconProps) => <MoreSvg {...props} />;
@@ -104,8 +99,6 @@ export {
 	AbstainReadyIcon,
 	AbstainDisabledIcon,
 	AbstainActionIcon,
-	PizzaGrayIcon,
-	PizzaOrangeIcon,
 	FileIcon,
 	EasLogoIcon,
 	MoreIcon,
