@@ -47,8 +47,6 @@ const useEas = () => {
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
 		const baseURL = getEasScanURL();
 
-		console.log('baseURL:', baseURL);
-
 		const data: StoreAttestationRequest = {
 			filename: `${new Date().getTime()}_eas.txt`,
 			textJson: JSON.stringify(pkg),

@@ -143,7 +143,6 @@ const useContributionListFilter = ({
 	};
 	const handleVoteStatusChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;
-		console.log('handleVoteStatusChange', value);
 		setFilterVoteStatus(value as VoteStatusEnum);
 	};
 	const handleContributorChange = (event: SelectChangeEvent) => {

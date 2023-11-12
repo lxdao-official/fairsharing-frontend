@@ -224,7 +224,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
-			console.log('getVoteResultFromContract', contribution.detail, result);
 			setVoteResultFromContract(result);
 			if (isEnd && result) {
 				setClaimed(contribution);
@@ -309,13 +308,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 				},
 				signer,
 			);
-			console.log('vote offchainAttestation', offchainAttestation);
-
 			const res = await submitSignedAttestation({
 				signer: myAddress as string,
 				sig: offchainAttestation,
 			});
-			console.log('vote submitSignedAttestation', res);
 			if (res.data.error) {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -413,7 +409,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 					value: BigInt(0),
 				},
 			});
-			console.log('onchainAttestation:', attestation);
 			const updateStatus = await updateContributionStatus(contributionId, {
 				type: 'claim',
 				uId: uId,

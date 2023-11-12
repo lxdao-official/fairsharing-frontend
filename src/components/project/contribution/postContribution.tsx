@@ -326,7 +326,6 @@ const PostContribution = ({
 				signer: myAddress as string,
 				sig: offchainAttestation,
 			});
-			console.log('submitSignedAttestation res', res);
 			if (res.data.error) {
 				console.error('submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -334,7 +333,6 @@ const PostContribution = ({
 			const baseURL = getEasScanURL();
 			// Update ENS names
 			const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-			console.log('getENSRes', getENSRes);
 			// 传eas返回的uid, 更新status为ready
 			const updateStatus = await updateContributionStatus(contribution.id, {
 				type: 'ready',
@@ -403,7 +401,6 @@ const PostContribution = ({
 					value={tags}
 					isOptionEqualToValue={(option, value) => option.id === value.id}
 					onChange={(event, newValue: AutoCompleteValue[]) => {
-						console.log('newValue', newValue);
 						setTags(newValue);
 					}}
 					onInputChange={(event, value) => {
