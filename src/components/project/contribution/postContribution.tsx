@@ -64,6 +64,7 @@ export interface PostData {
 	proof: string;
 	contributors: string[];
 	credit: string;
+	type: string;
 }
 
 export interface AutoCompleteValue {
@@ -246,7 +247,8 @@ const PostContribution = ({
 			showToast('Contribution credit should be a positive integer', 'error');
 			return;
 		}
-		const params: PostData = { detail, proof, contributors, credit };
+		const typeString = tags.reduce((pre, cur) => `${pre},${cur.label}`, '');
+		const params: PostData = { detail, proof, contributors, credit, type: typeString };
 		if (contribution) {
 			onEditContribution(params);
 		} else {
@@ -291,7 +293,7 @@ const PostContribution = ({
 					type: 'bytes32',
 				},
 				{ name: 'Detail', value: postData.detail, type: 'string' },
-				{ name: 'Type', value: 'default contribution type', type: 'string' },
+				{ name: 'Type', value: postData.type, type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
 				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
 				{ name: 'EndDate', value: ethers.parseUnits(endDay), type: 'uint256' },
