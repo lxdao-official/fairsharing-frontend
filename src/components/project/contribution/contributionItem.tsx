@@ -200,10 +200,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [contribution, contributorList]);
 
 	useEffect(() => {
-		if (projectDetail && voteData && contributorList.length > 0) {
+		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
 			getVoteResultFromContract();
 		}
-	}, [projectDetail, voteData]);
+	}, [projectDetail, voteData, isEnd]);
 
 	const getVoteResultFromContract = async () => {
 		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
@@ -226,7 +226,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
 			console.log('getVoteResultFromContract', contribution.detail, result);
 			setVoteResultFromContract(result);
-			if (result) {
+			if (isEnd && result) {
 				setClaimed(contribution);
 			}
 		} catch (err) {
