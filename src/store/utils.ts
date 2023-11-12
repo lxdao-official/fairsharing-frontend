@@ -10,6 +10,8 @@ export interface StoreTypes {
 		autoHideDuration: number;
 	};
 
+	showTokenToolTip: boolean;
+
 	[key: string]: any;
 }
 
@@ -21,6 +23,7 @@ export const UtilsStore = proxy<StoreTypes>({
 		severity: 'success',
 		autoHideDuration: 5000,
 	},
+	showTokenToolTip: true,
 });
 
 export const useUtilsStore = () => useSnapshot(UtilsStore);
@@ -49,4 +52,20 @@ export function closeToast() {
 		severity: 'success',
 		autoHideDuration: 5000,
 	};
+}
+
+
+const storageTokenTip = '__fs_show_token_tip__';
+
+export function initShowTokenToolTip() {
+	const storageData = localStorage.getItem(storageTokenTip);
+	if (storageData === 'never') {
+		UtilsStore.showTokenToolTip = false;
+	}
+}
+
+export function hideTokenToolTip() {
+	console.log('hideTokenToolTip');
+	localStorage.setItem(storageTokenTip, 'never');
+	UtilsStore.showTokenToolTip = false;
 }

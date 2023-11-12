@@ -196,6 +196,14 @@ const theme = createTheme({
 				},
 			},
 		},
+		MuiTooltip: {
+			styleOverrides: {
+				tooltip: {
+					backgroundColor: 'rgba(51, 65, 85, 0.85)',
+					maxWidth: '360px'
+				}
+			}
+		}
 	},
 });
 

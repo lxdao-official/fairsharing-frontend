@@ -29,7 +29,12 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
-import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
+import {
+	closeGlobalLoading,
+	openGlobalLoading,
+	showToast,
+	useUtilsStore,
+} from '@/store/utils';
 import {
 	createContribution,
 	createContributionType,
@@ -49,6 +54,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import Image from 'next/image';
+import TokenToolTip from '@/components/project/contribution/tokenToolTip';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -106,7 +112,8 @@ const PostContribution = ({
 			}
 			: null,
 	);
-	const [showTokenTip, setShowTokenTip] = useState(true);
+	const { showTokenToolTip } = useUtilsStore();
+	const [showTokenTip, setShowTokenTip] = useState(false);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
 		return contribution?.contributionDate
@@ -490,16 +497,14 @@ const PostContribution = ({
 			<CreditContainer>
 				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				<Tooltip
-					title={
-						<ToolTipContainer>
-							<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
-							<Typography variant={'body1'}>{TokenTips}</Typography>
-
-						</ToolTipContainer>
-					}
+					open={showTokenTip && showTokenToolTip}
+					title={<TokenToolTip setShowTokenTip={setShowTokenTip} />}
 					placement="bottom"
 					arrow={true}
-					open={showTokenTip}
+					disableTouchListener={true}
+					disableHoverListener={true}
+					disableFocusListener={true}
+					disableInteractive={true}
 				>
 					<StyledInput
 						sx={{ marginLeft: '4px', marginTop: '4px' }}
@@ -588,6 +593,22 @@ const BaseButton = styled(Button)({
 });
 
 const ToolTipContainer = styled('div')({
+	minWidth: '350px',
 	padding: '8px 12px',
-	position: 'relative'
+	position: 'relative',
+});
+const ToolTipClose = styled('div')({
+	position: 'absolute',
+	top: '4px',
+	right: '4px',
+	width: '24px',
+	height: '24px',
+	cursor: 'pointer',
+	display: 'flex',
+	justifyContent: 'center',
+	alignItems: 'center',
+});
+const ToolTipAction = styled('div')({
+	marginTop: '16px',
+	textAlign: 'right',
 });
