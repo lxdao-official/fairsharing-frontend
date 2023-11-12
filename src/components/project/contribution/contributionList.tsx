@@ -122,14 +122,24 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		},
 	);
 
-	const { data: contributorList, mutate: mutateContributorList } = useSWR(
+	const { data: contributorList, mutate: mutateContributorList, isLoading } = useSWR(
 		['contributor/list', projectId],
 		() => getContributorList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('[contributorList]', data),
+			onSuccess: (data) => {
+				console.log('[contributorList]', data);
+			},
 		},
 	);
+
+	useEffect(() => {
+		if (isLoading) {
+			openGlobalLoading();
+		} else {
+			closeGlobalLoading();
+		}
+	}, [isLoading]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		['contribution/list', projectId],
