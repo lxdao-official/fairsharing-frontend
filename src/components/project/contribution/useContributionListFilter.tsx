@@ -39,6 +39,7 @@ export interface IProps {
 	contributorList: IContributor[];
 	projectDetail?: IProject;
 	easVoteNumberBySigner: Record<string, Record<string, IVoteValueEnum>>;
+	canClaimedMap: Record<string, IContribution>;
 }
 
 const useContributionListFilter = ({
@@ -46,6 +47,7 @@ const useContributionListFilter = ({
 	contributorList,
 	projectDetail,
 	easVoteNumberBySigner,
+	canClaimedMap,
 }: IProps) => {
 	const { address: myAddress } = useAccount();
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
@@ -86,7 +88,7 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {
@@ -129,35 +131,11 @@ const useContributionListFilter = ({
 		easVoteNumberBySigner,
 	]);
 
-	const canClaim = (contribution: IContribution) => {
-		if (contribution.status !== Status.READY) {
-			return false;
-		} else {
-			const targetTime =
-				new Date(contribution.createAt).getTime() +
-				Number(projectDetail?.votePeriod) * 24 * 60 * 60 * 1000;
-			const isEnd = Date.now() > targetTime;
-			if (!isEnd) return false;
-			const voteNumberBySigner = easVoteNumberBySigner[contribution.uId!];
-			const [forCount, againstCount] = Object.keys(voteNumberBySigner || {}).reduce(
-				(pre, cur) => {
-					if (voteNumberBySigner[cur] === IVoteValueEnum.FOR) {
-						pre[0] += 1;
-					}
-					if (voteNumberBySigner[cur] === IVoteValueEnum.AGAINST) {
-						pre[1] += 1;
-					}
-					return pre;
-				},
-				[0, 0],
-			);
-			return forCount > 0 && forCount >= againstCount;
-		}
-	};
-
 	const canClaimedContributionList = useMemo(() => {
-		return filterContributionList.filter((item) => canClaim(item));
-	}, [filterContributionList]);
+		return filterContributionList.filter((item) => {
+			return item.status === Status.READY && !!canClaimedMap[item.id];
+		});
+	}, [filterContributionList, canClaimedMap]);
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;

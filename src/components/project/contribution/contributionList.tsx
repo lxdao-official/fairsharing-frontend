@@ -197,18 +197,19 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
 
+	const [canClaimedMap, setCanClaimedMap] = useState<Record<string, IContribution>>({});
+
 	const { renderFilter, filterContributionList, canClaimedContributionList } =
 		useContributionListFilter({
 			contributionList,
 			contributorList,
 			projectDetail,
 			easVoteNumberBySigner,
+			canClaimedMap,
 		});
 
 	const canClaimTotalCredit = useMemo(() => {
-		return canClaimedContributionList.reduce((pre, cur) => {
-			return pre + cur.credit;
-		}, 0);
+		return canClaimedContributionList.reduce((pre, cur) => pre + cur.credit, 0);
 	}, [canClaimedContributionList]);
 
 	useEffect(() => {
@@ -216,6 +217,15 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
+
+	const setCanClaimedContribution = (contribution: IContribution) => {
+		setCanClaimedMap(pre => {
+			return {
+				...pre,
+				[contribution.id]: contribution,
+			};
+		});
+	};
 
 	const fetchContributionList = async (projectId: string) => {
 		try {
@@ -521,21 +531,22 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-						.filter((item) => item.status !== Status.UNREADY)
-						.map((contribution, idx) => (
-							<ContributionItem
-								key={contribution.id}
-								contribution={contribution}
-								showSelect={showMultiSelect}
-								selected={selected}
-								onSelect={onSelect}
-								showDeleteDialog={showDeleteDialog}
-								projectDetail={projectDetail}
-								contributorList={contributorList}
-								contributionList={filterContributionList}
-								voteData={easVoteNumberBySigner[contribution.uId!] || null}
-							/>
-						))
+					.filter((item) => item.status !== Status.UNREADY)
+					.map((contribution, idx) => (
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showMultiSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							contributorList={contributorList}
+							contributionList={filterContributionList}
+							voteData={easVoteNumberBySigner[contribution.uId!] || null}
+							setClaimed={setCanClaimedContribution}
+						/>
+					))
 				: null}
 
 			<Dialog

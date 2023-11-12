@@ -78,6 +78,7 @@ export interface IContributionItemProps {
 	contributorList: IContributor[];
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
+	setClaimed: (contribution: IContribution) => void
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -91,6 +92,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributorList,
 		contributionList,
 		voteData,
+		setClaimed
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -224,6 +226,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
 			console.log('getVoteResultFromContract', contribution.detail, result);
 			setVoteResultFromContract(result);
+			if (result) {
+				setClaimed(contribution);
+			}
 		} catch (err) {
 			console.error(`[${contribution.detail}]: getResult error`, err);
 		} finally {
