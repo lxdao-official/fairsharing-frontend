@@ -23,7 +23,7 @@ import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR, { useSWRConfig, mutate } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
@@ -179,12 +179,17 @@ const PostContribution = ({
 	}, [isEdit, contributionTypeList]);
 
 	const tagOptions = useMemo(() => {
-		return contributionTypeList.map((item) => ({
+		const realOptions = contributionTypeList.map((item) => ({
 			label: item.name,
 			id: item.id,
 			color: item.color,
 		}));
-	}, [contributionTypeList]);
+		return inputText ? [...realOptions, {
+			label: `create:${inputText}`,
+			id: '000000000',
+			color: 'red',
+		}] : realOptions;
+	}, [contributionTypeList, inputText]);
 
 	useEffect(() => {
 		mutateContributorList();
@@ -239,12 +244,20 @@ const PostContribution = ({
 				return false;
 			}
 			try {
-				openGlobalLoading();
+				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
+					name: 'label',
+					id: '999999',
+					color: 'red',
+					projectId: projectId,
+				}], false);
 				const { name, id, color } = await createContributionType(projectId, {
 					name: label,
-					color: 'red', // TODO 随机颜色
+					color: 'red',
 				});
-				await mutateContributionTypeList();
+				const len = contributionTypeList.length;
+				const newList = [...contributionTypeList];
+				newList[len - 1] = { name, id, color, projectId };
+				await mutate(['project/contributionType', projectId], newList, false);
 				if (tags.find((tag) => tag.label === label)) {
 					setInputText('');
 					return false;
@@ -254,7 +267,6 @@ const PostContribution = ({
 				console.error(err);
 			} finally {
 				setInputText('');
-				closeGlobalLoading();
 			}
 		}
 	};
