@@ -184,11 +184,16 @@ const PostContribution = ({
 			id: item.id,
 			color: item.color,
 		}));
-		return inputText ? [...realOptions, {
-			label: inputText,
-			id: '__for_create__',
-			color: 'red',
-		}] : realOptions;
+		const label = inputText.trim();
+		if (realOptions.find(item => item.label === label)) {
+			return realOptions;
+		} else {
+			return label ? [...realOptions, {
+				label: label,
+				id: '__for_create__',
+				color: 'red',
+			}] : realOptions;
+		}
 	}, [contributionTypeList, inputText]);
 
 	useEffect(() => {
@@ -239,7 +244,7 @@ const PostContribution = ({
 			// @ts-ignore
 			event.defaultMuiPrevented = true;
 			const label = inputText.trim();
-			console.log('label', label);
+			console.log('label', label, tags);
 			if (tagOptions.find((item) => item.label === label && item.id !== '__for_create__')) {
 				setInputText('');
 				return false;
@@ -247,23 +252,21 @@ const PostContribution = ({
 			try {
 				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
 					name: label,
-					id: '999999',
+					id: '__ready_for_create__',
 					color: 'red',
 					projectId: projectId,
 				}], false);
+				setInputText('');
 				const { name, id, color } = await createContributionType(projectId, {
 					name: label,
 					color: 'red',
 				});
-				const len = contributionTypeList.length;
-				const newList = [...contributionTypeList];
-				newList[len - 1] = { name, id, color, projectId };
-				await mutate(['project/contributionType', projectId], newList, false);
 				if (tags.find((tag) => tag.label === label)) {
 					setInputText('');
 					return false;
 				}
-				setTags([...tags, { id, color, label: name }]);
+				setTags([...tags, { id, color, label: name, projectId }]);
+				mutateContributionTypeList();
 			} catch (err) {
 				console.error(err);
 			} finally {
@@ -666,5 +669,5 @@ const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
 const OptionChip = styled(Chip)<{ index: number }>(({ index }) => ({
 	backgroundColor: OptionBgColors[index % 10],
 	color: OptionFontColors[index % 10],
-	borderRadius: '4px'
+	borderRadius: '4px',
 }));
