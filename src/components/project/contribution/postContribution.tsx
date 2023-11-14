@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import {
 	Autocomplete,
-	Button,
+	Button, Chip,
 	InputAdornment,
 	styled,
 	TextField,
@@ -23,7 +23,7 @@ import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR, { useSWRConfig, mutate } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
@@ -179,12 +179,22 @@ const PostContribution = ({
 	}, [isEdit, contributionTypeList]);
 
 	const tagOptions = useMemo(() => {
-		return contributionTypeList.map((item) => ({
+		const realOptions = contributionTypeList.map((item) => ({
 			label: item.name,
 			id: item.id,
 			color: item.color,
 		}));
-	}, [contributionTypeList]);
+		const label = inputText.trim();
+		if (realOptions.find(item => item.label === label)) {
+			return realOptions;
+		} else {
+			return label ? [...realOptions, {
+				label: label,
+				id: '__for_create__',
+				color: 'red',
+			}] : realOptions;
+		}
+	}, [contributionTypeList, inputText]);
 
 	useEffect(() => {
 		mutateContributorList();
@@ -234,27 +244,33 @@ const PostContribution = ({
 			// @ts-ignore
 			event.defaultMuiPrevented = true;
 			const label = inputText.trim();
-			if (tagOptions.find((item) => item.label === label)) {
+			console.log('label', label, tags);
+			if (tagOptions.find((item) => item.label === label && item.id !== '__for_create__')) {
 				setInputText('');
 				return false;
 			}
 			try {
-				openGlobalLoading();
+				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
+					name: label,
+					id: '__ready_for_create__',
+					color: 'red',
+					projectId: projectId,
+				}], false);
+				setInputText('');
 				const { name, id, color } = await createContributionType(projectId, {
 					name: label,
-					color: 'red', // TODO 随机颜色
+					color: 'red',
 				});
-				await mutateContributionTypeList();
 				if (tags.find((tag) => tag.label === label)) {
 					setInputText('');
 					return false;
 				}
-				setTags([...tags, { id, color, label: name }]);
+				setTags([...tags, { id, color, label: name, projectId }]);
+				mutateContributionTypeList();
 			} catch (err) {
 				console.error(err);
 			} finally {
 				setInputText('');
-				closeGlobalLoading();
 			}
 		}
 	};
@@ -430,18 +446,17 @@ const PostContribution = ({
 					}}
 					size={'small'}
 					options={tagOptions}
-					getOptionLabel={(option) => option.label} // 设置显示格式
 					value={tags}
 					isOptionEqualToValue={(option, value) => option.id === value.id}
+					autoFocus={true}
+					onKeyDown={onTypeKeyDown}
+					popupIcon={''}
 					onChange={(event, newValue: AutoCompleteValue[]) => {
 						setTags(newValue);
 					}}
 					onInputChange={(event, value) => {
 						setInputText(value);
 					}}
-					autoFocus={true}
-					onKeyDown={onTypeKeyDown}
-					popupIcon={''}
 					renderInput={(params) => (
 						<TextField
 							{...params}
@@ -449,6 +464,20 @@ const PostContribution = ({
 							key={params.id}
 						/>
 					)}
+					renderOption={(props, option, { selected, index }) => {
+						return <OptionLi selected={selected} {...props} >
+							{
+								option.id === '__for_create__' ? 'Create' : ''
+							}
+							<OptionLabel index={index}>{option.label}</OptionLabel>
+						</OptionLi>;
+					}}
+					renderTags={(value, getTagProps) =>
+						value.map((option, index) => (
+							// eslint-disable-next-line react/jsx-key
+							<OptionChip label={option.label} {...getTagProps({ index })} size={'small'} index={index} />
+						))
+					}
 				/>
 			</StyledFlexBox>
 
@@ -620,23 +649,25 @@ const BaseButton = styled(Button)({
 	minWidth: '64px',
 });
 
-const ToolTipContainer = styled('div')({
-	minWidth: '350px',
-	padding: '8px 12px',
-	position: 'relative',
-});
-const ToolTipClose = styled('div')({
-	position: 'absolute',
-	top: '4px',
-	right: '4px',
-	width: '24px',
-	height: '24px',
+const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
+	height: '36px',
 	cursor: 'pointer',
-	display: 'flex',
-	justifyContent: 'center',
-	alignItems: 'center',
-});
-const ToolTipAction = styled('div')({
-	marginTop: '16px',
-	textAlign: 'right',
-});
+	padding: '8px 16px',
+}));
+
+const OptionBgColors = ['#FEEDEB', '#FFF3E0', '#E6F7FF', '#E1F3E2', '#FBF6C7', '#F2F4F6', '#EDE7F6', '#EDF1DA', '#E9EBF7', '#FCE8F9'];
+const OptionFontColors = ['#491410', '#391A00', '#002338', '#00200D', '#4D2100', '#181D24', '#180038', '#182700', '#0E184C', '#3A071B'];
+
+const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
+	fontSize: '14px',
+	lineHeight: '20px',
+	padding: '0 6px',
+	borderRadius: '4px',
+	backgroundColor: OptionBgColors[index % 10],
+	color: OptionFontColors[index % 10],
+}));
+const OptionChip = styled(Chip)<{ index: number }>(({ index }) => ({
+	backgroundColor: OptionBgColors[index % 10],
+	color: OptionFontColors[index % 10],
+	borderRadius: '4px',
+}));

@@ -203,7 +203,16 @@ const theme = createTheme({
 					maxWidth: '360px'
 				}
 			}
-		}
+		},
+		MuiAutocomplete: {
+			styleOverrides: {
+				option: {
+					'&[aria-selected="true"]': {
+						backgroundColor: '#efefef !important'
+					},
+				},
+			},
+		},
 	},
 });
 
