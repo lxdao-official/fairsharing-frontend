@@ -15,7 +15,6 @@ import { IMintRecord, getMintRecord, getContributorList } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 
-
 export default function Page({ params }: { params: { id: string } }) {
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 	const { isLoading, data } = useSWR(

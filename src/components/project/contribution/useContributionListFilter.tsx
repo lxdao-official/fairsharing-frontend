@@ -1,5 +1,5 @@
 import { MenuItem, Select, SelectChangeEvent, styled } from '@mui/material';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
 	addYears,
 	endOfMonth,
@@ -13,9 +13,11 @@ import {
 
 import { startOfMonth } from 'date-fns/fp';
 
+import { useAccount } from 'wagmi';
+
 import { StyledFlexBox } from '@/components/styledComponents';
-import { EasAttestation, IContribution, IContributor, IProject, Status } from '@/services';
-import { EasSchemaVoteKey } from '@/constant/eas';
+import { IContribution, IContributor, IProject, Status } from '@/services';
+import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -36,28 +38,43 @@ export interface IProps {
 	contributionList: IContribution[];
 	contributorList: IContributor[];
 	projectDetail?: IProject;
-	easVoteMap: Record<string, EasAttestation<EasSchemaVoteKey>[]>;
+	easVoteNumberBySigner: Record<string, Record<string, IVoteValueEnum>>;
+	canClaimedMap: Record<string, IContribution>;
 }
 
 const useContributionListFilter = ({
 	contributionList,
 	contributorList,
 	projectDetail,
-	easVoteMap,
+	easVoteNumberBySigner,
+	canClaimedMap,
 }: IProps) => {
+	const { address: myAddress } = useAccount();
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
 	const [filterVoteStatus, setFilterVoteStatus] = useState(VoteStatusEnum.All);
 	const [filterContributor, setFilterContributor] = useState('All');
 
-	const [timestamp, settTimestamp] = useState([0, 0]);
+	const timestamp = useMemo(() => {
+		if (filterPeriod === PeriodEnum.All) {
+			return [addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()];
+		} else if (filterPeriod === PeriodEnum.Year) {
+			return [startOfYear(new Date()).getTime(), endOfYear(new Date()).getTime()];
+		} else if (filterPeriod === PeriodEnum.Season) {
+			return [startOfQuarter(new Date()).getTime(), endOfQuarter(new Date()).getTime()];
+		} else if (filterPeriod === PeriodEnum.Month) {
+			return [startOfMonth(new Date()).getTime(), endOfMonth(new Date()).getTime()];
+		} else if (filterPeriod === PeriodEnum.Week) {
+			return [startOfWeek(new Date()).getTime(), endOfWeek(new Date()).getTime()];
+		} else {
+			return [addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()];
+		}
+	}, [filterPeriod]);
 
 	const filterByPeriod = (list: IContribution[]) => {
 		if (!projectDetail) return list;
 		const [filterStart, filterEnd] = timestamp;
-		// console.log('timestamp', [new Date(filterStart), new Date(filterEnd)]);
 		return list.filter(({ createAt }) => {
 			const startTime = new Date(createAt).getTime();
-			// const endTime = new Date(createAt).getTime() + Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000;
 			return startTime >= filterStart && startTime <= filterEnd;
 		});
 	};
@@ -71,41 +88,38 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {
-			console.log('filterVoteStatus in vote', list);
-			// TODO 选取投票数据
-			const res = list.filter((item) => {
-				const { uId } = item;
-				console.log('uId', uId);
-				console.log('easVoteMap', easVoteMap);
-				const easVoteList = easVoteMap[uId!] ?? [];
-			});
+			const myVoteCidList: string[] = [];
+			for (const [cId, value] of Object.entries(easVoteNumberBySigner)) {
+				const signers = Object.keys(value);
+				if (signers.includes(myAddress!)) {
+					myVoteCidList.push(cId);
+				}
+			}
 			if (filterVoteStatus === VoteStatusEnum.VoteByMe) {
-				return list;
+				return list.filter((item) => myVoteCidList.includes(item.uId!.toString()));
 			} else if (filterVoteStatus === VoteStatusEnum.UnVotedByMe) {
-				return list;
+				return list.filter((item) => !myVoteCidList.includes(item.uId!.toString()));
 			}
 			return list;
 		}
 	};
 
 	const filterContributionList = useMemo(() => {
-		const list = contributionList.filter(contributor => contributor.status !== Status.UNREADY)
+		const list = contributionList.filter(
+			(contributor) => contributor.status !== Status.UNREADY,
+		);
 		const filterTimeList = filterByPeriod(list);
-		// console.log('filterTimeList', filterTimeList);
 		const filterVoteList = filterByVoteStatus(filterTimeList);
-		// console.log('filterVoteList', filterVoteList);
-		if (filterContributor !== 'All') {
-			return filterVoteList.filter((contribution) =>
-				contribution.toIds.includes(filterContributor),
-			);
-		} else {
+		if (filterContributor === 'All') {
 			return filterVoteList;
 		}
-		return list;
+		return filterVoteList.filter((contribution) =>
+			contribution.toIds.includes(filterContributor),
+		);
 	}, [
 		contributionList,
 		contributorList,
@@ -113,30 +127,22 @@ const useContributionListFilter = ({
 		filterVoteStatus,
 		filterContributor,
 		projectDetail,
-		easVoteMap,
+		myAddress,
+		easVoteNumberBySigner,
 	]);
+
+	const canClaimedContributionList = useMemo(() => {
+		return filterContributionList.filter((item) => {
+			return item.status === Status.READY && !!canClaimedMap[item.id];
+		});
+	}, [filterContributionList, canClaimedMap]);
 
 	const handlePeriodChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;
 		setFilterPeriod(value as PeriodEnum);
-		if (value === PeriodEnum.All) {
-			settTimestamp([addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()]);
-		} else if (value === PeriodEnum.Year) {
-			settTimestamp([startOfYear(new Date()).getTime(), endOfYear(new Date()).getTime()]);
-		} else if (value === PeriodEnum.Season) {
-			settTimestamp([
-				startOfQuarter(new Date()).getTime(),
-				endOfQuarter(new Date()).getTime(),
-			]);
-		} else if (value === PeriodEnum.Month) {
-			settTimestamp([startOfMonth(new Date()).getTime(), endOfMonth(new Date()).getTime()]);
-		} else if (value === PeriodEnum.Week) {
-			settTimestamp([startOfWeek(new Date()).getTime(), endOfWeek(new Date()).getTime()]);
-		}
 	};
 	const handleVoteStatusChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;
-		console.log('handleVoteStatusChange', value);
 		setFilterVoteStatus(value as VoteStatusEnum);
 	};
 	const handleContributorChange = (event: SelectChangeEvent) => {
@@ -187,7 +193,7 @@ const useContributionListFilter = ({
 			>
 				<MenuItem value={'All'}>All contributors</MenuItem>
 				{contributorList.map((contributor) => (
-					<MenuItem key={contributor.wallet} value={contributor.userId}>
+					<MenuItem key={contributor.wallet} value={contributor.id}>
 						{contributor.nickName}
 					</MenuItem>
 				))}
@@ -198,7 +204,7 @@ const useContributionListFilter = ({
 		</StyledFlexBox>
 	);
 
-	return { filterContributionList, renderFilter };
+	return { filterContributionList, renderFilter, canClaimedContributionList };
 };
 
 export default useContributionListFilter;

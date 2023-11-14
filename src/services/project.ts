@@ -1,6 +1,12 @@
 import { request } from '@/common/request';
 import { PageListData, PageListParams } from '@/common/types';
-import { IContributor, IMintRecord, IProject } from '@/services/types';
+import {
+	ContributionType,
+	IMintRecord,
+	IProject,
+	VoteApproveEnum,
+	VoteSystemEnum,
+} from '@/services/types';
 
 export interface CreateProjectParams {
 	name: string;
@@ -8,15 +14,16 @@ export interface CreateProjectParams {
 	 * project合约地址
 	 */
 	address: string;
-	// TODO symbol含义？
 	symbol: string;
-	// TODO 确认是token
 	pointConsensus: string;
 	logo: string;
 	intro: string;
 	network: number;
 	votePeriod: string;
 	contributors: Contributor[];
+	voteSystem: VoteSystemEnum;
+	voteApprove: VoteApproveEnum;
+	voteThreshold: number;
 }
 
 export interface EditProjectParams {
@@ -25,6 +32,9 @@ export interface EditProjectParams {
 	logo: string;
 	intro: string;
 	votePeriod: string;
+	voteSystem: VoteSystemEnum
+	voteApprove: VoteApproveEnum
+	voteThreshold: number
 }
 
 export interface Contributor {
@@ -33,6 +43,7 @@ export interface Contributor {
 	permission: PermissionEnum;
 	role: string;
 	id?: string;
+	voteWeight: number;
 }
 
 export enum PermissionEnum {
@@ -70,4 +81,25 @@ export function getProjectDetail(projectId: string): Promise<IProject> {
 
 export function getMintRecord(projectId: string, wallet: string = '') {
 	return request<IMintRecord[]>(`project/${projectId}/mintRecord?wallet=${wallet}`, 1);
+}
+
+export function getContributionTypeList(projectId: string) {
+	return request<ContributionType[]>(`project/${projectId}/contributionTypeList`, 1);
+}
+
+export interface CreateContributionTypeBody {
+	name: string;
+	color: string;
+}
+
+export function createContributionType(projectId: string, params: CreateContributionTypeBody) {
+	return request.post<ContributionType>(`project/${projectId}/createContributionType`, 1, params);
+}
+
+export function editContributionType(params: CreateContributionTypeBody & { id: string }) {
+	return request.put<ContributionType>('project/editContributionType', 1, params);
+}
+
+export function deleteContributionType(id: string) {
+	return request.delete('project/deleteContributionType', 1, { id });
 }

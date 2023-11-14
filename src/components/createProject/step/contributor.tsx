@@ -7,6 +7,7 @@ import {
 	DialogContentText,
 	FormControl,
 	IconButton,
+	InputAdornment,
 	MenuItem,
 	Paper,
 	Select,
@@ -58,14 +59,22 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
-		data ?? [
-			{
-				nickName: '',
-				wallet: myAddress || '',
-				role: '',
-				permission: PermissionEnum.Admin,
-			},
-		],
+		data
+			? data.map((item) => {
+					return {
+						...item,
+						voteWeight: item.voteWeight * 100,
+					};
+			  })
+			: [
+					{
+						nickName: '',
+						wallet: myAddress || '',
+						role: '',
+						permission: PermissionEnum.Admin,
+						voteWeight: 0,
+					},
+			  ],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
@@ -160,6 +169,12 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		changeContributors(newData);
 	};
 
+	const handleVoteWeightChange = (index: number, value: string) => {
+		const newData = [...contributors];
+		newData[index].voteWeight = Number(value);
+		changeContributors(newData);
+	};
+
 	const handlePermissionChange = (index: number, value: PermissionEnum) => {
 		const newData = [...contributors];
 		newData[index].permission = value;
@@ -169,7 +184,13 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const handleAddRow = () => {
 		changeContributors([
 			...contributors,
-			{ nickName: '', wallet: '', role: '', permission: PermissionEnum.Contributor },
+			{
+				nickName: '',
+				wallet: '',
+				role: '',
+				permission: PermissionEnum.Contributor,
+				voteWeight: 0,
+			},
 		]);
 	};
 
@@ -242,6 +263,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 							<TableCell>Wallet Address*</TableCell>
 							<TableCell>Permission</TableCell>
 							<TableCell>Role</TableCell>
+							<TableCell>Vote weight</TableCell>
 							<TableCell>Action</TableCell>
 						</TableRow>
 					</TableHead>
@@ -298,6 +320,24 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										value={row.role}
 										disabled={!canEdit}
 										onChange={(e) => handleRoleChange(index, e.target.value)}
+									/>
+								</StyledTableCell>
+								<StyledTableCell>
+									<TextField
+										size="small"
+										value={row.voteWeight}
+										disabled={!canEdit}
+										onChange={(e) =>
+											handleVoteWeightChange(index, e.target.value)
+										}
+										InputProps={{
+											disableUnderline: true,
+											endAdornment: (
+												<InputAdornment position="end">
+													<Typography variant="body1">%</Typography>
+												</InputAdornment>
+											),
+										}}
 									/>
 								</StyledTableCell>
 								<StyledTableCell>

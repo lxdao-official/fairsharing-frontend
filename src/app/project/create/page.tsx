@@ -1,7 +1,5 @@
 'use client';
 
-import process from 'process';
-
 import { Box, Container, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 
@@ -31,9 +29,11 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
-import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
+import { ContractAddressMap, ProjectRegisterABI, VoteStrategyMap } from '@/constant/contract';
 import { generateWeightArray } from '@/utils/weight';
 import { isAdmin } from '@/utils/member';
+import { VoteApproveEnum, VoteSystemEnum } from '@/services';
+import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
 
 const steps = [
 	{
@@ -99,8 +99,27 @@ export default function Page() {
 	const handleCreateProject = async () => {
 		const { profileFormData, strategyFormData, contributorFormData } = handleGetFormData();
 		const { avatar, name, intro } = profileFormData!;
-		const { symbol, period, network } = strategyFormData!;
+		const {
+			symbol,
+			period,
+			network,
+			voteSystem,
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		} = strategyFormData!;
 		const { contributors } = contributorFormData!;
+
+		const totalWeight = contributors.reduce((pre, cur) => pre + cur.voteWeight, 0);
+		if (totalWeight !== 100) {
+			showToast('Weights must add up to 100%.', 'error');
+			return false;
+		}
+		const voteStrategyAddress = getVoteStrategyContract(voteApproveType);
+		const voteThreshold = getVoteThreshold(voteApproveType, forWeightOfTotal, differWeightOfTotal)
+		const voteWeights = contributors.map((item) => item.voteWeight)
+		const weights = getVoteWeights(voteSystem, voteWeights, contributors.length)
+
 		try {
 			openGlobalLoading();
 
@@ -112,7 +131,13 @@ export default function Page() {
 				symbol: symbol,
 				network: network,
 				votePeriod: String(period),
-				contributors: contributors,
+				contributors: contributors.map((contributor) => ({
+					...contributor,
+					voteWeight: contributor.voteWeight / 100,
+				})),
+				voteSystem,
+				voteApprove: voteApproveType,
+				voteThreshold: voteThreshold / 100,
 			};
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
 
@@ -121,6 +146,8 @@ export default function Page() {
 				ProjectRegisterABI,
 				signer,
 			);
+			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry);
+			console.log('voteStrategyAddress', voteStrategyAddress);
 
 			const admins = contributors
 				.filter((contributor) => isAdmin(contributor.permission))
@@ -131,10 +158,10 @@ export default function Page() {
 				members: members,
 				tokenName: name,
 				tokenSymbol: symbol,
-				voteStrategy: ContractAddressMap.VotingStrategy,
+				voteStrategy: voteStrategyAddress,
+				voteWeights: weights, // uint256[]
+				voteThreshold: voteThreshold, // uint256
 				voteStrategyData: ethers.toUtf8Bytes(''),
-				voteWeights: generateWeightArray(members.length, 100), // uint256[]
-				voteThreshold: 50, // uint256
 			};
 			console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(
@@ -158,8 +185,9 @@ export default function Page() {
 			localStorage.removeItem(ProjectParamStorageKey);
 			await getUserProjectList();
 			router.push(`/project/${result.id}/contribution`);
-		} catch (e) {
-			console.error('createProject', e);
+		} catch (err: any) {
+			console.error('createProject', err);
+			err.message && showToast(err.message, 'error');
 		} finally {
 			closeGlobalLoading();
 		}
@@ -179,7 +207,7 @@ export default function Page() {
 	const getOwnerLatestProject = async () => {
 		try {
 			const contract = new ethers.Contract(
-				`${process.env.NEXT_PUBLIC_PROJECT_REGISTER_CONTRACT}`,
+				ContractAddressMap.ProjectRegistry,
 				ProjectRegisterABI,
 				signer,
 			);
@@ -227,16 +255,19 @@ export default function Page() {
 				<Box sx={{ maxWidth: 200 }}>
 					<Stepper activeStep={activeStep} orientation="vertical">
 						{steps.map((step, index) => (
-							<Step sx={{ cursor: 'pointer' }} key={step.label}>
+							<Step
+								sx={{ cursor: 'pointer' }}
+								key={step.label}
+								onClick={() => handleClickStepLabel(index)}
+							>
 								<StepLabel
-									onClick={() => handleClickStepLabel(index)}
 									StepIconProps={{
 										sx: {
 											'& text': {
 												fill: activeStep >= index ? '#fff' : '#CBD5E1',
 											},
 											borderColor: activeStep >= index ? '#000' : '#CBD5E1',
-											background: activeStep >= index ? '#000' : '#fff',
+											// background: activeStep >= index ? '#000' : '#fff',
 										},
 									}}
 								>

@@ -39,7 +39,6 @@ export default function UploadImage(props: IUploadImageProps) {
 				}}
 				onComplete={(file) => {
 					setFile(file);
-					console.log('onComplete file', file);
 					if (file.status === 'done' && props.uploadSuccess) {
 						props.uploadSuccess(file.url);
 					}

@@ -4,14 +4,13 @@ import { useMemo } from 'react';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { Status } from '@/services/types';
-import useCountdown from '@/hooks/useCountdown';
-import { PizzaGrayIcon, PizzaOrangeIcon } from '@/icons';
+import Image from 'next/image';
 
 export interface IPizzaProps {
 	credit: number;
 	status: Status;
 	votePass: boolean;
-	targetTime: number;
+	isEnd: boolean;
 }
 
 const TextColor = {
@@ -33,9 +32,7 @@ const Border = {
 };
 
 const Pizza = (props: IPizzaProps) => {
-	const { credit, status, targetTime, votePass } = props;
-
-	const { isEnd } = useCountdown(targetTime);
+	const { credit, status, isEnd, votePass } = props;
 
 	const canClaim = useMemo(() => {
 		if (status === Status.READY && isEnd && votePass) {
@@ -62,10 +59,8 @@ const Pizza = (props: IPizzaProps) => {
 	return (
 		<BorderOutline sx={{ background: BackgroundColor[status], border: Border[status] }}>
 			<div style={{ marginRight: '4px' }}>
-				{canClaim || status === 'CLAIM' ? (
-					<PizzaOrangeIcon width={24} height={24} />
-				) : (
-					<PizzaGrayIcon width={24} height={24} />
+				{canClaim || status === 'CLAIM' ? '🍕' : (
+					<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				)}
 			</div>
 			<Typography variant={'body2'} style={{ color: textColor, fontWeight: '500' }}>

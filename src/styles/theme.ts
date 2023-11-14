@@ -42,11 +42,11 @@ const theme = createTheme({
 		},
 		subtitle1: {
 			fontSize: 20,
-			fontWeight: 'bold',
+			fontWeight: '500',
 		},
 		subtitle2: {
 			fontSize: 18,
-			fontWeight: 'bold',
+			fontWeight: '500',
 		},
 		body1: {
 			fontSize: 16,
@@ -118,6 +118,9 @@ const theme = createTheme({
 		},
 		MuiInputBase: {
 			styleOverrides: {
+				input: {
+					padding: '0 0 1px',
+				},
 				// 为Select修改
 				root: {
 					'&.Mui-focused': {
@@ -190,6 +193,23 @@ const theme = createTheme({
 			styleOverrides: {
 				root: {
 					color: '#437EF7',
+				},
+			},
+		},
+		MuiTooltip: {
+			styleOverrides: {
+				tooltip: {
+					backgroundColor: 'rgba(51, 65, 85, 0.85)',
+					maxWidth: '360px'
+				}
+			}
+		},
+		MuiAutocomplete: {
+			styleOverrides: {
+				option: {
+					'&[aria-selected="true"]': {
+						backgroundColor: '#efefef !important'
+					},
 				},
 			},
 		},

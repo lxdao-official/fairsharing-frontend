@@ -12,7 +12,7 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
 import { formatDistance } from 'date-fns';
 
@@ -54,25 +54,31 @@ import {
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
-import useCountdown from '@/hooks/useCountdown';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
+import useCountDownTime from '@/hooks/useCountdownTime';
+import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
+
+/**
+ * Record<signer, IVoteValueEnum>
+ */
+export type IVoteData = Record<string, IVoteValueEnum>;
 
 export interface IContributionItemProps {
 	contribution: IContribution;
 	projectDetail: IProject;
 	showSelect: boolean;
-	selected: number[];
-	onSelect: (idList: number[]) => void;
-	showDeleteDialog: (contributionId: number) => void;
-	easVoteList: EasAttestation<EasSchemaVoteKey>[];
+	selected: string[];
+	onSelect: (idList: string[]) => void;
+	showDeleteDialog: (contributionId: string) => void;
 	contributorList: IContributor[];
 	contributionList: IContribution[];
-	myVoteNumber?: number;
+	voteData: IVoteData | null;
+	setClaimed: (contribution: IContribution) => void;
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -83,15 +89,15 @@ const ContributionItem = (props: IContributionItemProps) => {
 		showSelect,
 		showDeleteDialog,
 		projectDetail,
-		easVoteList,
 		contributorList,
-		myVoteNumber,
 		contributionList,
+		voteData,
+		setClaimed,
 	} = props;
 
 	const { myInfo } = useUserStore();
 	const { chain } = useNetwork();
-	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
+	const { eas, getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
 	const { address: myAddress } = useAccount();
@@ -102,47 +108,37 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openMore, setOpenMore] = useState(false);
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
+
+	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
+	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
+
 	const [showEdit, setShowEdit] = useState(false);
-
-	const targetTime = useCountdownTarget(contribution, projectDetail);
-	const { isEnd } = useCountdown(targetTime);
-
-	const userVoteInfoMap = useMemo(() => {
-		const userVoterMap: Record<string, number[]> = {};
-		easVoteList?.forEach((vote) => {
-			const { signer } = vote.data as EasAttestationData;
-			const decodedDataJson =
-				vote.decodedDataJson as EasAttestationDecodedData<EasSchemaVoteKey>[];
-			const voteValueItem = decodedDataJson.find((item) => item.name === 'VoteChoice');
-			if (voteValueItem) {
-				const voteNumber = voteValueItem.value.value as IVoteValueEnum;
-				if (userVoterMap[signer]) {
-					userVoterMap[signer].push(voteNumber);
-				} else {
-					userVoterMap[signer] = [voteNumber];
-				}
-			}
-		});
-		return userVoterMap;
-	}, [easVoteList]);
+	const { targetTime, isEnd, timeLeft } = useCountDownTime(
+		contribution.createAt,
+		projectDetail.votePeriod,
+		10000,
+	);
 
 	const voteNumbers = useMemo(() => {
 		let For = 0,
 			Against = 0,
 			Abstain = 0;
-		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
-			// 同一用户取最新投票
-			const voteNumber = value[value.length - 1];
-			if (voteNumber === IVoteValueEnum.FOR) {
+		for (const [signer, voteNumber] of Object.entries(voteData || {})) {
+			const value = Number(voteNumber);
+			if (value === IVoteValueEnum.FOR) {
 				For += 1;
-			} else if (voteNumber === IVoteValueEnum.AGAINST) {
+			} else if (value === IVoteValueEnum.AGAINST) {
 				Against += 1;
-			} else if (voteNumber === IVoteValueEnum.ABSTAIN) {
+			} else if (value === IVoteValueEnum.ABSTAIN) {
 				Abstain += 1;
 			}
 		}
 		return { For, Against, Abstain };
-	}, [userVoteInfoMap]);
+	}, [voteData]);
+
+	const myVoteNumber = useMemo(() => {
+		return voteData?.[myAddress!] || 9999;
+	}, [voteData, myAddress]);
 
 	const EasLink = useMemo(() => {
 		const activeChainConfig =
@@ -169,9 +165,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 		}
 	}, [matchContributors]);
 
-	const hasVoted = useMemo(() => {
+	const voteResult = useMemo(() => {
 		const { For, Against, Abstain } = voteNumbers;
-		return !(For === 0 && Against === 0 && Abstain === 0);
+		const hasVoted = !(For === 0 && Against === 0 && Abstain === 0);
+		const votePass = For > 0 && For >= Against;
+		return { hasVoted, votePass };
 	}, [voteNumbers]);
 
 	const operatorId = useMemo(() => {
@@ -180,6 +178,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		}
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
 	}, [contributorList, myInfo]);
+
+	const isOwner = useMemo(() => {
+		return contribution.ownerId === operatorId;
+	}, [contribution.ownerId, operatorId]);
 
 	const contributionUIds = useMemo(() => {
 		return contributionList
@@ -197,12 +199,55 @@ const ContributionItem = (props: IContributionItemProps) => {
 		);
 	}, [contribution, contributorList]);
 
+	useEffect(() => {
+		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
+			getVoteResultFromContract();
+		}
+	}, [projectDetail, voteData, isEnd]);
+
+	const getVoteResultFromContract = async () => {
+		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
+		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
+		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer);
+
+		// 当前project所有的contributor
+		const voters: string[] = contributorList.map(item => item.wallet);
+		const voteValues: IVoteValueEnum[] = contributorList.map(contributor => {
+			if (voteData![contributor.wallet]) {
+				return Number(voteData![contributor.wallet]);
+			} else {
+				return IVoteValueEnum.ABSTAIN;
+			}
+		});
+		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
+		const threshold = Number(projectDetail.voteThreshold) * 100;
+		const votingStrategyData = ethers.toUtf8Bytes('');
+		try {
+			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
+			console.log(`【${contribution.detail}】[vote result]`, {
+				voters,
+				voteValues,
+				weights,
+				threshold,
+				voteStrategyAddress,
+				result,
+			});
+			setVoteResultFromContract(result);
+			if (result) {
+				setClaimed(contribution);
+			}
+		} catch (err) {
+			console.error(`[${contribution.detail}]: getResult error`, err);
+		} finally {
+			setIsVoteResultFetched(true);
+		}
+	};
+
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		console.log('handleCheckboxChange', event.target.checked);
 		const checked = event.target.checked;
 		const newList = checked
 			? [...selected, contribution.id]
-			: selected.filter((id) => Number(id) !== Number(contribution.id));
+			: selected.filter((id) => id !== contribution.id);
 		onSelect(newList);
 	};
 
@@ -238,13 +283,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const submitVote = async ({ contributionId, value, uId }: IVoteParams) => {
 		try {
 			openGlobalLoading();
-			const offchain = await eas.getOffchain();
+			const offchain = getOffchain();
 			const voteSchemaUid = EasSchemaMap.vote;
 
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
 			const data: EasSchemaData<EasSchemaVoteKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{
+					name: 'ContributionID',
+					value: contributionId,
+					type: 'bytes32',
+				},
 				{ name: 'VoteChoice', value: value, type: 'uint8' },
 				{ name: 'Comment', value: 'Good contribution', type: 'string' },
 			];
@@ -267,13 +316,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 				},
 				signer,
 			);
-			console.log('vote offchainAttestation', offchainAttestation);
-
 			const res = await submitSignedAttestation({
 				signer: myAddress as string,
 				sig: offchainAttestation,
 			});
-			console.log('vote submitSignedAttestation', res);
 			if (res.data.error) {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -293,11 +339,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const getVoteResult = () => {
 		const voters: string[] = [];
 		const voterValues: number[] = [];
-		for (const [signer, value] of Object.entries(userVoteInfoMap)) {
+		for (const [signer, value] of Object.entries(voteData || {})) {
 			voters.push(signer);
-			// 同一用户取最新投票
-			const lastVote = value[value.length - 1];
-			voterValues.push(lastVote);
+			voterValues.push(value);
 		}
 		return {
 			voters: voters,
@@ -337,20 +381,27 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const toWallet = contributorList.find((item) => item.id === toIds[0])?.wallet as string;
 			const signature = await prepareClaim({
 				wallet: myAddress as string,
-				toWallet: toWallet,
+				toWallets: [toWallet],
 				chainId: chain?.id as number,
 				contributionIds: String(contributionId),
 			});
-			console.log('signature', signature);
 
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.claim);
 			const data: EasSchemaData<EasSchemaClaimKey>[] = [
 				{ name: 'ProjectAddress', value: projectDetail.id, type: 'address' },
-				{ name: 'ContributionID', value: contributionId, type: 'uint64' },
+				{
+					name: 'ContributionID',
+					value: contributionId,
+					type: 'bytes32',
+				},
 				{ name: 'Voters', value: voters, type: 'address[]' },
 				{ name: 'VoteChoices', value: voteValues, type: 'uint8[]' },
 				{ name: 'Recipient', value: myAddress, type: 'address' },
-				{ name: 'Token', value: ethers.parseUnits(token.toString()), type: 'uint256' },
+				{
+					name: 'TokenAmount',
+					value: ethers.parseUnits(token.toString()),
+					type: 'uint256',
+				},
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
@@ -366,14 +417,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 					value: BigInt(0),
 				},
 			});
-			console.log('onchainAttestation:', attestation);
 			const updateStatus = await updateContributionStatus(contributionId, {
 				type: 'claim',
 				uId: uId,
 				operatorId: operatorId,
 			});
 			showToast('Claim success', 'success');
-			console.log('claim updateStatus success', updateStatus);
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);
@@ -440,7 +489,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				<StyledFlexBox sx={{ marginRight: '16px', maxWidth: '94px' }}>
 					{showSelect ? (
 						<Checkbox
-							checked={selected.includes(Number(contribution.id))}
+							checked={selected.includes(contribution.id)}
 							onChange={handleCheckboxChange}
 						/>
 					) : null}
@@ -478,13 +527,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<StatusText
 								contribution={contribution}
 								onClaim={handleClaim}
-								targetTime={targetTime}
-								hasVoted={hasVoted}
-								votePass={
-									hasVoted &&
-									voteNumbers.For > 0 &&
-									voteNumbers.For >= voteNumbers.Against
-								}
+								hasVoted={voteResult.hasVoted}
+								isEnd={isEnd}
+								votePass={voteResultFromContract}
+								isVoteResultFetched={isVoteResultFetched}
+								timeLeft={timeLeft}
 							/>
 							<Tooltip title="View on chain" placement="top" arrow={true}>
 								<Link
@@ -512,14 +559,20 @@ const ContributionItem = (props: IContributionItemProps) => {
 										<List>
 											{isEnd ? null : (
 												<ListItem disablePadding>
-													<ListItemButton onClick={onEdit}>
+													<ListItemButton
+														onClick={onEdit}
+														disabled={!isOwner}
+													>
 														Edit
 													</ListItemButton>
 												</ListItem>
 											)}
 
 											<ListItem disablePadding>
-												<ListItemButton onClick={onDelete}>
+												<ListItemButton
+													onClick={onDelete}
+													disabled={!isOwner}
+												>
 													Revoke
 												</ListItemButton>
 											</ListItem>
@@ -537,12 +590,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Pizza
 								credit={contribution.credit}
 								status={contribution.status}
-								targetTime={targetTime}
-								votePass={
-									hasVoted &&
-									voteNumbers.For > 0 &&
-									voteNumbers.For >= voteNumbers.Against
-								}
+								votePass={voteResultFromContract}
+								isEnd={isEnd}
 							/>
 
 							{/*proof*/}
@@ -660,6 +709,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 			{showEdit ? (
 				<PostContribution
+					isEdit={true}
 					projectId={projectDetail.id}
 					contribution={contribution}
 					onCancel={onCancel}
@@ -671,17 +721,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 };
 
 export default ContributionItem;
-
-export function useCountdownTarget(contribution: IContribution, projectDetail: IProject) {
-	const targetTime = useMemo(() => {
-		return (
-			new Date(contribution.createAt).getTime() +
-			Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
-		);
-	}, [contribution.createAt, projectDetail.votePeriod]);
-
-	return targetTime;
-}
 
 export const CustomHoverButton = styled(StyledFlexBox)({
 	borderRadius: 4,

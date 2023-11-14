@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Autocomplete, Button, styled, TextField, Typography } from '@mui/material';
+import {
+	Autocomplete,
+	Button, Chip,
+	InputAdornment,
+	styled,
+	TextField,
+	Tooltip,
+	Typography,
+} from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -12,12 +23,25 @@ import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR, { useSWRConfig } from 'swr';
+import useSWR, { useSWRConfig, mutate } from 'swr';
+
+import { endOfDay, startOfDay } from 'date-fns';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
-import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
-import { createContribution, getContributorList, updateContributionStatus } from '@/services';
+import {
+	closeGlobalLoading,
+	openGlobalLoading,
+	showToast,
+	useUtilsStore,
+} from '@/store/utils';
+import {
+	createContribution,
+	createContributionType,
+	getContributionTypeList,
+	getContributorList,
+	updateContributionStatus,
+} from '@/services';
 import {
 	EasSchemaContributionKey,
 	EasSchemaData,
@@ -29,7 +53,8 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
-import { PizzaGrayIcon } from '@/icons';
+import Image from 'next/image';
+import TokenToolTip from '@/components/project/contribution/tokenToolTip';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -38,6 +63,7 @@ export interface IPostContributionProps {
 	confirmText?: string;
 	refresh?: number;
 	selectedContributors?: IContributor[];
+	isEdit?: boolean;
 }
 
 export interface PostData {
@@ -45,13 +71,26 @@ export interface PostData {
 	proof: string;
 	contributors: string[];
 	credit: string;
+	type: string;
 }
 
 export interface AutoCompleteValue {
 	label: string;
-	wallet: string;
 	id: string;
+
+	[key: string]: any;
 }
+
+// TODO 默认替project创建一个kudos
+const DefaultContributionType = {
+	id: '*****',
+	name: '❤️ Kudos',
+	projectId: '****',
+	color: 'red',
+};
+
+const TokenTips =
+	"$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there's no limit to their supply.\n";
 
 const PostContribution = ({
 	projectId,
@@ -59,6 +98,7 @@ const PostContribution = ({
 	onCancel,
 	confirmText,
 	selectedContributors,
+	isEdit,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -68,12 +108,29 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
 			: null,
 	);
+	const { showTokenToolTip } = useUtilsStore();
+	const [showTokenTip, setShowTokenTip] = useState(false);
+
+	const [startDate, setStartDate] = useState<Date>(() => {
+		if (!isEdit) return new Date();
+		const endDate = JSON.parse(contribution?.contributionDate || '{}').startDate;
+		return new Date(endDate);
+	});
+
+	const [endDate, setEndDate] = useState<Date>(() => {
+		if (!isEdit) return new Date();
+		const endDate = JSON.parse(contribution?.contributionDate || '{}').endDate;
+		return new Date(endDate);
+	});
+
+	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
+	const [inputText, setInputText] = useState('');
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -81,7 +138,7 @@ const PostContribution = ({
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 
-	const { eas, getEasScanURL, submitSignedAttestation } = useEas();
+	const { getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
 
 	const { mutate } = useSWRConfig();
 	const { data: contributorList, mutate: mutateContributorList } = useSWR(
@@ -92,6 +149,52 @@ const PostContribution = ({
 			onSuccess: (data) => console.log('getContributorList', data),
 		},
 	);
+
+	const { data: contributionTypeList, mutate: mutateContributionTypeList } = useSWR(
+		['project/contributionType', projectId],
+		() => getContributionTypeList(projectId),
+		{
+			fallbackData: [],
+			onSuccess: (data) => console.log('contributionType', data),
+		},
+	);
+
+	useEffect(() => {
+		if (isEdit && contributionTypeList.length > 0) {
+			const map = contributionTypeList.reduce((pre, item) => {
+				return {
+					...pre,
+					[item.name]: {
+						id: item.id,
+						label: item.name,
+						color: item.color,
+					},
+				};
+			}, {} as Record<string, AutoCompleteValue>);
+			const tags = contribution!.type.map((typeName) => {
+				return map[typeName];
+			});
+			setTags(tags);
+		}
+	}, [isEdit, contributionTypeList]);
+
+	const tagOptions = useMemo(() => {
+		const realOptions = contributionTypeList.map((item) => ({
+			label: item.name,
+			id: item.id,
+			color: item.color,
+		}));
+		const label = inputText.trim();
+		if (realOptions.find(item => item.label === label)) {
+			return realOptions;
+		} else {
+			return label ? [...realOptions, {
+				label: label,
+				id: '__for_create__',
+				color: 'red',
+			}] : realOptions;
+		}
+	}, [contributionTypeList, inputText]);
 
 	useEffect(() => {
 		mutateContributorList();
@@ -117,8 +220,12 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
+		setValue(null);
 		setContributors([]);
 		setCredit('');
+		setTags([]);
+		setStartDate(new Date());
+		setEndDate(new Date());
 	};
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +237,42 @@ const PostContribution = ({
 	};
 	const handleCreditInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setCredit(event.target.value);
+	};
+
+	const onTypeKeyDown = async (event: React.KeyboardEvent<HTMLDivElement>) => {
+		if (event.key === 'Enter') {
+			// @ts-ignore
+			event.defaultMuiPrevented = true;
+			const label = inputText.trim();
+			console.log('label', label, tags);
+			if (tagOptions.find((item) => item.label === label && item.id !== '__for_create__')) {
+				setInputText('');
+				return false;
+			}
+			try {
+				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
+					name: label,
+					id: '__ready_for_create__',
+					color: 'red',
+					projectId: projectId,
+				}], false);
+				setInputText('');
+				const { name, id, color } = await createContributionType(projectId, {
+					name: label,
+					color: 'red',
+				});
+				if (tags.find((tag) => tag.label === label)) {
+					setInputText('');
+					return false;
+				}
+				setTags([...tags, { id, color, label: name, projectId }]);
+				mutateContributionTypeList();
+			} catch (err) {
+				console.error(err);
+			} finally {
+				setInputText('');
+			}
+		}
 	};
 
 	const onSubmit = () => {
@@ -149,7 +292,8 @@ const PostContribution = ({
 			showToast('Contribution credit should be a positive integer', 'error');
 			return;
 		}
-		const params: PostData = { detail, proof, contributors, credit };
+		const typeString = tags.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
+		const params: PostData = { detail, proof, contributors, credit, type: typeString };
 		if (contribution) {
 			onEditContribution(params);
 		} else {
@@ -174,26 +318,38 @@ const PostContribution = ({
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
+				type: tags.map((item) => item.label),
+				contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
-			console.log('createContribution res', contribution);
 
 			// TODO 如果用户 reject metamask 签名，DB有记录，但EAS上无数据，是否重新唤起小狐狸
-			const offchain = await eas.getOffchain();
+			const offchain = getOffchain();
 			const contributionSchemaUid = EasSchemaMap.contribution;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
+			const startDay = startOfDay(startDate).getTime().toString();
+			const endDay = endOfDay(endDate).getTime().toString();
+
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
-				{ name: 'ContributionID', value: contribution.id, type: 'uint64' },
-				{ name: 'Detail', value: postData.detail, type: 'string' },
-				{ name: 'Type', value: 'default contribution type', type: 'string' },
-				{ name: 'Proof', value: postData.proof, type: 'string' },
 				{
-					name: 'Token',
+					name: 'ContributionID',
+					value: contribution.id,
+					type: 'bytes32',
+				},
+				{ name: 'Detail', value: postData.detail, type: 'string' },
+				{ name: 'Type', value: postData.type, type: 'string' },
+				{ name: 'Proof', value: postData.proof, type: 'string' },
+				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
+				{ name: 'EndDate', value: ethers.parseUnits(endDay), type: 'uint256' },
+				{
+					name: 'TokenAmount',
 					value: ethers.parseUnits(postData.credit.toString()),
 					type: 'uint256',
 				},
+				{ name: 'Extended', value: '', type: 'string' },
 			];
+			console.log('[EAS postContribution data]', data);
 			const encodedData = schemaEncoder.encodeData(data);
 			const block = await provider.getBlock('latest');
 			if (!signer) {
@@ -217,7 +373,6 @@ const PostContribution = ({
 				signer: myAddress as string,
 				sig: offchainAttestation,
 			});
-			console.log('submitSignedAttestation res', res);
 			if (res.data.error) {
 				console.error('submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -225,7 +380,6 @@ const PostContribution = ({
 			const baseURL = getEasScanURL();
 			// Update ENS names
 			const getENSRes = await axios.get(`${baseURL}/api/getENS/${myAddress}`);
-			console.log('getENSRes', getENSRes);
 			// 传eas返回的uid, 更新status为ready
 			const updateStatus = await updateContributionStatus(contribution.id, {
 				type: 'ready',
@@ -248,9 +402,16 @@ const PostContribution = ({
 	const onEditContribution = async (postData: PostData) => {
 		showToast('Edit contribution is in progress, please wait.', 'warning');
 	};
+	const onFocusTokenInput = (event: React.FocusEvent<HTMLInputElement>) => {
+		setShowTokenTip(true);
+	};
+	const onBlurTokenInput = () => {
+		setShowTokenTip(false);
+	};
 
 	return (
 		<PostContainer>
+			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#detail</TagLabel>
 				<StyledInput
@@ -264,6 +425,63 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*type*/}
+			<StyledFlexBox sx={{ marginTop: '8px' }}>
+				<TagLabel>#type</TagLabel>
+				<Autocomplete
+					multiple
+					id="type-autocomplete"
+					sx={{
+						width: '100%',
+						border: 'none',
+						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root': {
+							border: 'none',
+						},
+						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+							border: 'none',
+						},
+					}}
+					size={'small'}
+					options={tagOptions}
+					value={tags}
+					isOptionEqualToValue={(option, value) => option.id === value.id}
+					autoFocus={true}
+					onKeyDown={onTypeKeyDown}
+					popupIcon={''}
+					onChange={(event, newValue: AutoCompleteValue[]) => {
+						setTags(newValue);
+					}}
+					onInputChange={(event, value) => {
+						setInputText(value);
+					}}
+					renderInput={(params) => (
+						<TextField
+							{...params}
+							sx={{ '& input': { color: '#437EF7' } }}
+							key={params.id}
+						/>
+					)}
+					renderOption={(props, option, { selected, index }) => {
+						return <OptionLi selected={selected} {...props} >
+							{
+								option.id === '__for_create__' ? 'Create' : ''
+							}
+							<OptionLabel index={index}>{option.label}</OptionLabel>
+						</OptionLi>;
+					}}
+					renderTags={(value, getTagProps) =>
+						value.map((option, index) => (
+							// eslint-disable-next-line react/jsx-key
+							<OptionChip label={option.label} {...getTagProps({ index })} size={'small'} index={index} />
+						))
+					}
+				/>
+			</StyledFlexBox>
+
+			{/*proof*/}
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#proof</TagLabel>
 				<StyledInput
@@ -273,19 +491,35 @@ const PostContribution = ({
 					value={proof}
 					size={'small'}
 					onChange={handleProofInputChange}
-					placeholder={'https: //notion.so/1234,https: //notion.so/1234'}
+					placeholder={'https://notion.so/1234, https://notion.so/1234'}
 				/>
 			</StyledFlexBox>
 
+			{/*date*/}
+			<StyledFlexBox sx={{ marginTop: '16px' }}>
+				<TagLabel>#date</TagLabel>
+				<LocalizationProvider dateAdapter={AdapterDateFns}>
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						label={'Start Date'}
+						value={startDate}
+						onChange={(date) => setStartDate(date!)}
+					/>
+					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
+						to
+					</Typography>
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						label={'End Date'}
+						value={endDate}
+						onChange={(date) => setEndDate(date!)}
+					/>
+				</LocalizationProvider>
+			</StyledFlexBox>
+
+			{/*to*/}
 			<StyledFlexBox sx={{ marginTop: '8px' }}>
 				<TagLabel>#to</TagLabel>
-				{/*多选*/}
-				{/*<MultipleContributorSelector*/}
-				{/*	contributors={contributors}*/}
-				{/*	contributorList={contributorList}*/}
-				{/*	onChange={handleContributorChange}*/}
-				{/*/>*/}
-				{/*单选*/}
 				<Autocomplete
 					id="contributor-select"
 					sx={{
@@ -316,18 +550,44 @@ const PostContribution = ({
 				/>
 			</StyledFlexBox>
 
+			{/*credit*/}
 			<CreditContainer>
-				<PizzaGrayIcon width={24} height={24} />
-				<StyledInput
-					sx={{ marginLeft: '4px', marginTop: '4px' }}
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
-					value={credit}
-					size={'small'}
-					onChange={handleCreditInputChange}
-					placeholder={'Pizza slices, e.g. 120'}
-				/>
+				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
+				<Tooltip
+					open={showTokenTip && showTokenToolTip}
+					title={<TokenToolTip setShowTokenTip={setShowTokenTip} />}
+					placement="bottom"
+					arrow={true}
+					disableTouchListener={true}
+					disableHoverListener={true}
+					disableFocusListener={true}
+					disableInteractive={true}
+				>
+					<StyledInput
+						sx={{ marginLeft: '4px', marginTop: '4px' }}
+						variant={'standard'}
+						required
+						onChange={handleCreditInputChange}
+						value={credit}
+						size={'small'}
+						placeholder={'$LXFS tokens, e.g. 60'}
+						onFocus={onFocusTokenInput}
+						onBlur={onBlurTokenInput}
+						InputProps={{
+							disableUnderline: true,
+							startAdornment: credit ? (
+								<InputAdornment position="start">
+									<Typography variant="body1">$</Typography>
+								</InputAdornment>
+							) : null,
+							endAdornment: credit ? (
+								<InputAdornment position="end">
+									<Typography variant="body1">tokens</Typography>
+								</InputAdornment>
+							) : null,
+						}}
+					/>
+				</Tooltip>
 			</CreditContainer>
 
 			<PostButton>
@@ -379,9 +639,8 @@ const StyledInput = styled(TextField)({
 const CreditContainer = styled(StyledFlexBox)({
 	justifyContent: 'center',
 	marginTop: '8px',
-	width: '200px',
+	width: '220px',
 	height: '30px',
-	border: '1px solid rgba(15, 23, 42, 0.16)',
 	borderRadius: '5px',
 	padding: '3px 8px',
 });
@@ -389,3 +648,26 @@ const CreditContainer = styled(StyledFlexBox)({
 const BaseButton = styled(Button)({
 	minWidth: '64px',
 });
+
+const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
+	height: '36px',
+	cursor: 'pointer',
+	padding: '8px 16px',
+}));
+
+const OptionBgColors = ['#FEEDEB', '#FFF3E0', '#E6F7FF', '#E1F3E2', '#FBF6C7', '#F2F4F6', '#EDE7F6', '#EDF1DA', '#E9EBF7', '#FCE8F9'];
+const OptionFontColors = ['#491410', '#391A00', '#002338', '#00200D', '#4D2100', '#181D24', '#180038', '#182700', '#0E184C', '#3A071B'];
+
+const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
+	fontSize: '14px',
+	lineHeight: '20px',
+	padding: '0 6px',
+	borderRadius: '4px',
+	backgroundColor: OptionBgColors[index % 10],
+	color: OptionFontColors[index % 10],
+}));
+const OptionChip = styled(Chip)<{ index: number }>(({ index }) => ({
+	backgroundColor: OptionBgColors[index % 10],
+	color: OptionFontColors[index % 10],
+	borderRadius: '4px',
+}));

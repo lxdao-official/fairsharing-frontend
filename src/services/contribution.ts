@@ -15,6 +15,8 @@ export interface ICreateContributionParams extends IAuthBody {
 	credit: number;
 	toIds: string[];
 	uId?: string;
+	type: string[];
+	contributionDate: string;
 }
 
 export interface IUpdateContributionParams {
@@ -37,7 +39,7 @@ export const editContribution = (
 	return request.put<IContribution>(`contribution/${cid}/edit`, 1, params);
 };
 
-export const updateContributionStatus = (cid: number, params: IUpdateContributionParams) => {
+export const updateContributionStatus = (cid: string, params: IUpdateContributionParams) => {
 	return request.put<IContribution>(`contribution/${cid}/updateState`, 1, params);
 };
 
@@ -45,15 +47,15 @@ export const getContributionList = (params: PageListParams & { projectId: string
 	return request<PageListData<IContribution>>('contribution/list', 1, params);
 };
 
-export const prepareClaim = (query: {
+export const prepareClaim = (data: {
 	wallet: string;
-	toWallet: string;
+	toWallets: string[];
 	chainId: number;
 	contributionIds: string;
 }) => {
-	return request<string[]>(`contribution/prepareClaim`, 1, query);
+	return request.post<string[]>(`contribution/prepareClaim`, 1, data);
 };
 
-export const deleteContribution = (contributionId: number, operatorId: string) => {
+export const deleteContribution = (contributionId: string, operatorId: string) => {
 	return request.delete(`contribution/${contributionId}`, 1, { operatorId });
 };

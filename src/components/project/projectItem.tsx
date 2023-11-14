@@ -30,7 +30,14 @@ const ProjectItem = (props: IProjectItemProps) => {
 					/>
 					<Typography
 						variant={'h4'}
-						sx={{ marginTop: '16px', fontSize: '20px', color: '#0F172A', fontWeight: '500' }}
+						sx={{
+							marginTop: '16px',
+							fontSize: '20px',
+							color: '#0F172A',
+							fontWeight: '500',
+							padding: '0 16px',
+							textAlign: 'center'
+						}}
 					>
 						{project.name}
 					</Typography>

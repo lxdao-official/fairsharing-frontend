@@ -37,9 +37,7 @@ export default function Nav() {
 				myInfo = await signup(myAddress as string);
 			}
 			setUser(myInfo);
-			console.log('myInfo', myInfo);
 			const list = await getProjectListByWallet(myInfo.wallet);
-			console.log('UserProjectList', list);
 			setUserProjectList(list || []);
 		} catch (err) {
 			console.error('fetchUserProjectList error', err);

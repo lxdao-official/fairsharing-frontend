@@ -11,10 +11,14 @@ export interface IProject {
 	pointConsensus: string;
 	contributions?: IContribution[];
 	contributors?: IContributor[];
+	voteSystem: VoteSystemEnum;
+	voteApprove: VoteApproveEnum;
+	voteThreshold: number;
+	ContributionType: ContributionType[];
 }
 
 export interface IContribution {
-	id: number;
+	id: string;
 	detail: string;
 	proof: string;
 	credit: number;
@@ -28,6 +32,8 @@ export interface IContribution {
 	deleted: boolean;
 	updatedAt: string;
 	createAt: string;
+	type: string[];
+	contributionDate: string;
 }
 
 export enum Status {
@@ -47,6 +53,7 @@ export interface IContributor {
 	permission: PermissionEnum;
 	role: string;
 	deleted: boolean;
+	voteWeight: number;
 }
 
 export interface IUser {
@@ -62,4 +69,23 @@ export interface IUser {
 export interface IMintRecord {
 	credit: number;
 	contributor: IContributor;
+}
+
+export enum VoteSystemEnum {
+	EQUAL = 'EQUAL',
+	WEIGHT = 'WEIGHT'
+}
+
+export enum VoteApproveEnum {
+	DEFAULT = 'DEFAULT',
+	RELATIVE2 = 'RELATIVE2',
+	ABSOLUTE1 = 'ABSOLUTE1',
+	ABSOLUTE2 = 'ABSOLUTE2',
+}
+
+export interface ContributionType {
+	id: string;
+	name: string;
+	projectId: string;
+	color: string;
 }
