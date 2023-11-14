@@ -223,7 +223,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
-			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
+			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
 			console.log(`【${contribution.detail}】[vote result]`, {
 				voters,
 				voteValues,
