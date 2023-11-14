@@ -224,6 +224,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData, votingStrategyData);
+			console.log(`【${contribution.detail}】[vote result]`, {
+				voters,
+				voteValues,
+				weights,
+				threshold,
+				voteStrategyAddress,
+				result,
+			});
 			setVoteResultFromContract(result);
 			if (result) {
 				setClaimed(contribution);
