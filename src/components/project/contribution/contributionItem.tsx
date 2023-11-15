@@ -205,6 +205,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		}
 	}, [projectDetail, voteData, isEnd]);
 
+	useEffect(() => {
+		console.log('voteData', voteData);
+	}, [voteData]);
+
 	const getVoteResultFromContract = async () => {
 		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
 		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
