@@ -200,6 +200,10 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		return map;
 	}, [easVoteList, contributionUIds]);
 
+	useEffect(() => {
+		console.log('easVoteNumberBySigner', easVoteNumberBySigner)
+	}, [easVoteNumberBySigner])
+
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
 			return '';

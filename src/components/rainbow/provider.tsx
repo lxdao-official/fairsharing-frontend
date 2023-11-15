@@ -17,7 +17,7 @@ import { publicProvider } from 'wagmi/providers/public';
 import { isProd } from '@/constant/env';
 
 // TODO Determine the configuration in different environments
-const Chains = isProd ? [optimism] : [optimismGoerli];
+const Chains = isProd ? [optimism] : [optimismGoerli, optimism];
 const AlchemyApiKey = isProd
 	? process.env.NEXT_PUBLIC_ALCHEMY_ID_PROD
 	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
