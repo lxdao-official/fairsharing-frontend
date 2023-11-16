@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import {
 	Autocomplete,
-	Button, Chip,
+	Button,
+	Chip,
 	InputAdornment,
 	styled,
 	TextField,
@@ -29,12 +30,7 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
-import {
-	closeGlobalLoading,
-	openGlobalLoading,
-	showToast,
-	useUtilsStore,
-} from '@/store/utils';
+import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
 import {
 	createContribution,
 	createContributionType,
@@ -108,10 +104,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -161,16 +157,19 @@ const PostContribution = ({
 
 	useEffect(() => {
 		if (isEdit && contributionTypeList.length > 0) {
-			const map = contributionTypeList.reduce((pre, item) => {
-				return {
-					...pre,
-					[item.name]: {
-						id: item.id,
-						label: item.name,
-						color: item.color,
-					},
-				};
-			}, {} as Record<string, AutoCompleteValue>);
+			const map = contributionTypeList.reduce(
+				(pre, item) => {
+					return {
+						...pre,
+						[item.name]: {
+							id: item.id,
+							label: item.name,
+							color: item.color,
+						},
+					};
+				},
+				{} as Record<string, AutoCompleteValue>,
+			);
 			const tags = contribution!.type.map((typeName) => {
 				return map[typeName];
 			});
@@ -185,14 +184,19 @@ const PostContribution = ({
 			color: item.color,
 		}));
 		const label = inputText.trim();
-		if (realOptions.find(item => item.label === label)) {
+		if (realOptions.find((item) => item.label === label)) {
 			return realOptions;
 		} else {
-			return label ? [...realOptions, {
-				label: label,
-				id: '__for_create__',
-				color: 'red',
-			}] : realOptions;
+			return label
+				? [
+						...realOptions,
+						{
+							label: label,
+							id: '__for_create__',
+							color: 'red',
+						},
+				  ]
+				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
 
@@ -250,12 +254,19 @@ const PostContribution = ({
 				return false;
 			}
 			try {
-				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
-					name: label,
-					id: '__ready_for_create__',
-					color: 'red',
-					projectId: projectId,
-				}], false);
+				await mutate(
+					['project/contributionType', projectId],
+					[
+						...contributionTypeList,
+						{
+							name: label,
+							id: '__ready_for_create__',
+							color: 'red',
+							projectId: projectId,
+						},
+					],
+					false,
+				);
 				setInputText('');
 				const { name, id, color } = await createContributionType(projectId, {
 					name: label,
@@ -465,17 +476,22 @@ const PostContribution = ({
 						/>
 					)}
 					renderOption={(props, option, { selected, index }) => {
-						return <OptionLi selected={selected} {...props} >
-							{
-								option.id === '__for_create__' ? 'Create' : ''
-							}
-							<OptionLabel index={index}>{option.label}</OptionLabel>
-						</OptionLi>;
+						return (
+							<OptionLi selected={selected} {...props}>
+								{option.id === '__for_create__' ? 'Create' : ''}
+								<OptionLabel index={index}>{option.label}</OptionLabel>
+							</OptionLi>
+						);
 					}}
 					renderTags={(value, getTagProps) =>
 						value.map((option, index) => (
 							// eslint-disable-next-line react/jsx-key
-							<OptionChip label={option.label} {...getTagProps({ index })} size={'small'} index={index} />
+							<OptionChip
+								label={option.label}
+								{...getTagProps({ index })}
+								size={'small'}
+								index={index}
+							/>
 						))
 					}
 				/>
@@ -491,7 +507,7 @@ const PostContribution = ({
 					value={proof}
 					size={'small'}
 					onChange={handleProofInputChange}
-					placeholder={'https://notion.so/1234, https://notion.so/1234'}
+					placeholder="It can be links or texts."
 				/>
 			</StyledFlexBox>
 
@@ -655,8 +671,30 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	padding: '8px 16px',
 }));
 
-const OptionBgColors = ['#FEEDEB', '#FFF3E0', '#E6F7FF', '#E1F3E2', '#FBF6C7', '#F2F4F6', '#EDE7F6', '#EDF1DA', '#E9EBF7', '#FCE8F9'];
-const OptionFontColors = ['#491410', '#391A00', '#002338', '#00200D', '#4D2100', '#181D24', '#180038', '#182700', '#0E184C', '#3A071B'];
+const OptionBgColors = [
+	'#FEEDEB',
+	'#FFF3E0',
+	'#E6F7FF',
+	'#E1F3E2',
+	'#FBF6C7',
+	'#F2F4F6',
+	'#EDE7F6',
+	'#EDF1DA',
+	'#E9EBF7',
+	'#FCE8F9',
+];
+const OptionFontColors = [
+	'#491410',
+	'#391A00',
+	'#002338',
+	'#00200D',
+	'#4D2100',
+	'#181D24',
+	'#180038',
+	'#182700',
+	'#0E184C',
+	'#3A071B',
+];
 
 const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
 	fontSize: '14px',
