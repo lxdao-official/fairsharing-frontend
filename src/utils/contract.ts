@@ -49,9 +49,10 @@ export function getVoteWeights(
 	memberNum: number,
 ) {
 	if (voteSystem === VoteSystemEnum.EQUAL) {
-		const weight = Math.floor(100 / memberNum);
-		return Array(memberNum).fill(weight);
+		// 一人一票，直接传1即可
+		return Array(memberNum).fill(1);
 	} else {
+		// 不支持小数点
 		return voteWeights;
 	}
 }

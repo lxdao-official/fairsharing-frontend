@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
 	Dialog,
@@ -33,14 +33,12 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 
 import { Contributor, PermissionEnum } from '@/services/project';
 import { showToast } from '@/store/utils';
-import { IContributor } from '@/services';
+import { IContributor, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
 import { isAdmin } from '@/utils/member';
-import {
-	DialogButton,
-	DialogConfirmButton,
-} from '@/components/project/contribution/contributionList';
+import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
+import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -58,23 +56,25 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const { step, setActiveStep, onCreateProject, data, onSave, canEdit } = props;
 	const { address: myAddress } = useAccount();
 
+	const { stepStrategyRef } = useProjectInfoRef();
+
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
-					return {
-						...item,
-						voteWeight: item.voteWeight * 100,
-					};
-			  })
+				return {
+					...item,
+					voteWeight: item.voteWeight * 100,
+				};
+			})
 			: [
-					{
-						nickName: '',
-						wallet: myAddress || '',
-						role: '',
-						permission: PermissionEnum.Admin,
-						voteWeight: 0,
-					},
-			  ],
+				{
+					nickName: '',
+					wallet: myAddress || '',
+					role: '',
+					permission: PermissionEnum.Admin,
+					voteWeight: 0,
+				},
+			],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
@@ -94,6 +94,10 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		if (!isAdmin(ownerInfo.permission)) return true;
 		return false;
 	}, [myAddress, contributors]);
+
+	const showWeight = useMemo(() => {
+		return stepStrategyRef.current?.getFormData().voteSystem !== VoteSystemEnum.EQUAL;
+	}, [stepStrategyRef.current]);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
 		if (action === 'BACK') {
@@ -171,7 +175,8 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	const handleVoteWeightChange = (index: number, value: string) => {
 		const newData = [...contributors];
-		newData[index].voteWeight = Number(value);
+		// 只允许正整数
+		newData[index].voteWeight = Math.floor(Number(value));
 		changeContributors(newData);
 	};
 
@@ -263,7 +268,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 							<TableCell>Wallet Address*</TableCell>
 							<TableCell>Permission</TableCell>
 							<TableCell>Role</TableCell>
-							<TableCell>Vote weight</TableCell>
+							{showWeight ? <TableCell>Vote weight</TableCell> : null}
 							<TableCell>Action</TableCell>
 						</TableRow>
 					</TableHead>
@@ -322,24 +327,26 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 										onChange={(e) => handleRoleChange(index, e.target.value)}
 									/>
 								</StyledTableCell>
-								<StyledTableCell>
-									<TextField
-										size="small"
-										value={row.voteWeight}
-										disabled={!canEdit}
-										onChange={(e) =>
-											handleVoteWeightChange(index, e.target.value)
-										}
-										InputProps={{
-											disableUnderline: true,
-											endAdornment: (
-												<InputAdornment position="end">
-													<Typography variant="body1">%</Typography>
-												</InputAdornment>
-											),
-										}}
-									/>
-								</StyledTableCell>
+								{showWeight ? (
+									<StyledTableCell>
+										<TextField
+											size="small"
+											value={row.voteWeight}
+											disabled={!canEdit}
+											onChange={(e) =>
+												handleVoteWeightChange(index, e.target.value)
+											}
+											InputProps={{
+												disableUnderline: true,
+												endAdornment: (
+													<InputAdornment position="end">
+														<Typography variant="body1">%</Typography>
+													</InputAdornment>
+												),
+											}}
+										/>
+									</StyledTableCell>
+								) : null}
 								<StyledTableCell>
 									<IconButton
 										onClick={() => handleDeleteRow(index)}
