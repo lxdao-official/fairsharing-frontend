@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Tooltip, Typography } from '@mui/material';
 
 import { useMemo } from 'react';
 
@@ -36,6 +36,12 @@ const Colors = {
 	deep: '#0F172A',
 	medium: '#64748B',
 	light: 'rgba(100, 116, 139, .5)',
+};
+
+const tooltipTextMap = {
+	[VoteTypeEnum.FOR]: 'For',
+	[VoteTypeEnum.AGAINST]: 'Against',
+	[VoteTypeEnum.ABSTAIN]: 'Abstain',
 };
 
 const IconMap = {
@@ -94,19 +100,24 @@ const VoteAction = ({
 	};
 
 	return (
-		<StyledFlexBox
-			sx={{
-				marginRight: '24px',
-				cursor: isVoteDisabled ? 'not-allowed' : 'pointer',
-				opacity: isVoteDisabled ? '0.5' : '1',
-			}}
-			onClick={handleClick}
-		>
-			{icon}
-			<Typography variant={'body2'} style={{ marginLeft: '8px', fontWeight: 'bold', color }}>
-				{count}
-			</Typography>
-		</StyledFlexBox>
+		<Tooltip title={tooltipTextMap[type]}>
+			<StyledFlexBox
+				sx={{
+					marginRight: '24px',
+					cursor: isVoteDisabled ? 'not-allowed' : 'pointer',
+					opacity: isVoteDisabled ? '0.5' : '1',
+				}}
+				onClick={handleClick}
+			>
+				{icon}
+				<Typography
+					variant={'body2'}
+					style={{ marginLeft: '8px', fontWeight: 'bold', color }}
+				>
+					{count}
+				</Typography>
+			</StyledFlexBox>
+		</Tooltip>
 	);
 };
 
