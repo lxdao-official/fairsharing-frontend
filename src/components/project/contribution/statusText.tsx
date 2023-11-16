@@ -12,7 +12,7 @@ export interface IStatusTextProps {
 	votePass: boolean;
 	isEnd: boolean;
 	timeLeft: ITimeLeft;
-	isVoteResultFetched: boolean
+	isVoteResultFetched: boolean;
 }
 
 enum StatusColorEnum {
@@ -22,7 +22,8 @@ enum StatusColorEnum {
 }
 
 const StatusText = (props: IStatusTextProps) => {
-	const { contribution, onClaim, hasVoted, votePass, timeLeft, isEnd, isVoteResultFetched } = props;
+	const { contribution, onClaim, hasVoted, votePass, timeLeft, isEnd, isVoteResultFetched } =
+		props;
 
 	const { status } = contribution;
 	const [showText, setShowText] = useState('');
@@ -59,7 +60,7 @@ const StatusText = (props: IStatusTextProps) => {
 		} else {
 			if (isEnd) {
 				if (!isVoteResultFetched) {
-					setShowText('fetching...');
+					setShowText('Checking status');
 					setCursor('not-allowed');
 					setColor(StatusColorEnum.GRAY);
 				} else {
