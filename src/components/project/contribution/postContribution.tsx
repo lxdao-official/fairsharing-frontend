@@ -127,6 +127,7 @@ const PostContribution = ({
 
 	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
 	const [inputText, setInputText] = useState('');
+	const [initTo, setInitTo] = useState(false);
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -154,6 +155,22 @@ const PostContribution = ({
 			onSuccess: (data) => console.log('contributionType', data),
 		},
 	);
+
+	useEffect(() => {
+		if (!value && !initTo) {
+			const user = contributorList.filter(
+				(contributor) => contributor.wallet === myInfo?.wallet,
+			);
+			if (user.length > 0) {
+				setValue({
+					label: user[0].nickName,
+					id: user[0].id,
+					wallet: user[0].wallet,
+				});
+				setInitTo(true);
+			}
+		}
+	}, [contributorList, myInfo?.wallet, value, initTo]);
 
 	useEffect(() => {
 		if (isEdit && contributionTypeList.length > 0) {
