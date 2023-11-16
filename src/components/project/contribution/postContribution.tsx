@@ -61,6 +61,8 @@ export interface IPostContributionProps {
 	refresh?: number;
 	selectedContributors?: IContributor[];
 	isEdit?: boolean;
+	showFullPost?: boolean;
+	setShowFullPost?: (show: boolean) => void;
 }
 
 export interface PostData {
@@ -96,6 +98,8 @@ const PostContribution = ({
 	confirmText,
 	selectedContributors,
 	isEdit,
+	showFullPost = true,
+	setShowFullPost,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -420,6 +424,7 @@ const PostContribution = ({
 				operatorId: operatorId,
 			});
 			showToast('Create contribution success', 'success');
+			setShowFullPost?.(false);
 			onClear();
 			mutate(['contribution/list', projectId]);
 		} catch (err: any) {
@@ -443,7 +448,7 @@ const PostContribution = ({
 	};
 
 	return (
-		<PostContainer>
+		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#detail</TagLabel>
@@ -455,138 +460,143 @@ const PostContribution = ({
 					size={'small'}
 					onChange={handleDetailInputChange}
 					placeholder={'I developed sign in with [wallet] feature'}
+					onFocus={() => setShowFullPost?.(true)}
 				/>
 			</StyledFlexBox>
 
-			{/*type*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#type</TagLabel>
-				<Autocomplete
-					multiple
-					id="type-autocomplete"
-					sx={{
-						width: '100%',
-						border: 'none',
-						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-					}}
-					size={'small'}
-					options={tagOptions}
-					value={tags}
-					isOptionEqualToValue={(option, value) => option.id === value.id}
-					autoFocus={true}
-					onKeyDown={onTypeKeyDown}
-					popupIcon={''}
-					onChange={(event, newValue: AutoCompleteValue[]) => {
-						setTags(newValue);
-					}}
-					onInputChange={(event, value) => {
-						setInputText(value);
-					}}
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							sx={{ '& input': { color: '#437EF7' } }}
-							key={params.id}
+			{showFullPost ? (
+				<>
+					{/*type*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#type</TagLabel>
+						<Autocomplete
+							multiple
+							id="type-autocomplete"
+							sx={{
+								width: '100%',
+								border: 'none',
+								'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+							}}
+							size={'small'}
+							options={tagOptions}
+							value={tags}
+							isOptionEqualToValue={(option, value) => option.id === value.id}
+							autoFocus={true}
+							onKeyDown={onTypeKeyDown}
+							popupIcon={''}
+							onChange={(event, newValue: AutoCompleteValue[]) => {
+								setTags(newValue);
+							}}
+							onInputChange={(event, value) => {
+								setInputText(value);
+							}}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									sx={{ '& input': { color: '#437EF7' } }}
+									key={params.id}
+								/>
+							)}
+							renderOption={(props, option, { selected, index }) => {
+								return (
+									<OptionLi selected={selected} {...props}>
+										{option.id === '__for_create__' ? 'Create' : ''}
+										<OptionLabel index={index}>{option.label}</OptionLabel>
+									</OptionLi>
+								);
+							}}
+							renderTags={(value, getTagProps) =>
+								value.map((option, index) => (
+									// eslint-disable-next-line react/jsx-key
+									<OptionChip
+										label={option.label}
+										{...getTagProps({ index })}
+										size={'small'}
+										index={index}
+									/>
+								))
+							}
 						/>
-					)}
-					renderOption={(props, option, { selected, index }) => {
-						return (
-							<OptionLi selected={selected} {...props}>
-								{option.id === '__for_create__' ? 'Create' : ''}
-								<OptionLabel index={index}>{option.label}</OptionLabel>
-							</OptionLi>
-						);
-					}}
-					renderTags={(value, getTagProps) =>
-						value.map((option, index) => (
-							// eslint-disable-next-line react/jsx-key
-							<OptionChip
-								label={option.label}
-								{...getTagProps({ index })}
-								size={'small'}
-								index={index}
+					</StyledFlexBox>
+
+					{/*proof*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#proof</TagLabel>
+						<StyledInput
+							variant={'standard'}
+							InputProps={{ disableUnderline: true }}
+							required
+							value={proof}
+							size={'small'}
+							onChange={handleProofInputChange}
+							placeholder="It can be links or texts."
+						/>
+					</StyledFlexBox>
+
+					{/*date*/}
+					<StyledFlexBox sx={{ marginTop: '16px' }}>
+						<TagLabel>#date</TagLabel>
+						<LocalizationProvider dateAdapter={AdapterDateFns}>
+							<DatePicker
+								format={'MM/dd/yyyy'}
+								label={'Start Date'}
+								value={startDate}
+								onChange={(date) => setStartDate(date!)}
 							/>
-						))
-					}
-				/>
-			</StyledFlexBox>
+							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
+								to
+							</Typography>
+							<DatePicker
+								format={'MM/dd/yyyy'}
+								label={'End Date'}
+								value={endDate}
+								onChange={(date) => setEndDate(date!)}
+							/>
+						</LocalizationProvider>
+					</StyledFlexBox>
 
-			{/*proof*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#proof</TagLabel>
-				<StyledInput
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
-					value={proof}
-					size={'small'}
-					onChange={handleProofInputChange}
-					placeholder="It can be links or texts."
-				/>
-			</StyledFlexBox>
-
-			{/*date*/}
-			<StyledFlexBox sx={{ marginTop: '16px' }}>
-				<TagLabel>#date</TagLabel>
-				<LocalizationProvider dateAdapter={AdapterDateFns}>
-					<DatePicker
-						format={'MM/dd/yyyy'}
-						label={'Start Date'}
-						value={startDate}
-						onChange={(date) => setStartDate(date!)}
-					/>
-					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
-						to
-					</Typography>
-					<DatePicker
-						format={'MM/dd/yyyy'}
-						label={'End Date'}
-						value={endDate}
-						onChange={(date) => setEndDate(date!)}
-					/>
-				</LocalizationProvider>
-			</StyledFlexBox>
-
-			{/*to*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#to</TagLabel>
-				<Autocomplete
-					id="contributor-select"
-					sx={{
-						width: 250,
-						border: 'none',
-						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-					}}
-					size={'small'}
-					options={contributorOptions}
-					getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
-					value={value}
-					onChange={(event, newValue: AutoCompleteValue | null) => {
-						setValue(newValue);
-						setContributors(newValue ? [newValue.id] : []);
-					}}
-					popupIcon={''}
-					renderInput={(params) => (
-						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
-					)}
-				/>
-			</StyledFlexBox>
+					{/*to*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#to</TagLabel>
+						<Autocomplete
+							id="contributor-select"
+							sx={{
+								width: 250,
+								border: 'none',
+								'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+							}}
+							size={'small'}
+							options={contributorOptions}
+							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
+							value={value}
+							onChange={(event, newValue: AutoCompleteValue | null) => {
+								setValue(newValue);
+								setContributors(newValue ? [newValue.id] : []);
+							}}
+							popupIcon={''}
+							renderInput={(params) => (
+								<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
+							)}
+						/>
+					</StyledFlexBox>
+				</>
+			) : null}
 
 			{/*credit*/}
 			<CreditContainer>
@@ -644,7 +654,12 @@ const PostContribution = ({
 					</BaseButton>
 				) : null}
 
-				<BaseButton variant={'contained'} sx={{}} onClick={onSubmit}>
+				<BaseButton
+					variant={'contained'}
+					sx={{}}
+					onClick={onSubmit}
+					disabled={!showFullPost}
+				>
 					{confirmText || 'Re-Post'}
 				</BaseButton>
 			</PostButton>
@@ -654,15 +669,19 @@ const PostContribution = ({
 
 export default React.memo(PostContribution);
 
-const PostContainer = styled('div')({
+interface IPostContainerProps {
+	showFullPost?: boolean;
+}
+
+const PostContainer = styled('div')<IPostContainerProps>(({ showFullPost }) => ({
 	minHeight: '90px',
 	backgroundColor: 'white',
 	padding: '12px 16px',
 	borderRadius: '4px',
 	position: 'relative',
-	border: '1px solid rgba(18, 194, 156, 1)',
-	boxShadow: '0px 4px 18px 3px #0F172A0A',
-});
+	border: showFullPost ? '1px solid rgba(18, 194, 156, 1)' : '1px solid rgba(15, 23, 42, 0.16)',
+	boxShadow: showFullPost ? '0px 4px 18px 3px #0F172A0A' : 'none',
+}));
 const PostButton = styled(StyledFlexBox)({
 	position: 'absolute',
 	right: '16px',
