@@ -3,15 +3,12 @@ import { hideTokenToolTip, initShowTokenToolTip, useUtilsStore } from '@/store/u
 import { CloseIcon } from '@/icons';
 import React, { useEffect } from 'react';
 
-const TokenTips =
-	"$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there's no limit to their supply.\n";
-
 export interface IProps {
 	setShowTokenTip: (show: boolean) => void;
+	tokenSymbol: string;
 }
 
-const TokenToolTip = ({ setShowTokenTip }: IProps) => {
-
+const TokenToolTip = ({ setShowTokenTip, tokenSymbol }: IProps) => {
 	const { showTokenToolTip } = useUtilsStore();
 
 	useEffect(() => {
@@ -20,12 +17,14 @@ const TokenToolTip = ({ setShowTokenTip }: IProps) => {
 
 	const hideTipForever = () => {
 		console.log('hideTipForever');
-		hideTokenToolTip()
+		hideTokenToolTip();
 	};
+
+	const TokenTips = `$${tokenSymbol} tokens, similar to points, representing project ownership. Earned through approved contributions, there's no limit to their supply.\n`;
 
 	return (
 		<ToolTipContainer>
-			<Typography variant={'subtitle1'}>What are $LXFS tokens?</Typography>
+			<Typography variant={'subtitle1'}>What are ${tokenSymbol} tokens?</Typography>
 			<Typography variant={'body1'}>{TokenTips}</Typography>
 			<ToolTipAction>
 				{/*<Button size={'small'} variant={'contained'} onClick={hideTipForever}>Don't show*/}

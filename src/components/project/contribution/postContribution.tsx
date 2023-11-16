@@ -36,6 +36,7 @@ import {
 	createContributionType,
 	getContributionTypeList,
 	getContributorList,
+	getProjectDetail,
 	updateContributionStatus,
 } from '@/services';
 import {
@@ -154,6 +155,10 @@ const PostContribution = ({
 			fallbackData: [],
 			onSuccess: (data) => console.log('contributionType', data),
 		},
+	);
+
+	const { data: projectDetail } = useSWR(['project/detail', projectId], () =>
+		getProjectDetail(projectId),
 	);
 
 	useEffect(() => {
@@ -588,7 +593,12 @@ const PostContribution = ({
 				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				<Tooltip
 					open={showTokenTip && showTokenToolTip}
-					title={<TokenToolTip setShowTokenTip={setShowTokenTip} />}
+					title={
+						<TokenToolTip
+							setShowTokenTip={setShowTokenTip}
+							tokenSymbol={projectDetail?.symbol || ''}
+						/>
+					}
 					placement="bottom"
 					arrow={true}
 					disableTouchListener={true}
@@ -603,7 +613,7 @@ const PostContribution = ({
 						onChange={handleCreditInputChange}
 						value={credit}
 						size={'small'}
-						placeholder={'$LXFS tokens, e.g. 60'}
+						placeholder={`$${projectDetail?.symbol} tokens, e.g. 60`}
 						onFocus={onFocusTokenInput}
 						onBlur={onBlurTokenInput}
 						InputProps={{
