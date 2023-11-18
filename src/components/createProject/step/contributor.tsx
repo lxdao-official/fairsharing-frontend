@@ -73,7 +73,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					wallet: myAddress || '',
 					role: '',
 					permission: PermissionEnum.Admin,
-					voteWeight: 0,
+					voteWeight: 1,
 				},
 			],
 	);
@@ -199,7 +199,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				wallet: '',
 				role: '',
 				permission: PermissionEnum.Contributor,
-				voteWeight: 0,
+				voteWeight: 1,
 			},
 		]);
 	};

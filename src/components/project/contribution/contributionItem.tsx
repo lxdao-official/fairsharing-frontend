@@ -1,5 +1,4 @@
 import {
-	Button,
 	Checkbox,
 	Divider,
 	IconButton,
@@ -34,14 +33,10 @@ import { ethers } from 'ethers';
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution, IContributor, IProject } from '@/services/types';
+import { IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
-import {
-	IClaimParams,
-	IVoteParams,
-	IVoteValueEnum,
-} from '@/components/project/contribution/contributionList';
+import { IClaimParams, IVoteParams, IVoteValueEnum } from '@/components/project/contribution/contributionList';
 import {
 	EAS_CHAIN_CONFIGS,
 	EasSchemaClaimKey,
@@ -222,10 +217,15 @@ const ContributionItem = (props: IContributionItemProps) => {
 				return IVoteValueEnum.ABSTAIN;
 			}
 		});
-		const weights: number[] = contributorList.map((item) => item.voteWeight * 100);
+		const weights: number[] = contributorList.map((item) => {
+			return projectDetail.voteSystem === VoteSystemEnum.EQUAL ? 1 : item.voteWeight * 100
+		});
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
+			console.log(`【${contribution.detail}】【getResult params】`, {
+				voters, voteValues, weights, threshold, votingStrategyData
+			})
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
 			console.log(`【${contribution.detail}】[vote result]`, result)
 			setVoteResultFromContract(result);
