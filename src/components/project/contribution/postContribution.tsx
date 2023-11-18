@@ -176,6 +176,7 @@ const PostContribution = ({
 					id: user[0].id,
 					wallet: user[0].wallet,
 				});
+				setContributors([user[0].id]);
 				setInitTo(true);
 			}
 		}
@@ -623,7 +624,7 @@ const PostContribution = ({
 						onChange={handleCreditInputChange}
 						value={credit}
 						size={'small'}
-						placeholder={`$${projectDetail?.symbol} tokens, e.g. 60`}
+						placeholder={`$${projectDetail?.symbol || ''} tokens, e.g. 60`}
 						onFocus={onFocusTokenInput}
 						onBlur={onBlurTokenInput}
 						InputProps={{
