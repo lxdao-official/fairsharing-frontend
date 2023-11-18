@@ -29,16 +29,18 @@ export interface IStepStrategyProps extends Partial<IStepBaseProps> {
 	canEdit?: boolean;
 }
 
+export interface StepStrategyFormData {
+	symbol: string;
+	network: number;
+	period: string;
+	voteSystem: VoteSystemEnum;
+	voteApproveType: VoteApproveEnum;
+	forWeightOfTotal: string;
+	differWeightOfTotal: string;
+}
+
 export interface StepStrategyRef {
-	getFormData: () => {
-		symbol: string;
-		network: number;
-		period: string;
-		voteSystem: VoteSystemEnum;
-		voteApproveType: VoteApproveEnum;
-		forWeightOfTotal: string;
-		differWeightOfTotal: string;
-	};
+	getFormData: () => StepStrategyFormData;
 }
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
@@ -63,10 +65,12 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const handleVoteSystemChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const value = (event.target as HTMLInputElement).value;
 		setVoteSystem(value as VoteSystemEnum);
+		setIsEdited(true);
 	};
 	const handleVoteApproveChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const value = (event.target as HTMLInputElement).value;
 		setVoteApproveType(value as VoteApproveEnum);
+		setIsEdited(true);
 	};
 
 	const handleForWeightInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

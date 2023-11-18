@@ -14,9 +14,9 @@ import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 
 import StepStart from '@/components/createProject/step/start';
-import StepStrategy from '@/components/createProject/step/strategy';
-import StepProfile from '@/components/createProject/step/profile';
-import StepContributor from '@/components/createProject/step/contributor';
+import StepStrategy, { StepStrategyFormData } from '@/components/createProject/step/strategy';
+import StepProfile, { StepProfileFormData } from '@/components/createProject/step/profile';
+import StepContributor, { StepContributorFormData } from '@/components/createProject/step/contributor';
 import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
@@ -60,12 +60,26 @@ export default function Page() {
 
 	const [activeStep, setActiveStep] = useState(0);
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
+	const [formData, setFormData] = useState<{
+		profileFormData: StepProfileFormData | undefined,
+		strategyFormData: StepStrategyFormData | undefined,
+		contributorFormData: StepContributorFormData | undefined
+	}>({
+		profileFormData: undefined,
+		strategyFormData: undefined,
+		contributorFormData: undefined,
+	});
 
 	useEffect(() => {
 		if (myAddress && signer) {
 			getOwnerLatestProject();
 		}
 	}, [myAddress, signer]);
+
+	useEffect(() => {
+		const formData = handleGetFormData();
+		setFormData(formData);
+	}, [activeStep]);
 
 	const isProjectClean = useMemo(() => {
 		if (!latestProjectAddress) return true;
@@ -313,6 +327,8 @@ export default function Page() {
 							setActiveStep={setActiveStep}
 							onCreateProject={handleCreateProject}
 							canEdit={true}
+							isActive={activeStep === 3}
+							voteSystem={formData.strategyFormData?.voteSystem}
 						/>
 					</StepContent>
 				</Box>
