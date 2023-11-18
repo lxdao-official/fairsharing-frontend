@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 
 import {
 	Dialog,
@@ -38,25 +38,26 @@ import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
 import { isAdmin } from '@/utils/member';
 import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
-import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
 	onSave?: () => void;
 	canEdit?: boolean;
+	isActive: boolean;
+	voteSystem?: VoteSystemEnum;
+}
+
+export interface StepContributorFormData {
+	contributors: Contributor[];
 }
 
 export interface StepContributorRef {
-	getFormData: () => {
-		contributors: Contributor[];
-	};
+	getFormData: () => StepContributorFormData;
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep, onCreateProject, data, onSave, canEdit } = props;
+	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } = props;
 	const { address: myAddress } = useAccount();
-
-	const { stepStrategyRef } = useProjectInfoRef();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
@@ -72,7 +73,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					wallet: myAddress || '',
 					role: '',
 					permission: PermissionEnum.Admin,
-					voteWeight: 0,
+					voteWeight: 1,
 				},
 			],
 	);
@@ -96,8 +97,12 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	}, [myAddress, contributors]);
 
 	const showWeight = useMemo(() => {
-		return stepStrategyRef.current?.getFormData().voteSystem !== VoteSystemEnum.EQUAL;
-	}, [stepStrategyRef.current]);
+		if (voteSystem && voteSystem === VoteSystemEnum.EQUAL) {
+			return false;
+		} else {
+			return true;
+		}
+	}, [isActive, voteSystem]);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
 		if (action === 'BACK') {
@@ -194,7 +199,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				wallet: '',
 				role: '',
 				permission: PermissionEnum.Contributor,
-				voteWeight: 0,
+				voteWeight: 1,
 			},
 		]);
 	};

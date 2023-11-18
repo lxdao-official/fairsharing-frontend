@@ -16,12 +16,14 @@ export interface IStepProfileProps extends Partial<IStepBaseProps> {
 	canEdit?: boolean;
 }
 
+export interface StepProfileFormData {
+	name: string;
+	intro: string;
+	avatar: string;
+}
+
 export interface StepProfileRef {
-	getFormData: () => {
-		name: string;
-		intro: string;
-		avatar: string;
-	};
+	getFormData: () => StepProfileFormData;
 }
 
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(

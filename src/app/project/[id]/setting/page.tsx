@@ -186,6 +186,8 @@ export default function Setting({ params }: { params: { id: string } }) {
 						data={contributorsData}
 						canEdit={isProjectAdmin}
 						onSave={handleContributorSubmit}
+						isActive={true}
+						voteSystem={data?.voteSystem}
 					/>
 				);
 			default:
