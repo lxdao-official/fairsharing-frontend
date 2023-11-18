@@ -42,7 +42,6 @@ import {
 	IVoteParams,
 	IVoteValueEnum,
 } from '@/components/project/contribution/contributionList';
-import { EasAttestation, EasAttestationData, EasAttestationDecodedData } from '@/services/eas';
 import {
 	EAS_CHAIN_CONFIGS,
 	EasSchemaClaimKey,
@@ -215,27 +214,20 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer);
 
 		// 当前project所有的contributor
-		const voters: string[] = contributorList.map(item => item.wallet);
-		const voteValues: IVoteValueEnum[] = contributorList.map(contributor => {
+		const voters: string[] = contributorList.map((item) => item.wallet);
+		const voteValues: IVoteValueEnum[] = contributorList.map((contributor) => {
 			if (voteData![contributor.wallet]) {
 				return Number(voteData![contributor.wallet]);
 			} else {
 				return IVoteValueEnum.ABSTAIN;
 			}
 		});
-		const weights: number[] = contributorList.map(item => item.voteWeight * 100);
+		const weights: number[] = contributorList.map((item) => item.voteWeight * 100);
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
 			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
-			console.log(`【${contribution.detail}】[vote result]`, {
-				voters,
-				voteValues,
-				weights,
-				threshold,
-				voteStrategyAddress,
-				result,
-			});
+			console.log(`【${contribution.detail}】[vote result]`, result)
 			setVoteResultFromContract(result);
 			if (result) {
 				setClaimed(contribution);

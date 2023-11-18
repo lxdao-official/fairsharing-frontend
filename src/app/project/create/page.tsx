@@ -29,10 +29,9 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
-import { ContractAddressMap, ProjectRegisterABI, VoteStrategyMap } from '@/constant/contract';
-import { generateWeightArray } from '@/utils/weight';
+import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
 import { isAdmin } from '@/utils/member';
-import { VoteApproveEnum, VoteSystemEnum } from '@/services';
+import { VoteSystemEnum } from '@/services';
 import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
 
 const steps = [
@@ -110,15 +109,18 @@ export default function Page() {
 		} = strategyFormData!;
 		const { contributors } = contributorFormData!;
 
-		const totalWeight = contributors.reduce((pre, cur) => pre + cur.voteWeight, 0);
-		if (totalWeight !== 100) {
-			showToast('Weights must add up to 100%.', 'error');
-			return false;
+		// 一人一票不校验weight
+		if (voteSystem !== VoteSystemEnum.EQUAL) {
+			const totalWeight = contributors.reduce((pre, cur) => pre + cur.voteWeight, 0);
+			if (totalWeight !== 100) {
+				showToast('Weights must add up to 100%.', 'error');
+				return false;
+			}
 		}
 		const voteStrategyAddress = getVoteStrategyContract(voteApproveType);
-		const voteThreshold = getVoteThreshold(voteApproveType, forWeightOfTotal, differWeightOfTotal)
-		const voteWeights = contributors.map((item) => item.voteWeight)
-		const weights = getVoteWeights(voteSystem, voteWeights, contributors.length)
+		const voteThreshold = getVoteThreshold(voteApproveType, forWeightOfTotal, differWeightOfTotal);
+		const voteWeights = contributors.map((item) => item.voteWeight);
+		const weights = getVoteWeights(voteSystem, voteWeights, contributors.length);
 
 		try {
 			openGlobalLoading();

@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import {
 	Autocomplete,
-	Button, Chip,
+	Button,
+	Chip,
 	InputAdornment,
 	styled,
 	TextField,
@@ -29,17 +30,13 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
-import {
-	closeGlobalLoading,
-	openGlobalLoading,
-	showToast,
-	useUtilsStore,
-} from '@/store/utils';
+import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
 import {
 	createContribution,
 	createContributionType,
 	getContributionTypeList,
 	getContributorList,
+	getProjectDetail,
 	updateContributionStatus,
 } from '@/services';
 import {
@@ -64,6 +61,8 @@ export interface IPostContributionProps {
 	refresh?: number;
 	selectedContributors?: IContributor[];
 	isEdit?: boolean;
+	showFullPost?: boolean;
+	setShowFullPost?: (show: boolean) => void;
 }
 
 export interface PostData {
@@ -99,6 +98,8 @@ const PostContribution = ({
 	confirmText,
 	selectedContributors,
 	isEdit,
+	showFullPost = true,
+	setShowFullPost,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -108,10 +109,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -131,6 +132,7 @@ const PostContribution = ({
 
 	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
 	const [inputText, setInputText] = useState('');
+	const [initTo, setInitTo] = useState(false);
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -159,18 +161,42 @@ const PostContribution = ({
 		},
 	);
 
+	const { data: projectDetail } = useSWR(['project/detail', projectId], () =>
+		getProjectDetail(projectId),
+	);
+
+	useEffect(() => {
+		if (!value && !initTo) {
+			const user = contributorList.filter(
+				(contributor) => contributor.wallet === myInfo?.wallet,
+			);
+			if (user.length > 0) {
+				setValue({
+					label: user[0].nickName,
+					id: user[0].id,
+					wallet: user[0].wallet,
+				});
+				setContributors([user[0].id]);
+				setInitTo(true);
+			}
+		}
+	}, [contributorList, myInfo?.wallet, value, initTo]);
+
 	useEffect(() => {
 		if (isEdit && contributionTypeList.length > 0) {
-			const map = contributionTypeList.reduce((pre, item) => {
-				return {
-					...pre,
-					[item.name]: {
-						id: item.id,
-						label: item.name,
-						color: item.color,
-					},
-				};
-			}, {} as Record<string, AutoCompleteValue>);
+			const map = contributionTypeList.reduce(
+				(pre, item) => {
+					return {
+						...pre,
+						[item.name]: {
+							id: item.id,
+							label: item.name,
+							color: item.color,
+						},
+					};
+				},
+				{} as Record<string, AutoCompleteValue>,
+			);
 			const tags = contribution!.type.map((typeName) => {
 				return map[typeName];
 			});
@@ -185,14 +211,19 @@ const PostContribution = ({
 			color: item.color,
 		}));
 		const label = inputText.trim();
-		if (realOptions.find(item => item.label === label)) {
+		if (realOptions.find((item) => item.label === label)) {
 			return realOptions;
 		} else {
-			return label ? [...realOptions, {
-				label: label,
-				id: '__for_create__',
-				color: 'red',
-			}] : realOptions;
+			return label
+				? [
+						...realOptions,
+						{
+							label: label,
+							id: '__for_create__',
+							color: 'red',
+						},
+				  ]
+				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
 
@@ -250,12 +281,19 @@ const PostContribution = ({
 				return false;
 			}
 			try {
-				await mutate(['project/contributionType', projectId], [...contributionTypeList, {
-					name: label,
-					id: '__ready_for_create__',
-					color: 'red',
-					projectId: projectId,
-				}], false);
+				await mutate(
+					['project/contributionType', projectId],
+					[
+						...contributionTypeList,
+						{
+							name: label,
+							id: '__ready_for_create__',
+							color: 'red',
+							projectId: projectId,
+						},
+					],
+					false,
+				);
 				setInputText('');
 				const { name, id, color } = await createContributionType(projectId, {
 					name: label,
@@ -387,6 +425,7 @@ const PostContribution = ({
 				operatorId: operatorId,
 			});
 			showToast('Create contribution success', 'success');
+			setShowFullPost?.(false);
 			onClear();
 			mutate(['contribution/list', projectId]);
 		} catch (err: any) {
@@ -410,7 +449,7 @@ const PostContribution = ({
 	};
 
 	return (
-		<PostContainer>
+		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#detail</TagLabel>
@@ -422,140 +461,155 @@ const PostContribution = ({
 					size={'small'}
 					onChange={handleDetailInputChange}
 					placeholder={'I developed sign in with [wallet] feature'}
+					onFocus={() => setShowFullPost?.(true)}
 				/>
 			</StyledFlexBox>
 
-			{/*type*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#type</TagLabel>
-				<Autocomplete
-					multiple
-					id="type-autocomplete"
-					sx={{
-						width: '100%',
-						border: 'none',
-						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-					}}
-					size={'small'}
-					options={tagOptions}
-					value={tags}
-					isOptionEqualToValue={(option, value) => option.id === value.id}
-					autoFocus={true}
-					onKeyDown={onTypeKeyDown}
-					popupIcon={''}
-					onChange={(event, newValue: AutoCompleteValue[]) => {
-						setTags(newValue);
-					}}
-					onInputChange={(event, value) => {
-						setInputText(value);
-					}}
-					renderInput={(params) => (
-						<TextField
-							{...params}
-							sx={{ '& input': { color: '#437EF7' } }}
-							key={params.id}
-						/>
-					)}
-					renderOption={(props, option, { selected, index }) => {
-						return <OptionLi selected={selected} {...props} >
-							{
-								option.id === '__for_create__' ? 'Create' : ''
+			{showFullPost ? (
+				<>
+					{/*type*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#type</TagLabel>
+						<Autocomplete
+							multiple
+							id="type-autocomplete"
+							sx={{
+								width: '100%',
+								border: 'none',
+								'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+							}}
+							size={'small'}
+							options={tagOptions}
+							value={tags}
+							isOptionEqualToValue={(option, value) => option.id === value.id}
+							autoFocus={true}
+							onKeyDown={onTypeKeyDown}
+							popupIcon={''}
+							onChange={(event, newValue: AutoCompleteValue[]) => {
+								setTags(newValue);
+							}}
+							onInputChange={(event, value) => {
+								setInputText(value);
+							}}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									sx={{ '& input': { color: '#437EF7' } }}
+									key={params.id}
+								/>
+							)}
+							renderOption={(props, option, { selected, index }) => {
+								return (
+									<OptionLi selected={selected} {...props}>
+										{option.id === '__for_create__' ? 'Create' : ''}
+										<OptionLabel index={index}>{option.label}</OptionLabel>
+									</OptionLi>
+								);
+							}}
+							renderTags={(value, getTagProps) =>
+								value.map((option, index) => (
+									// eslint-disable-next-line react/jsx-key
+									<OptionChip
+										label={option.label}
+										{...getTagProps({ index })}
+										size={'small'}
+										index={index}
+									/>
+								))
 							}
-							<OptionLabel index={index}>{option.label}</OptionLabel>
-						</OptionLi>;
-					}}
-					renderTags={(value, getTagProps) =>
-						value.map((option, index) => (
-							// eslint-disable-next-line react/jsx-key
-							<OptionChip label={option.label} {...getTagProps({ index })} size={'small'} index={index} />
-						))
-					}
-				/>
-			</StyledFlexBox>
+						/>
+					</StyledFlexBox>
 
-			{/*proof*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#proof</TagLabel>
-				<StyledInput
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
-					value={proof}
-					size={'small'}
-					onChange={handleProofInputChange}
-					placeholder={'https://notion.so/1234, https://notion.so/1234'}
-				/>
-			</StyledFlexBox>
+					{/*proof*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#proof</TagLabel>
+						<StyledInput
+							variant={'standard'}
+							InputProps={{ disableUnderline: true }}
+							required
+							value={proof}
+							size={'small'}
+							onChange={handleProofInputChange}
+							placeholder="It can be links or texts."
+						/>
+					</StyledFlexBox>
 
-			{/*date*/}
-			<StyledFlexBox sx={{ marginTop: '16px' }}>
-				<TagLabel>#date</TagLabel>
-				<LocalizationProvider dateAdapter={AdapterDateFns}>
-					<DatePicker
-						format={'MM/dd/yyyy'}
-						label={'Start Date'}
-						value={startDate}
-						onChange={(date) => setStartDate(date!)}
-					/>
-					<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
-						to
-					</Typography>
-					<DatePicker
-						format={'MM/dd/yyyy'}
-						label={'End Date'}
-						value={endDate}
-						onChange={(date) => setEndDate(date!)}
-					/>
-				</LocalizationProvider>
-			</StyledFlexBox>
+					{/*date*/}
+					<StyledFlexBox sx={{ marginTop: '16px' }}>
+						<TagLabel>#date</TagLabel>
+						<LocalizationProvider dateAdapter={AdapterDateFns}>
+							<DatePicker
+								format={'MM/dd/yyyy'}
+								label={'Start Date'}
+								value={startDate}
+								onChange={(date) => setStartDate(date!)}
+							/>
+							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
+								to
+							</Typography>
+							<DatePicker
+								format={'MM/dd/yyyy'}
+								label={'End Date'}
+								value={endDate}
+								onChange={(date) => setEndDate(date!)}
+							/>
+						</LocalizationProvider>
+					</StyledFlexBox>
 
-			{/*to*/}
-			<StyledFlexBox sx={{ marginTop: '8px' }}>
-				<TagLabel>#to</TagLabel>
-				<Autocomplete
-					id="contributor-select"
-					sx={{
-						width: 250,
-						border: 'none',
-						'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root': {
-							border: 'none',
-						},
-						'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-							border: 'none',
-						},
-					}}
-					size={'small'}
-					options={contributorOptions}
-					getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
-					value={value}
-					onChange={(event, newValue: AutoCompleteValue | null) => {
-						setValue(newValue);
-						setContributors(newValue ? [newValue.id] : []);
-					}}
-					popupIcon={''}
-					renderInput={(params) => (
-						<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
-					)}
-				/>
-			</StyledFlexBox>
+					{/*to*/}
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
+						<TagLabel>#to</TagLabel>
+						<Autocomplete
+							id="contributor-select"
+							sx={{
+								width: 250,
+								border: 'none',
+								'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root': {
+									border: 'none',
+								},
+								'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+									border: 'none',
+								},
+							}}
+							size={'small'}
+							options={contributorOptions}
+							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
+							value={value}
+							onChange={(event, newValue: AutoCompleteValue | null) => {
+								setValue(newValue);
+								setContributors(newValue ? [newValue.id] : []);
+							}}
+							popupIcon={''}
+							renderInput={(params) => (
+								<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
+							)}
+						/>
+					</StyledFlexBox>
+				</>
+			) : null}
 
 			{/*credit*/}
 			<CreditContainer>
 				<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				<Tooltip
 					open={showTokenTip && showTokenToolTip}
-					title={<TokenToolTip setShowTokenTip={setShowTokenTip} />}
+					title={
+						<TokenToolTip
+							setShowTokenTip={setShowTokenTip}
+							tokenSymbol={projectDetail?.symbol || ''}
+						/>
+					}
 					placement="bottom"
 					arrow={true}
 					disableTouchListener={true}
@@ -570,7 +624,7 @@ const PostContribution = ({
 						onChange={handleCreditInputChange}
 						value={credit}
 						size={'small'}
-						placeholder={'$LXFS tokens, e.g. 60'}
+						placeholder={`$${projectDetail?.symbol || ''} tokens, e.g. 60`}
 						onFocus={onFocusTokenInput}
 						onBlur={onBlurTokenInput}
 						InputProps={{
@@ -601,7 +655,12 @@ const PostContribution = ({
 					</BaseButton>
 				) : null}
 
-				<BaseButton variant={'contained'} sx={{}} onClick={onSubmit}>
+				<BaseButton
+					variant={'contained'}
+					sx={{}}
+					onClick={onSubmit}
+					disabled={!showFullPost}
+				>
 					{confirmText || 'Re-Post'}
 				</BaseButton>
 			</PostButton>
@@ -611,15 +670,19 @@ const PostContribution = ({
 
 export default React.memo(PostContribution);
 
-const PostContainer = styled('div')({
+interface IPostContainerProps {
+	showFullPost?: boolean;
+}
+
+const PostContainer = styled('div')<IPostContainerProps>(({ showFullPost }) => ({
 	minHeight: '90px',
 	backgroundColor: 'white',
 	padding: '12px 16px',
 	borderRadius: '4px',
 	position: 'relative',
-	border: '1px solid rgba(18, 194, 156, 1)',
-	boxShadow: '0px 4px 18px 3px #0F172A0A',
-});
+	border: showFullPost ? '1px solid rgba(18, 194, 156, 1)' : '1px solid rgba(15, 23, 42, 0.16)',
+	boxShadow: showFullPost ? '0px 4px 18px 3px #0F172A0A' : 'none',
+}));
 const PostButton = styled(StyledFlexBox)({
 	position: 'absolute',
 	right: '16px',
@@ -655,8 +718,30 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	padding: '8px 16px',
 }));
 
-const OptionBgColors = ['#FEEDEB', '#FFF3E0', '#E6F7FF', '#E1F3E2', '#FBF6C7', '#F2F4F6', '#EDE7F6', '#EDF1DA', '#E9EBF7', '#FCE8F9'];
-const OptionFontColors = ['#491410', '#391A00', '#002338', '#00200D', '#4D2100', '#181D24', '#180038', '#182700', '#0E184C', '#3A071B'];
+const OptionBgColors = [
+	'#FEEDEB',
+	'#FFF3E0',
+	'#E6F7FF',
+	'#E1F3E2',
+	'#FBF6C7',
+	'#F2F4F6',
+	'#EDE7F6',
+	'#EDF1DA',
+	'#E9EBF7',
+	'#FCE8F9',
+];
+const OptionFontColors = [
+	'#491410',
+	'#391A00',
+	'#002338',
+	'#00200D',
+	'#4D2100',
+	'#181D24',
+	'#180038',
+	'#182700',
+	'#0E184C',
+	'#3A071B',
+];
 
 const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
 	fontSize: '14px',
