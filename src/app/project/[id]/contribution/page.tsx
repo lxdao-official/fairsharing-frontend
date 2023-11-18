@@ -20,7 +20,17 @@ export default function Page({ params }: { params: { id: string } }) {
 
 		const handleClickOutside = (event: any) => {
 			const targetElement = event.target;
-
+			if (showFullPost && targetElement.closest('.MuiPopper-root')) {
+				return;
+			}
+			if (
+				showFullPost &&
+				!targetElement.closest('#postContainer') &&
+				(targetElement.tagName.toLowerCase() === 'path' ||
+					targetElement.tagName.toLowerCase() === 'svg')
+			) {
+				return;
+			}
 			if (!targetElement.closest('#postContainer')) {
 				setShowFullPost(false);
 			}
@@ -31,7 +41,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
-	}, []);
+	}, [showFullPost]);
 
 	return (
 		<div style={{ flex: '1', minWidth: '600px' }}>
