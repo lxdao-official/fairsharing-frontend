@@ -76,7 +76,6 @@ export interface PostData {
 export interface AutoCompleteValue {
 	label: string;
 	id: string;
-
 	[key: string]: any;
 }
 
@@ -88,8 +87,7 @@ const DefaultContributionType = {
 	color: 'red',
 };
 
-const TokenTips =
-	"$LXFS tokens, similar to points, representing project ownership. Earned through approved contributions, there's no limit to their supply.\n";
+const ForCreateTagId  = '__for_create__';
 
 const PostContribution = ({
 	projectId,
@@ -109,10 +107,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -216,13 +214,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-						...realOptions,
-						{
-							label: label,
-							id: '__for_create__',
-							color: 'red',
-						},
-				  ]
+					...realOptions,
+					{
+						label: label,
+						id: ForCreateTagId,
+						color: 'red',
+					},
+				]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -275,43 +273,57 @@ const PostContribution = ({
 			// @ts-ignore
 			event.defaultMuiPrevented = true;
 			const label = inputText.trim();
-			console.log('label', label, tags);
-			if (tagOptions.find((item) => item.label === label && item.id !== '__for_create__')) {
+			if (tagOptions.find((item) => item.label === label && item.id !== ForCreateTagId)) {
 				setInputText('');
 				return false;
 			}
-			try {
-				await mutate(
-					['project/contributionType', projectId],
-					[
-						...contributionTypeList,
-						{
-							name: label,
-							id: '__ready_for_create__',
-							color: 'red',
-							projectId: projectId,
-						},
-					],
-					false,
-				);
-				setInputText('');
-				const { name, id, color } = await createContributionType(projectId, {
-					name: label,
-					color: 'red',
-				});
-				if (tags.find((tag) => tag.label === label)) {
-					setInputText('');
-					return false;
-				}
-				setTags([...tags, { id, color, label: name, projectId }]);
-				mutateContributionTypeList();
-			} catch (err) {
-				console.error(err);
-			} finally {
-				setInputText('');
-			}
+			createNewTag(label);
 		}
 	};
+
+	const onTypeChange = async (event: React.SyntheticEvent, newValue: AutoCompleteValue[]) => {
+		const createTagOption = newValue.find(option => option.id === ForCreateTagId);
+		if (createTagOption) {
+			const label = inputText.trim();
+			console.log('createTagOption', label);
+			createNewTag(label);
+		} else {
+			setTags(newValue);
+		}
+	};
+
+	const createNewTag = async (label: string) => {
+		try {
+			await mutate(
+				['project/contributionType', projectId],
+				[
+					...contributionTypeList,
+					{
+						name: label,
+						id: '__ready_for_create__',
+						color: 'red',
+						projectId: projectId,
+					},
+				],
+				false,
+			);
+			setInputText('');
+			const { name, id, color } = await createContributionType(projectId, {
+				name: label,
+				color: 'red',
+			});
+			if (tags.find((tag) => tag.label === label)) {
+				setInputText('');
+				return false;
+			}
+			setTags([...tags, { id, color, label: name, projectId }]);
+			mutateContributionTypeList();
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setInputText('');
+		}
+	}
 
 	const onSubmit = () => {
 		if (!detail) {
@@ -487,15 +499,13 @@ const PostContribution = ({
 								},
 							}}
 							size={'small'}
-							options={tagOptions}
+							options={tagOptions as AutoCompleteValue[]}
 							value={tags}
 							isOptionEqualToValue={(option, value) => option.id === value.id}
 							autoFocus={true}
 							onKeyDown={onTypeKeyDown}
 							popupIcon={''}
-							onChange={(event, newValue: AutoCompleteValue[]) => {
-								setTags(newValue);
-							}}
+							onChange={onTypeChange}
 							onInputChange={(event, value) => {
 								setInputText(value);
 							}}
@@ -509,7 +519,7 @@ const PostContribution = ({
 							renderOption={(props, option, { selected, index }) => {
 								return (
 									<OptionLi selected={selected} {...props}>
-										{option.id === '__for_create__' ? 'Create' : ''}
+										{option.id === ForCreateTagId ? 'Create' : ''}
 										<OptionLabel index={index}>{option.label}</OptionLabel>
 									</OptionLi>
 								);
