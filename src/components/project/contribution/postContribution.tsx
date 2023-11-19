@@ -79,14 +79,7 @@ export interface AutoCompleteValue {
 	[key: string]: any;
 }
 
-// TODO 默认替project创建一个kudos
-const DefaultContributionType = {
-	id: '*****',
-	name: '❤️ Kudos',
-	projectId: '****',
-	color: 'red',
-};
-
+export const DefaultTypeKudos = 'Give kudos ❤️';
 const ForCreateTagId  = '__for_create__';
 
 const PostContribution = ({
