@@ -21,7 +21,7 @@ import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
 
-import { createProject, getProjectList } from '@/services/project';
+import { createContributionType, createProject, getProjectList } from '@/services/project';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 
@@ -33,6 +33,7 @@ import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
 import { isAdmin } from '@/utils/member';
 import { VoteSystemEnum } from '@/services';
 import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
+import { DefaultTypeKudos } from '@/components/project/contribution/postContribution';
 
 const steps = [
 	{
@@ -199,7 +200,8 @@ export default function Page() {
 			const result = await createProject({ ...baseParams, address: projectAddress });
 			showToast('Project Created', 'success');
 			localStorage.removeItem(ProjectParamStorageKey);
-			await getUserProjectList();
+			createDefaultTypeKudo(result.id);
+			getUserProjectList();
 			router.push(`/project/${result.id}/contribution`);
 		} catch (err: any) {
 			console.error('createProject', err);
@@ -207,6 +209,13 @@ export default function Page() {
 		} finally {
 			closeGlobalLoading();
 		}
+	};
+
+	const createDefaultTypeKudo = async (projectId: string) => {
+		await createContributionType(projectId, {
+			name: DefaultTypeKudos,
+			color: 'red',
+		});
 	};
 
 	const getUserProjectList = async () => {
