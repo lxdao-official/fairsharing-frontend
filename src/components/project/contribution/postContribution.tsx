@@ -400,7 +400,7 @@ const PostContribution = ({
 			}
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
-					recipient: '0x0000000000000000000000000000000000000000',
+					recipient: postData.contributors[0],
 					expirationTime: BigInt(0),
 					time: BigInt(block ? block.timestamp : 0),
 					revocable: true,
