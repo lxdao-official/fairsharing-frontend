@@ -76,11 +76,12 @@ export interface PostData {
 export interface AutoCompleteValue {
 	label: string;
 	id: string;
+
 	[key: string]: any;
 }
 
 export const DefaultTypeKudos = 'Give kudos ❤️';
-const ForCreateTagId  = '__for_create__';
+const ForCreateTagId = '__for_create__';
 
 const PostContribution = ({
 	projectId,
@@ -316,7 +317,7 @@ const PostContribution = ({
 		} finally {
 			setInputText('');
 		}
-	}
+	};
 
 	const onSubmit = () => {
 		if (!detail) {
@@ -398,9 +399,11 @@ const PostContribution = ({
 			if (!signer) {
 				return;
 			}
+			const toWallet = contributorList.find(item => item.id === postData.contributors[0])?.wallet;
+			const defaultRecipient = '0x0000000000000000000000000000000000000000';
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
-					recipient: '0x0000000000000000000000000000000000000000',
+					recipient: toWallet || defaultRecipient,
 					expirationTime: BigInt(0),
 					time: BigInt(block ? block.timestamp : 0),
 					revocable: true,
