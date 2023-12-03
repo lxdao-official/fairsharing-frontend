@@ -109,6 +109,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						outline: '1px solid #fff',
 					},
 				}}
+				isRowSelectable={() => false}
 			/>
 		</div>
 	);
