@@ -128,7 +128,7 @@ export default function Page() {
 		if (voteSystem !== VoteSystemEnum.EQUAL) {
 			const totalWeight = contributors.reduce((pre, cur) => pre + cur.voteWeight, 0);
 			if (totalWeight !== 100) {
-				showToast('Weights must add up to 100%.', 'error');
+				showToast('The weights need to total 100%', 'error');
 				return false;
 			}
 		}
@@ -198,7 +198,7 @@ export default function Page() {
 				throw new Error('【Contract】 projectAddress not found');
 			}
 			const result = await createProject({ ...baseParams, address: projectAddress });
-			showToast('Project Created', 'success');
+			showToast('Project created', 'success');
 			localStorage.removeItem(ProjectParamStorageKey);
 			createDefaultTypeKudo(result.id);
 			getUserProjectList();

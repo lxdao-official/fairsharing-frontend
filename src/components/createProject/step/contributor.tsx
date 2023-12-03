@@ -113,7 +113,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			return false;
 		}
 		if (isContributorRepeat) {
-			showToast('Repeated [wallet] address', 'error');
+			showToast('Duplicate wallet address', 'error');
 			return false;
 		}
 		if (contributors.filter((item) => isAdmin(item.permission)).length === 0) {
@@ -137,18 +137,18 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		contributors.forEach((item) => {
 			const { nickName, wallet, permission } = item;
 			if (!nickName) {
-				showToast('Empty Nickname', 'error');
+				showToast('Nickname is required', 'error');
 				valid = false;
 				return false;
 			}
 			if (!wallet) {
 				valid = false;
-				showToast('Empty [wallet] address', 'error');
+				showToast('Wallet address is required', 'error');
 				return false;
 			}
 			if (!ethers.isAddress(wallet)) {
 				valid = false;
-				showToast(`[${wallet}] is not a valid wallet address`, 'error');
+				showToast(`"${wallet}" isn’t a valid wallet address`, 'error');
 				return false;
 			}
 		});

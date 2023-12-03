@@ -438,7 +438,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				});
 			}
 
-			showToast('Claim success', 'success');
+			showToast('Tokens claimed', 'success');
 			await mutateContributionList();
 		} catch (err: any) {
 			console.error('claim all error', err);

@@ -99,7 +99,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 					voteThreshold: voteApproveType === VoteApproveEnum.ABSOLUTE1 ? Number(forWeightOfTotal) / 100 : Number(differWeightOfTotal) / 100,
 				});
 			}
-			showToast(`Project ${type} updated successfully`);
+			showToast(`Project settings updated`);
 			await mutate();
 		},
 		[data],
@@ -150,7 +150,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 				projectId: params.id,
 				contributors: formData.contributors as IContributor[],
 			});
-			showToast(`Contributors updated successfully`);
+			showToast(`Contributors updated`);
 			await contributorMutate();
 		}
 	}, [contributorList, stepContributorRef.current, myAddress, signer, params.id]);

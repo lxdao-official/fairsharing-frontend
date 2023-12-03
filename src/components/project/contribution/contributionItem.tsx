@@ -257,16 +257,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 			return false;
 		}
 		if (contribution.status === 'UNREADY') {
-			showToast(`Contribution is not ready!`, 'error');
+			showToast(`This contribution is not ready for voting`, 'error');
 			return false;
 		}
 		// 投票时间结束后，不允许继续Vote
 		if (Date.now() >= targetTime) {
-			showToast(`Vote ended, can't vote`, 'error');
+			showToast(`Vote has ended.`, 'error');
 			return false;
 		}
 		if (contribution.status === 'CLAIM') {
-			showToast(`Can't vote after the contribution is claimed!`, 'error');
+			showToast(`Vote has ended, and tokens have been claimed`, 'error');
 			return false;
 		}
 		submitVote({
@@ -320,7 +320,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
 			}
-			showToast('Vote success', 'success');
+			showToast('Voted', 'success');
 			const baseURL = getEasScanURL();
 			// Update ENS names
 			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
@@ -418,7 +418,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				uId: uId,
 				operatorId: operatorId,
 			});
-			showToast('Claim success', 'success');
+			showToast('Tokens claimed', 'success');
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);

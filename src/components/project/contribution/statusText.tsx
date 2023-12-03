@@ -84,11 +84,11 @@ const StatusText = (props: IStatusTextProps) => {
 
 	const handleClaim = () => {
 		if (!isEnd) {
-			showToast(`Can't claim before the voting period has ended`, 'error');
+			showToast(`You can claim once the vote has ended`, 'error');
 			return false;
 		}
 		if (!hasVoted) {
-			showToast('No votes have been recorded for this contribution', 'error');
+			showToast('No votes cast for this contribution', 'error');
 			return false;
 		}
 		if (!votePass) {

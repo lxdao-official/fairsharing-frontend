@@ -321,19 +321,19 @@ const PostContribution = ({
 
 	const onSubmit = () => {
 		if (!detail) {
-			showToast('Contribution detail is required', 'error');
+			showToast('Details of contribution are required', 'error');
 			return;
 		}
 		if (!proof) {
-			showToast('Contribution proof is required', 'error');
+			showToast('Proof of contribution is required', 'error');
 			return;
 		}
 		if (contributors.length === 0) {
-			showToast('Contributor is required', 'error');
+			showToast('The reward receiver is required', 'error');
 			return;
 		}
 		if (!credit || Number(credit) <= 0) {
-			showToast('Contribution credit should be a positive integer', 'error');
+			showToast('The token amount must be numeric', 'error');
 			return;
 		}
 		const typeString = tags.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
@@ -432,7 +432,7 @@ const PostContribution = ({
 				uId: res.data.offchainAttestationId as string,
 				operatorId: operatorId,
 			});
-			showToast('Create contribution success', 'success');
+			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
 			mutate(['contribution/list', projectId]);
