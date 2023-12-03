@@ -109,7 +109,7 @@ const NavItem = ({ href, name, isActive }: INavItemProps) => {
 };
 
 const ProjectTitle = styled(Typography)({
-	maxWidth: '208px',
+	maxWidth: '240px',
 	borderBottom: '1px solid rgba(15, 23, 42, 0.16)',
 	padding: '8px 16px',
 	overflow: 'hidden',
