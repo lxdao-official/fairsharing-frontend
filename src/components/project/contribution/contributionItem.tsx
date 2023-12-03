@@ -619,22 +619,25 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										{contribution.proof.split(',').map((proof) => (
-											<Typography component="p" key={proof}>
-												<MuiLink
-													href={proof}
-													target={'_blank'}
-													underline={'hover'}
-												>
-													<LinkIcon
-														width={16}
-														height={16}
-														style={{ marginRight: 8 }}
-													/>
-													{proof}
-												</MuiLink>
-											</Typography>
-										))}
+										<Typography variant={'body1'}>
+											{contribution.proof}
+										</Typography>
+										{/*{contribution.proof.split(',').map((proof) => (*/}
+										{/*	<Typography component="p" key={proof}>*/}
+										{/*		<MuiLink*/}
+										{/*			href={proof}*/}
+										{/*			target={'_blank'}*/}
+										{/*			underline={'hover'}*/}
+										{/*		>*/}
+										{/*			<LinkIcon*/}
+										{/*				width={16}*/}
+										{/*				height={16}*/}
+										{/*				style={{ marginRight: 8 }}*/}
+										{/*			/>*/}
+										{/*			{proof}*/}
+										{/*		</MuiLink>*/}
+										{/*	</Typography>*/}
+										{/*))}*/}
 									</Paper>
 								</Popover>
 							</>
