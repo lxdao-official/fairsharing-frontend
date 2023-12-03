@@ -80,7 +80,7 @@ export interface AutoCompleteValue {
 	[key: string]: any;
 }
 
-export const DefaultTypeKudos = 'Give kudos ❤️';
+export const DefaultTypeKudos = '❤️ Give kudos';
 const ForCreateTagId = '__for_create__';
 
 const PostContribution = ({
