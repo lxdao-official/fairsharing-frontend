@@ -460,7 +460,7 @@ const PostContribution = ({
 		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
 			<StyledFlexBox>
-				<TagLabel>#detail</TagLabel>
+				<TagLabel>#details</TagLabel>
 				<StyledInput
 					variant={'standard'}
 					InputProps={{ disableUnderline: true }}
