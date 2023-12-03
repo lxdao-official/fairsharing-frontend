@@ -1,7 +1,9 @@
 import { Button, styled, Typography } from '@mui/material';
+
+import React, { useEffect } from 'react';
+
 import { hideTokenToolTip, initShowTokenToolTip, useUtilsStore } from '@/store/utils';
 import { CloseIcon } from '@/icons';
-import React, { useEffect } from 'react';
 
 export interface IProps {
 	setShowTokenTip: (show: boolean) => void;

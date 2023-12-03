@@ -2,9 +2,10 @@ import { styled, Typography } from '@mui/material';
 
 import { useMemo } from 'react';
 
+import Image from 'next/image';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { Status } from '@/services/types';
-import Image from 'next/image';
 
 export interface IPizzaProps {
 	credit: number;
@@ -59,7 +60,9 @@ const Pizza = (props: IPizzaProps) => {
 	return (
 		<BorderOutline sx={{ background: BackgroundColor[status], border: Border[status] }}>
 			<div style={{ marginRight: '4px' }}>
-				{canClaim || status === 'CLAIM' ? '🍕' : (
+				{canClaim || status === 'CLAIM' ? (
+					'🍕'
+				) : (
 					<Image src={'/images/pizza_gray.png'} alt={'pizza'} width={24} height={24} />
 				)}
 			</div>

@@ -36,7 +36,7 @@ const ProjectItem = (props: IProjectItemProps) => {
 							color: '#0F172A',
 							fontWeight: '500',
 							padding: '0 16px',
-							textAlign: 'center'
+							textAlign: 'center',
 						}}
 					>
 						{project.name}

@@ -16,7 +16,9 @@ import { useRouter } from 'next/navigation';
 import StepStart from '@/components/createProject/step/start';
 import StepStrategy, { StepStrategyFormData } from '@/components/createProject/step/strategy';
 import StepProfile, { StepProfileFormData } from '@/components/createProject/step/profile';
-import StepContributor, { StepContributorFormData } from '@/components/createProject/step/contributor';
+import StepContributor, {
+	StepContributorFormData,
+} from '@/components/createProject/step/contributor';
 import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
@@ -62,9 +64,9 @@ export default function Page() {
 	const [activeStep, setActiveStep] = useState(0);
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 	const [formData, setFormData] = useState<{
-		profileFormData: StepProfileFormData | undefined,
-		strategyFormData: StepStrategyFormData | undefined,
-		contributorFormData: StepContributorFormData | undefined
+		profileFormData: StepProfileFormData | undefined;
+		strategyFormData: StepStrategyFormData | undefined;
+		contributorFormData: StepContributorFormData | undefined;
 	}>({
 		profileFormData: undefined,
 		strategyFormData: undefined,
@@ -133,7 +135,11 @@ export default function Page() {
 			}
 		}
 		const voteStrategyAddress = getVoteStrategyContract(voteApproveType);
-		const voteThreshold = getVoteThreshold(voteApproveType, forWeightOfTotal, differWeightOfTotal);
+		const voteThreshold = getVoteThreshold(
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		);
 		const voteWeights = contributors.map((item) => item.voteWeight);
 		const weights = getVoteWeights(voteSystem, voteWeights, contributors.length);
 

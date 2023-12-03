@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 
-import { AttestationShareablePackageObject, EAS, Offchain } from '@ethereum-attestation-service/eas-sdk';
+import {
+	AttestationShareablePackageObject,
+	EAS,
+	Offchain,
+} from '@ethereum-attestation-service/eas-sdk';
 
 import { useNetwork } from 'wagmi';
 

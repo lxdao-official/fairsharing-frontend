@@ -28,6 +28,8 @@ import useSWR, { useSWRConfig, mutate } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
+import Image from 'next/image';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
@@ -50,7 +52,6 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
-import Image from 'next/image';
 import TokenToolTip from '@/components/project/contribution/tokenToolTip';
 
 export interface IPostContributionProps {
@@ -101,10 +102,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -208,13 +209,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-					...realOptions,
-					{
-						label: label,
-						id: ForCreateTagId,
-						color: 'red',
-					},
-				]
+						...realOptions,
+						{
+							label: label,
+							id: ForCreateTagId,
+							color: 'red',
+						},
+				  ]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -276,7 +277,7 @@ const PostContribution = ({
 	};
 
 	const onTypeChange = async (event: React.SyntheticEvent, newValue: AutoCompleteValue[]) => {
-		const createTagOption = newValue.find(option => option.id === ForCreateTagId);
+		const createTagOption = newValue.find((option) => option.id === ForCreateTagId);
 		if (createTagOption) {
 			const label = inputText.trim();
 			console.log('createTagOption', label);
@@ -399,7 +400,8 @@ const PostContribution = ({
 			if (!signer) {
 				return;
 			}
-			const toWallet = contributorList.find(item => item.id === postData.contributors[0])?.wallet;
+			const toWallet = contributorList.find((item) => item.id === postData.contributors[0])
+				?.wallet;
 			const defaultRecipient = '0x0000000000000000000000000000000000000000';
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{

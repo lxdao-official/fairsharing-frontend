@@ -86,7 +86,13 @@ export default function Setting({ params }: { params: { id: string } }) {
 				});
 			}
 			if (type === 'strategy' && strategyData) {
-				const { period, voteSystem, voteApproveType, forWeightOfTotal, differWeightOfTotal } = strategyData;
+				const {
+					period,
+					voteSystem,
+					voteApproveType,
+					forWeightOfTotal,
+					differWeightOfTotal,
+				} = strategyData;
 				const { name, intro, logo } = data!;
 				await editProject({
 					id: params.id,
@@ -96,7 +102,10 @@ export default function Setting({ params }: { params: { id: string } }) {
 					votePeriod: period,
 					voteSystem,
 					voteApprove: voteApproveType,
-					voteThreshold: voteApproveType === VoteApproveEnum.ABSOLUTE1 ? Number(forWeightOfTotal) / 100 : Number(differWeightOfTotal) / 100,
+					voteThreshold:
+						voteApproveType === VoteApproveEnum.ABSOLUTE1
+							? Number(forWeightOfTotal) / 100
+							: Number(differWeightOfTotal) / 100,
 				});
 			}
 			showToast(`Project settings updated`);

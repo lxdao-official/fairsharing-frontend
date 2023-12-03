@@ -73,7 +73,7 @@ export interface IMintRecord {
 
 export enum VoteSystemEnum {
 	EQUAL = 'EQUAL',
-	WEIGHT = 'WEIGHT'
+	WEIGHT = 'WEIGHT',
 }
 
 export enum VoteApproveEnum {

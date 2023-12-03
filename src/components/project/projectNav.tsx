@@ -6,9 +6,10 @@ import { styled, Typography } from '@mui/material';
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 
+import useSWR from 'swr';
+
 import styles from '@/styles/project.module.css';
 import { ContributionIcon, ContributorIcon, DashboardIcon, SettingIcon } from '@/icons';
-import useSWR from 'swr';
 import { getProjectDetail } from '@/services';
 
 export enum ProjectSubPageEnum {

@@ -37,7 +37,10 @@ import { IContributor, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
 import { isAdmin } from '@/utils/member';
-import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
+import {
+	DialogButton,
+	DialogConfirmButton,
+} from '@/components/project/contribution/contributionList';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -56,26 +59,27 @@ export interface StepContributorRef {
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } = props;
+	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } =
+		props;
 	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
-				return {
-					...item,
-					voteWeight: item.voteWeight * 100,
-				};
-			})
+					return {
+						...item,
+						voteWeight: item.voteWeight * 100,
+					};
+			  })
 			: [
-				{
-					nickName: '',
-					wallet: myAddress || '',
-					role: '',
-					permission: PermissionEnum.Admin,
-					voteWeight: 1,
-				},
-			],
+					{
+						nickName: '',
+						wallet: myAddress || '',
+						role: '',
+						permission: PermissionEnum.Admin,
+						voteWeight: 1,
+					},
+			  ],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);

@@ -200,15 +200,15 @@ const theme = createTheme({
 			styleOverrides: {
 				tooltip: {
 					backgroundColor: 'rgba(51, 65, 85, 0.85)',
-					maxWidth: '360px'
-				}
-			}
+					maxWidth: '360px',
+				},
+			},
 		},
 		MuiAutocomplete: {
 			styleOverrides: {
 				option: {
 					'&[aria-selected="true"]': {
-						backgroundColor: '#efefef !important'
+						backgroundColor: '#efefef !important',
 					},
 				},
 			},

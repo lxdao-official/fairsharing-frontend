@@ -54,7 +54,6 @@ export function closeToast() {
 	};
 }
 
-
 const storageTokenTip = '__fs_show_token_tip__';
 
 export function initShowTokenToolTip() {
