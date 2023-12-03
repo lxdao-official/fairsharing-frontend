@@ -47,7 +47,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		<div style={{ flex: '1', minWidth: '600px' }}>
 			<StyledFlexBox sx={{ marginBottom: '16px' }}>
 				<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
-					Post contribution
+					Post a contribution
 				</Typography>
 				<Image
 					src={'/images/book.png'}
