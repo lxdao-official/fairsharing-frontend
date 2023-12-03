@@ -23,7 +23,7 @@ const columns: GridColDef[] = [
 	walletCell,
 	{
 		field: 'permission',
-		headerName: 'Role',
+		headerName: 'Permission',
 		sortable: false,
 		flex: 1,
 		minWidth: 150,
@@ -34,6 +34,12 @@ const columns: GridColDef[] = [
 				</PermissionWrapper>
 			);
 		},
+	},
+	{
+		field: 'role',
+		headerName: 'Role',
+		flex: 1,
+		minWidth: 150,
 	},
 	{
 		field: 'createAt',
