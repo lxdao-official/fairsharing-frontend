@@ -29,6 +29,7 @@ import axios from 'axios';
 import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
+import dayjs from 'dayjs';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -196,6 +197,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 			}
 		);
 	}, [contribution, contributorList]);
+
+	const contributionDate = useMemo(() => {
+		const date = JSON.parse(contribution.contributionDate);
+		const startDate = dayjs(date.startDate).format('MMM DD, YYYY');
+		const endDate = dayjs(date.endDate).format('MMM DD, YYYY');
+		return `📆 ${startDate} - ${endDate}`;
+	}, [contribution.contributionDate]);
 
 	useEffect(() => {
 		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
@@ -487,6 +495,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 		console.log('re-post');
 	}, []);
 
+	console.log(JSON.parse(contribution.contributionDate));
+
 	return (
 		<>
 			<StyledFlexBox
@@ -683,6 +693,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 										<MiniContributorList contributorList={matchContributors} />
 									</Paper>
 								</Popover>
+							</>
+
+							<>
+								<CustomHoverButton sx={{ margin: '0 8px' }}>
+									<Typography
+										variant={'body2'}
+										sx={{ fontWeight: '500', color: '#475569' }}
+									>
+										{contributionDate}
+									</Typography>
+								</CustomHoverButton>
 							</>
 						</StyledFlexBox>
 
