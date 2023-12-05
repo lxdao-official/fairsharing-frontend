@@ -28,6 +28,8 @@ import useSWR, { useSWRConfig, mutate } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
+import Image from 'next/image';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
@@ -50,8 +52,8 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
-import Image from 'next/image';
 import TokenToolTip from '@/components/project/contribution/tokenToolTip';
+import { OptionBgColors, OptionFontColors } from '@/components/project/contribution/types';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -80,7 +82,7 @@ export interface AutoCompleteValue {
 	[key: string]: any;
 }
 
-export const DefaultTypeKudos = 'Give kudos ❤️';
+export const DefaultTypeKudos = '❤️ Give kudos';
 const ForCreateTagId = '__for_create__';
 
 const PostContribution = ({
@@ -101,10 +103,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -208,13 +210,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-					...realOptions,
-					{
-						label: label,
-						id: ForCreateTagId,
-						color: 'red',
-					},
-				]
+						...realOptions,
+						{
+							label: label,
+							id: ForCreateTagId,
+							color: 'red',
+						},
+				  ]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -276,7 +278,7 @@ const PostContribution = ({
 	};
 
 	const onTypeChange = async (event: React.SyntheticEvent, newValue: AutoCompleteValue[]) => {
-		const createTagOption = newValue.find(option => option.id === ForCreateTagId);
+		const createTagOption = newValue.find((option) => option.id === ForCreateTagId);
 		if (createTagOption) {
 			const label = inputText.trim();
 			console.log('createTagOption', label);
@@ -321,19 +323,19 @@ const PostContribution = ({
 
 	const onSubmit = () => {
 		if (!detail) {
-			showToast('Contribution detail is required', 'error');
+			showToast('Details of contribution are required', 'error');
 			return;
 		}
 		if (!proof) {
-			showToast('Contribution proof is required', 'error');
+			showToast('Proof of contribution is required', 'error');
 			return;
 		}
 		if (contributors.length === 0) {
-			showToast('Contributor is required', 'error');
+			showToast('The reward receiver is required', 'error');
 			return;
 		}
 		if (!credit || Number(credit) <= 0) {
-			showToast('Contribution credit should be a positive integer', 'error');
+			showToast('The token amount must be numeric', 'error');
 			return;
 		}
 		const typeString = tags.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
@@ -399,7 +401,8 @@ const PostContribution = ({
 			if (!signer) {
 				return;
 			}
-			const toWallet = contributorList.find(item => item.id === postData.contributors[0])?.wallet;
+			const toWallet = contributorList.find((item) => item.id === postData.contributors[0])
+				?.wallet;
 			const defaultRecipient = '0x0000000000000000000000000000000000000000';
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
@@ -432,7 +435,7 @@ const PostContribution = ({
 				uId: res.data.offchainAttestationId as string,
 				operatorId: operatorId,
 			});
-			showToast('Create contribution success', 'success');
+			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
 			mutate(['contribution/list', projectId]);
@@ -460,7 +463,7 @@ const PostContribution = ({
 		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
 			<StyledFlexBox>
-				<TagLabel>#detail</TagLabel>
+				<TagLabel>#details</TagLabel>
 				<StyledInput
 					variant={'standard'}
 					InputProps={{ disableUnderline: true }}
@@ -723,31 +726,6 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	cursor: 'pointer',
 	padding: '8px 16px',
 }));
-
-const OptionBgColors = [
-	'#FEEDEB',
-	'#FFF3E0',
-	'#E6F7FF',
-	'#E1F3E2',
-	'#FBF6C7',
-	'#F2F4F6',
-	'#EDE7F6',
-	'#EDF1DA',
-	'#E9EBF7',
-	'#FCE8F9',
-];
-const OptionFontColors = [
-	'#491410',
-	'#391A00',
-	'#002338',
-	'#00200D',
-	'#4D2100',
-	'#181D24',
-	'#180038',
-	'#182700',
-	'#0E184C',
-	'#3A071B',
-];
 
 const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
 	fontSize: '14px',

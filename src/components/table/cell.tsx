@@ -43,7 +43,7 @@ export const WalletCell = ({
 			<Typography variant="body1" {...props}>
 				{needFormat ? formatWalletAddress(wallet) : wallet}
 			</Typography>
-			<CopyToClipboard text={wallet} onCopy={() => showToast('Copy success!')}>
+			<CopyToClipboard text={wallet} onCopy={() => showToast('Copied')}>
 				<Image
 					src="/images/copy.png"
 					width={24}

@@ -122,16 +122,16 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		},
 	);
 
-	const { data: contributorList, mutate: mutateContributorList, isLoading } = useSWR(
-		['contributor/list', projectId],
-		() => getContributorList(projectId),
-		{
-			fallbackData: [],
-			onSuccess: (data) => {
-				console.log('[contributorList]', data);
-			},
+	const {
+		data: contributorList,
+		mutate: mutateContributorList,
+		isLoading,
+	} = useSWR(['contributor/list', projectId], () => getContributorList(projectId), {
+		fallbackData: [],
+		onSuccess: (data) => {
+			console.log('[contributorList]', data);
 		},
-	);
+	});
 
 	useEffect(() => {
 		if (isLoading) {
@@ -201,8 +201,8 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	}, [easVoteList, contributionUIds]);
 
 	useEffect(() => {
-		console.log('easVoteNumberBySigner', easVoteNumberBySigner)
-	}, [easVoteNumberBySigner])
+		console.log('easVoteNumberBySigner', easVoteNumberBySigner);
+	}, [easVoteNumberBySigner]);
 
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
@@ -233,7 +233,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	}, [projectId]);
 
 	const setCanClaimedContribution = (contribution: IContribution) => {
-		setCanClaimedMap(pre => {
+		setCanClaimedMap((pre) => {
 			return {
 				...pre,
 				[contribution.id]: contribution,
@@ -438,7 +438,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 				});
 			}
 
-			showToast('Claim success', 'success');
+			showToast('Tokens claimed', 'success');
 			await mutateContributionList();
 		} catch (err: any) {
 			console.error('claim all error', err);
@@ -545,22 +545,22 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-					.filter((item) => item.status !== Status.UNREADY)
-					.map((contribution, idx) => (
-						<ContributionItem
-							key={contribution.id}
-							contribution={contribution}
-							showSelect={showMultiSelect}
-							selected={selected}
-							onSelect={onSelect}
-							showDeleteDialog={showDeleteDialog}
-							projectDetail={projectDetail}
-							contributorList={contributorList}
-							contributionList={filterContributionList}
-							voteData={easVoteNumberBySigner[contribution.uId!] || null}
-							setClaimed={setCanClaimedContribution}
-						/>
-					))
+						.filter((item) => item.status !== Status.UNREADY)
+						.map((contribution, idx) => (
+							<ContributionItem
+								key={contribution.id}
+								contribution={contribution}
+								showSelect={showMultiSelect}
+								selected={selected}
+								onSelect={onSelect}
+								showDeleteDialog={showDeleteDialog}
+								projectDetail={projectDetail}
+								contributorList={contributorList}
+								contributionList={filterContributionList}
+								voteData={easVoteNumberBySigner[contribution.uId!] || null}
+								setClaimed={setCanClaimedContribution}
+							/>
+						))
 				: null}
 
 			<Dialog

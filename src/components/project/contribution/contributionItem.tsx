@@ -29,6 +29,7 @@ import axios from 'axios';
 import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
+import dayjs from 'dayjs';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -36,7 +37,11 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
-import { IClaimParams, IVoteParams, IVoteValueEnum } from '@/components/project/contribution/contributionList';
+import {
+	IClaimParams,
+	IVoteParams,
+	IVoteValueEnum,
+} from '@/components/project/contribution/contributionList';
 import {
 	EAS_CHAIN_CONFIGS,
 	EasSchemaClaimKey,
@@ -56,6 +61,7 @@ import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
+import Types from '@/components/project/contribution/types';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -193,6 +199,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 		);
 	}, [contribution, contributorList]);
 
+	const contributionDate = useMemo(() => {
+		const date = JSON.parse(contribution.contributionDate);
+		const startDate = dayjs(date.startDate).format('MMM DD, YYYY');
+		const endDate = dayjs(date.endDate).format('MMM DD, YYYY');
+		return `📆 ${startDate} - ${endDate}`;
+	}, [contribution.contributionDate]);
+
 	useEffect(() => {
 		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
 			getVoteResultFromContract();
@@ -218,16 +231,26 @@ const ContributionItem = (props: IContributionItemProps) => {
 			}
 		});
 		const weights: number[] = contributorList.map((item) => {
-			return projectDetail.voteSystem === VoteSystemEnum.EQUAL ? 1 : item.voteWeight * 100
+			return projectDetail.voteSystem === VoteSystemEnum.EQUAL ? 1 : item.voteWeight * 100;
 		});
 		const threshold = Number(projectDetail.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
 		try {
 			console.log(`【${contribution.detail}】【getResult params】`, {
-				voters, voteValues, weights, threshold, votingStrategyData
-			})
-			const result = await contract.getResult(voters, voteValues, weights, threshold, votingStrategyData);
-			console.log(`【${contribution.detail}】[vote result]`, result)
+				voters,
+				voteValues,
+				weights,
+				threshold,
+				votingStrategyData,
+			});
+			const result = await contract.getResult(
+				voters,
+				voteValues,
+				weights,
+				threshold,
+				votingStrategyData,
+			);
+			console.log(`【${contribution.detail}】[vote result]`, result);
 			setVoteResultFromContract(result);
 			if (result) {
 				setClaimed(contribution);
@@ -257,16 +280,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 			return false;
 		}
 		if (contribution.status === 'UNREADY') {
-			showToast(`Contribution is not ready!`, 'error');
+			showToast(`This contribution is not ready for voting`, 'error');
 			return false;
 		}
 		// 投票时间结束后，不允许继续Vote
 		if (Date.now() >= targetTime) {
-			showToast(`Vote ended, can't vote`, 'error');
+			showToast(`Vote has ended.`, 'error');
 			return false;
 		}
 		if (contribution.status === 'CLAIM') {
-			showToast(`Can't vote after the contribution is claimed!`, 'error');
+			showToast(`Vote has ended, and tokens have been claimed`, 'error');
 			return false;
 		}
 		submitVote({
@@ -320,7 +343,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
 			}
-			showToast('Vote success', 'success');
+			showToast('Voted', 'success');
 			const baseURL = getEasScanURL();
 			// Update ENS names
 			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
@@ -418,7 +441,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				uId: uId,
 				operatorId: operatorId,
 			});
-			showToast('Claim success', 'success');
+			showToast('Tokens claimed', 'success');
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);
@@ -472,6 +495,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const onPost = useCallback(() => {
 		console.log('re-post');
 	}, []);
+
+	console.log(JSON.parse(contribution.contributionDate));
 
 	return (
 		<>
@@ -590,11 +615,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 								isEnd={isEnd}
 							/>
 
+							{/*type*/}
+
+							<CustomHoverButton sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
+								<Types types={contribution.type} />
+							</CustomHoverButton>
+
 							{/*proof*/}
 
 							<>
 								<CustomHoverButton
-									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenProofPopover}
 								>
 									<FileIcon width={14} height={14} />
@@ -619,22 +650,25 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										{contribution.proof.split(',').map((proof) => (
-											<Typography component="p" key={proof}>
-												<MuiLink
-													href={proof}
-													target={'_blank'}
-													underline={'hover'}
-												>
-													<LinkIcon
-														width={16}
-														height={16}
-														style={{ marginRight: 8 }}
-													/>
-													{proof}
-												</MuiLink>
-											</Typography>
-										))}
+										<Typography variant={'body1'}>
+											{contribution.proof}
+										</Typography>
+										{/*{contribution.proof.split(',').map((proof) => (*/}
+										{/*	<Typography component="p" key={proof}>*/}
+										{/*		<MuiLink*/}
+										{/*			href={proof}*/}
+										{/*			target={'_blank'}*/}
+										{/*			underline={'hover'}*/}
+										{/*		>*/}
+										{/*			<LinkIcon*/}
+										{/*				width={16}*/}
+										{/*				height={16}*/}
+										{/*				style={{ marginRight: 8 }}*/}
+										{/*			/>*/}
+										{/*			{proof}*/}
+										{/*		</MuiLink>*/}
+										{/*	</Typography>*/}
+										{/*))}*/}
 									</Paper>
 								</Popover>
 							</>
@@ -643,12 +677,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 							<>
 								<CustomHoverButton
-									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenContributorPopover}
 								>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569' }}
+										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
 									>
 										@{toContributors}
 									</Typography>
@@ -666,6 +700,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 										<MiniContributorList contributorList={matchContributors} />
 									</Paper>
 								</Popover>
+							</>
+
+							<>
+								<CustomHoverButton sx={{ margin: '0 8px' }}>
+									<Typography
+										variant={'body2'}
+										sx={{ fontWeight: '500', color: '#475569', minWidth: '200px' }}
+									>
+										{contributionDate}
+									</Typography>
+								</CustomHoverButton>
 							</>
 						</StyledFlexBox>
 

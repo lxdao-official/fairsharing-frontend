@@ -32,9 +32,9 @@ export interface EditProjectParams {
 	logo: string;
 	intro: string;
 	votePeriod: string;
-	voteSystem: VoteSystemEnum
-	voteApprove: VoteApproveEnum
-	voteThreshold: number
+	voteSystem: VoteSystemEnum;
+	voteApprove: VoteApproveEnum;
+	voteThreshold: number;
 }
 
 export interface Contributor {

@@ -6,9 +6,11 @@ import { styled, Typography } from '@mui/material';
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 
+import useSWR from 'swr';
+
 import styles from '@/styles/project.module.css';
-import { useProjectStore } from '@/store/project';
 import { ContributionIcon, ContributorIcon, DashboardIcon, SettingIcon } from '@/icons';
+import { getProjectDetail } from '@/services';
 
 export enum ProjectSubPageEnum {
 	Contribution = 'contribution',
@@ -34,7 +36,20 @@ const IconMap = {
 const ProjectNav = () => {
 	const pathname = usePathname();
 	const params = useParams();
-	const { currentProjectId, userProjectList } = useProjectStore();
+
+	const { data: projectDetail } = useSWR(
+		['project/detail', params.id],
+		() => {
+			if (params.id) {
+				return getProjectDetail(params.id as string);
+			} else {
+				return Promise.reject();
+			}
+		},
+		{
+			onSuccess: (data) => console.log('[ProjectNav projectDetail]', data),
+		},
+	);
 
 	const isMatch = (name: string) => {
 		return pathname.indexOf(name) > -1;
@@ -54,13 +69,9 @@ const ProjectNav = () => {
 		}
 	}, [pathname]);
 
-	const projectName = useMemo(() => {
-		return userProjectList.find((item) => item.id === currentProjectId)?.name;
-	}, [currentProjectId, userProjectList]);
-
 	return (
 		<div className={styles.projectNavContainer}>
-			<ProjectTitle variant={'subtitle1'}>{projectName || 'Project'}</ProjectTitle>
+			<ProjectTitle variant={'subtitle1'}>{projectDetail?.name || 'Project'}</ProjectTitle>
 			<NavItem
 				href={`/project/${params.id}/contribution`}
 				name={ProjectSubPageEnum.Contribution}
@@ -109,7 +120,7 @@ const NavItem = ({ href, name, isActive }: INavItemProps) => {
 };
 
 const ProjectTitle = styled(Typography)({
-	maxWidth: '208px',
+	maxWidth: '240px',
 	borderBottom: '1px solid rgba(15, 23, 42, 0.16)',
 	padding: '8px 16px',
 	overflow: 'hidden',

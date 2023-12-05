@@ -37,7 +37,10 @@ import { IContributor, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DeleteIcon } from '@/icons';
 import { isAdmin } from '@/utils/member';
-import { DialogButton, DialogConfirmButton } from '@/components/project/contribution/contributionList';
+import {
+	DialogButton,
+	DialogConfirmButton,
+} from '@/components/project/contribution/contributionList';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -56,26 +59,27 @@ export interface StepContributorRef {
 }
 
 const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((props, ref) => {
-	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } = props;
+	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } =
+		props;
 	const { address: myAddress } = useAccount();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
-				return {
-					...item,
-					voteWeight: item.voteWeight * 100,
-				};
-			})
+					return {
+						...item,
+						voteWeight: item.voteWeight * 100,
+					};
+			  })
 			: [
-				{
-					nickName: '',
-					wallet: myAddress || '',
-					role: '',
-					permission: PermissionEnum.Admin,
-					voteWeight: 1,
-				},
-			],
+					{
+						nickName: '',
+						wallet: myAddress || '',
+						role: '',
+						permission: PermissionEnum.Admin,
+						voteWeight: 1,
+					},
+			  ],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
@@ -113,7 +117,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			return false;
 		}
 		if (isContributorRepeat) {
-			showToast('Repeated [wallet] address', 'error');
+			showToast('Duplicate wallet address', 'error');
 			return false;
 		}
 		if (contributors.filter((item) => isAdmin(item.permission)).length === 0) {
@@ -137,18 +141,18 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		contributors.forEach((item) => {
 			const { nickName, wallet, permission } = item;
 			if (!nickName) {
-				showToast('Empty Nickname', 'error');
+				showToast('Nickname is required', 'error');
 				valid = false;
 				return false;
 			}
 			if (!wallet) {
 				valid = false;
-				showToast('Empty [wallet] address', 'error');
+				showToast('Wallet address is required', 'error');
 				return false;
 			}
 			if (!ethers.isAddress(wallet)) {
 				valid = false;
-				showToast(`[${wallet}] is not a valid wallet address`, 'error');
+				showToast(`"${wallet}" isn’t a valid wallet address`, 'error');
 				return false;
 			}
 		});

@@ -75,13 +75,14 @@ const VoteAction = ({
 	}, [isEnd, contributionStatus]);
 
 	const icon = useMemo(() => {
-		if (isEnd) {
-			return IconMap[type].disabled;
-		} else {
-			// 只有自己投过票的才是面性
-			return isUserVoted ? IconMap[type].normal : IconMap[type].ready;
-			// return count > 0 ? IconMap[type].normal : IconMap[type].ready;
-		}
+		// 2023.12.03 issue by daisy: 自己投过票 -> 面性, 不计算时间
+		return isUserVoted ? IconMap[type].normal : IconMap[type].ready;
+		// if (isEnd) {
+		// 	return IconMap[type].disabled;
+		// } else {
+		// 	// 只有自己投过票的才是面性
+		// 	return isUserVoted ? IconMap[type].normal : IconMap[type].ready;
+		// }
 	}, [isEnd, type, count, isUserVoted]);
 
 	const color = useMemo(() => {

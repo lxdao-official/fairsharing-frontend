@@ -161,6 +161,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							visibility: 'hidden',
 						},
 					}}
+					isRowSelectable={() => false}
 				/>
 			</div>
 		</div>

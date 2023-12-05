@@ -140,7 +140,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		}
 		if (!Number(period)) {
 			setPeriodError(true);
-			showToast('Vote period must be number', 'error');
+			showToast('The vote period must be a number', 'error');
 			return;
 		}
 		setActiveStep!(step! + 1);
@@ -154,7 +154,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		if (type === 'primary') {
 			if (!Number(period)) {
 				setPeriodError(true);
-				showToast('Vote period must be number', 'error');
+				showToast('The vote period must be a number', 'error');
 				return;
 			}
 			onSave!();

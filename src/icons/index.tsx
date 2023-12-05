@@ -111,5 +111,5 @@ export {
 	SettingIcon,
 	LinkIcon,
 	DeleteIcon,
-	CloseIcon
+	CloseIcon,
 };
