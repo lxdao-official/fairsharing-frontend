@@ -53,6 +53,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import TokenToolTip from '@/components/project/contribution/tokenToolTip';
+import { OptionBgColors, OptionFontColors } from '@/components/project/contribution/types';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -725,31 +726,6 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	cursor: 'pointer',
 	padding: '8px 16px',
 }));
-
-const OptionBgColors = [
-	'#FEEDEB',
-	'#FFF3E0',
-	'#E6F7FF',
-	'#E1F3E2',
-	'#FBF6C7',
-	'#F2F4F6',
-	'#EDE7F6',
-	'#EDF1DA',
-	'#E9EBF7',
-	'#FCE8F9',
-];
-const OptionFontColors = [
-	'#491410',
-	'#391A00',
-	'#002338',
-	'#00200D',
-	'#4D2100',
-	'#181D24',
-	'#180038',
-	'#182700',
-	'#0E184C',
-	'#3A071B',
-];
 
 const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
 	fontSize: '14px',

@@ -61,6 +61,7 @@ import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
+import Types from '@/components/project/contribution/types';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -614,11 +615,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 								isEnd={isEnd}
 							/>
 
+							{/*type*/}
+
+							<CustomHoverButton sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
+								<Types types={contribution.type} />
+							</CustomHoverButton>
+
 							{/*proof*/}
 
 							<>
 								<CustomHoverButton
-									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenProofPopover}
 								>
 									<FileIcon width={14} height={14} />
@@ -670,12 +677,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 							<>
 								<CustomHoverButton
-									sx={{ cursor: 'pointer', margin: '0 8px' }}
+									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenContributorPopover}
 								>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569' }}
+										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
 									>
 										@{toContributors}
 									</Typography>
@@ -699,7 +706,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569' }}
+										sx={{ fontWeight: '500', color: '#475569', minWidth: '200px' }}
 									>
 										{contributionDate}
 									</Typography>
