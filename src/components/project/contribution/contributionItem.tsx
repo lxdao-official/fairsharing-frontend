@@ -727,7 +727,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.FOR}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.FOR}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
@@ -736,7 +736,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.AGAINST}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.AGAINST}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
@@ -745,7 +745,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.ABSTAIN}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.ABSTAIN}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>
