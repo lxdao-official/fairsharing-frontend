@@ -373,8 +373,8 @@ const PostContribution = ({
 			const offchain = getOffchain();
 			const contributionSchemaUid = EasSchemaMap.contribution;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.contribution);
-			const startDay = startOfDay(startDate).getTime().toString();
-			const endDay = endOfDay(endDate).getTime().toString();
+			const startDay = startOfDay(startDate).getTime();
+			const endDay = endOfDay(endDate).getTime();
 
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
@@ -386,11 +386,11 @@ const PostContribution = ({
 				{ name: 'Detail', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: postData.type, type: 'string' },
 				{ name: 'Proof', value: postData.proof, type: 'string' },
-				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
-				{ name: 'EndDate', value: ethers.parseUnits(endDay), type: 'uint256' },
+				{ name: 'StartDate', value: BigInt(startDay), type: 'uint256' },
+				{ name: 'EndDate', value: BigInt(endDay), type: 'uint256' },
 				{
 					name: 'TokenAmount',
-					value: ethers.parseUnits(postData.credit.toString()),
+					value: BigInt(postData.credit),
 					type: 'uint256',
 				},
 				{ name: 'Extended', value: '', type: 'string' },

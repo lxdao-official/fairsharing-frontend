@@ -423,7 +423,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'Recipient', value: myAddress, type: 'address' },
 				{
 					name: 'TokenAmount',
-					value: ethers.parseUnits(token.toString()),
+					value: BigInt(token),
 					type: 'uint256',
 				},
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
