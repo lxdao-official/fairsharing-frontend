@@ -275,6 +275,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		// 不在contributorList里，无权投票
+		if (!contributorList.find(contributor => contributor.wallet === myAddress)) {
+			showToast('To participate in this project, reach out to the admin to join.', 'error');
+			return false;
+		}
 		if (!contribution.uId) {
 			console.error('uId not exist');
 			return false;
@@ -619,7 +624,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 							{/*type*/}
 
-							<CustomHoverButton sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
+							<CustomHoverButton
+								sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
 								<Types types={contribution.type} />
 							</CustomHoverButton>
 
