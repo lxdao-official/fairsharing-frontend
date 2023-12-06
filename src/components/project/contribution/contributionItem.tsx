@@ -321,9 +321,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			if (!signer) {
 				return;
 			}
+			const defaultRecipient = '0x0000000000000000000000000000000000000000';
+			const toWallet = matchContributors[0]?.wallet;
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
-					recipient: '0x0000000000000000000000000000000000000000',
+					recipient: toWallet || defaultRecipient,
 					expirationTime: BigInt(0),
 					time: BigInt(block ? block.timestamp : 0),
 					revocable: true,
