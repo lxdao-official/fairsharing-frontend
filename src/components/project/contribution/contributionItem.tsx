@@ -13,10 +13,9 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
-import { formatDistance } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 
 import Link from 'next/link';
-import MuiLink from '@mui/material/Link';
 
 import { useAccount, useNetwork } from 'wagmi';
 
@@ -29,7 +28,6 @@ import axios from 'axios';
 import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
-import dayjs from 'dayjs';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -201,8 +199,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const contributionDate = useMemo(() => {
 		const date = JSON.parse(contribution.contributionDate);
-		const startDate = dayjs(date.startDate).format('MMM DD, YYYY');
-		const endDate = dayjs(date.endDate).format('MMM DD, YYYY');
+		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy')
+		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy')
 		return `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
 
@@ -503,8 +501,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 		console.log('re-post');
 	}, []);
 
-	console.log(JSON.parse(contribution.contributionDate));
-
 	return (
 		<>
 			<StyledFlexBox
@@ -710,6 +706,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								</Popover>
 							</>
 
+							{/*contributionDate*/}
 							<>
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
