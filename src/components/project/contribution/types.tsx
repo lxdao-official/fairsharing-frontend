@@ -41,7 +41,7 @@ const Types = ({ types }: IProps) => {
 			{showType.map((type, idx) => (
 				<Item
 					key={idx}
-					index={randomIndex[idx]}
+					index={idx}
 					isFirst={idx === 0}
 				>
 					{type}
@@ -74,7 +74,7 @@ const Types = ({ types }: IProps) => {
 					{types.map((type, idx) => (
 						<Item
 							key={idx}
-							index={randomIndex[idx]}
+							index={idx}
 							isFirst={idx === 0}
 						>
 							{type}
