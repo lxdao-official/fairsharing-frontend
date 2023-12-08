@@ -72,7 +72,7 @@ export const getEASContributionList = async (ids: string[], chainId?: number) =>
 		}
 	`;
 	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaContributionKey>[] }>(
-		chainId || 420,
+		chainId || 10,
 		query,
 	);
 };
@@ -108,7 +108,7 @@ export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
 		}
 	`;
 	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaVoteKey>[] }>(
-		chainId || 420,
+		chainId || 10,
 		query,
 	);
 };
