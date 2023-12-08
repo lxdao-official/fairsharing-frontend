@@ -46,7 +46,7 @@ export interface StepStrategyRef {
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep, canEdit = true, onSave, data } = props;
 	const [symbol, setSymbol] = useState(data?.symbol ?? '');
-	const [network, setNetwork] = useState(data?.network ?? 420);
+	const [network, setNetwork] = useState(data?.network ?? 10);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
 
 	const [voteSystem, setVoteSystem] = useState<VoteSystemEnum>(
