@@ -409,7 +409,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 					{ name: 'Recipient', value: toWallet, type: 'address' },
 					{
 						name: 'TokenAmount',
-						value: ethers.parseUnits(credit.toString()),
+						value: BigInt(credit),
 						type: 'uint256',
 					},
 					{ name: 'Signatures', value: signatures[i], type: 'bytes' },

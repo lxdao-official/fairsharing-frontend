@@ -13,10 +13,9 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
-import { formatDistance } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 
 import Link from 'next/link';
-import MuiLink from '@mui/material/Link';
 
 import { useAccount, useNetwork } from 'wagmi';
 
@@ -29,7 +28,6 @@ import axios from 'axios';
 import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
-import dayjs from 'dayjs';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -201,8 +199,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const contributionDate = useMemo(() => {
 		const date = JSON.parse(contribution.contributionDate);
-		const startDate = dayjs(date.startDate).format('MMM DD, YYYY');
-		const endDate = dayjs(date.endDate).format('MMM DD, YYYY');
+		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy')
+		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy')
 		return `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
 
@@ -275,6 +273,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		// 不在contributorList里，无权投票
+		if (!contributorList.find(contributor => contributor.wallet === myAddress)) {
+			showToast('To participate in this project, reach out to the admin to join.', 'error');
+			return false;
+		}
 		if (!contribution.uId) {
 			console.error('uId not exist');
 			return false;
@@ -321,9 +324,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			if (!signer) {
 				return;
 			}
+			const defaultRecipient = '0x0000000000000000000000000000000000000000';
+			const toWallet = matchContributors[0]?.wallet;
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
-					recipient: '0x0000000000000000000000000000000000000000',
+					recipient: toWallet || defaultRecipient,
 					expirationTime: BigInt(0),
 					time: BigInt(block ? block.timestamp : 0),
 					revocable: true,
@@ -418,7 +423,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'Recipient', value: myAddress, type: 'address' },
 				{
 					name: 'TokenAmount',
-					value: ethers.parseUnits(token.toString()),
+					value: BigInt(token),
 					type: 'uint256',
 				},
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
@@ -495,8 +500,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const onPost = useCallback(() => {
 		console.log('re-post');
 	}, []);
-
-	console.log(JSON.parse(contribution.contributionDate));
 
 	return (
 		<>
@@ -617,7 +620,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 							{/*type*/}
 
-							<CustomHoverButton sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
+							<CustomHoverButton
+								sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
 								<Types types={contribution.type} />
 							</CustomHoverButton>
 
@@ -702,6 +706,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								</Popover>
 							</>
 
+							{/*contributionDate*/}
 							<>
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
@@ -722,7 +727,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.FOR)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.FOR}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.FOR}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.AGAINST}
@@ -731,7 +736,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.AGAINST)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.AGAINST}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.AGAINST}
 							/>
 							<VoteAction
 								type={VoteTypeEnum.ABSTAIN}
@@ -740,7 +745,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								contribution={contribution}
 								onConfirm={() => handleVote(IVoteValueEnum.ABSTAIN)}
 								isEnd={isEnd}
-								isUserVoted={myVoteNumber === IVoteValueEnum.ABSTAIN}
+								isUserVoted={Number(myVoteNumber) === IVoteValueEnum.ABSTAIN}
 							/>
 						</StyledFlexBox>
 					</StyledFlexBox>

@@ -6,6 +6,11 @@ const nextConfig = {
 	env: {
 		APP_ENV: process.env.APP_ENV,
 	},
+	compiler: {
+		removeConsole: process.env.APP_ENV === "Production" ? {
+			exclude: ['error'],
+		} : false,
+	},
 	modularizeImports: {
 		'@mui/icons-material': {
 			transform: '@mui/icons-material/{{member}}',

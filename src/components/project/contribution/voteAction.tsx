@@ -83,7 +83,7 @@ const VoteAction = ({
 		// 	// 只有自己投过票的才是面性
 		// 	return isUserVoted ? IconMap[type].normal : IconMap[type].ready;
 		// }
-	}, [isEnd, type, count, isUserVoted]);
+	}, [type, isUserVoted]);
 
 	const color = useMemo(() => {
 		if (isVoteDisabled) {
