@@ -6,7 +6,7 @@ import NextTopLoader from 'nextjs-toploader';
 
 import { AppBar, Toolbar, Typography } from '@mui/material';
 
-import { Analytics } from '@vercel/analytics/react';
+// import { Analytics } from '@vercel/analytics/react';
 
 import Image from 'next/image';
 
@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						<SimpleSnackbar />
 					</RainbowProvider>
 				</ThemeRegistry>
-				<Analytics />
+				{/*<Analytics />*/}
 			</body>
 		</html>
 	);
