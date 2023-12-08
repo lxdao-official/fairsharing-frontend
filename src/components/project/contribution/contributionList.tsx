@@ -275,7 +275,7 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	const fetchEasVoteList = async (uIds: string[]) => {
 		if (uIds.length === 0) return Promise.resolve([]);
 		try {
-			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
+			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id || 10);
 			const easVoteList = attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(

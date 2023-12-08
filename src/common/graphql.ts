@@ -34,7 +34,6 @@ export const fetchGraphqlData = async <T>(chainId: number, query: string): Promi
 };
 
 export const getGraphEndpoint = (chainId: number) => {
-	const activeChainConfig =
-		EAS_CHAIN_CONFIGS.find((config) => config.chainId === chainId) || EAS_CHAIN_CONFIGS[3];
-	return activeChainConfig.graphQLEndpoint;
+	const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === chainId);
+	return activeChainConfig!.graphQLEndpoint;
 };

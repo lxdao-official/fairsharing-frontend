@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
 	AttestationShareablePackageObject,
@@ -25,11 +25,11 @@ const useEas = () => {
 	const signer = useEthersSigner();
 	const network = useNetwork();
 
+	const opChainConfig = EAS_CHAIN_CONFIGS[1];
+
 	const easConfig = useMemo(() => {
-		const activeChainConfig =
-			EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id) ||
-			EAS_CHAIN_CONFIGS[2];
-		return activeChainConfig;
+		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id)
+		return activeChainConfig || opChainConfig;
 	}, [network]);
 
 	const eas = useMemo(() => {
@@ -41,11 +41,7 @@ const useEas = () => {
 	}, [signer, easConfig]);
 
 	const getEasScanURL = () => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
-			(config) => config.chainId === network.chain?.id,
-		);
-
-		return `https://${activeChainConfig!.subdomain}easscan.org`;
+		return `https://${easConfig!.subdomain}easscan.org`;
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
