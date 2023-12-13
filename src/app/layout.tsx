@@ -24,6 +24,7 @@ import User from '@/components/header/user';
 import NavLogo from '@/components/navLogo';
 
 import styles from '../styles/layout.module.css';
+import NavLayout from '@/components/navLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,7 +67,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								<User />
 							</Toolbar>
 						</AppBar>
-						<div className={styles.main}>{children}</div>
+						<div className={styles.main}>
+							<NavLayout>{children}</NavLayout>;
+						</div>
 						<SimpleGlobalLoading />
 						<SimpleSnackbar />
 					</RainbowProvider>
