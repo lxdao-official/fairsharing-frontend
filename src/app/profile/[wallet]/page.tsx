@@ -226,7 +226,7 @@ export default function Profile({ params }: { params: { wallet: string } }) {
 				) : null}
 			</StyledFlexBox>
 			{currentProjectId ? (
-				<ContributionList projectId={currentProjectId} showHeader={false} />
+				<ContributionList projectId={currentProjectId} showHeader={false} wallet={wallet} />
 			) : null}
 		</Container>
 	);

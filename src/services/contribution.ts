@@ -43,7 +43,9 @@ export const updateContributionStatus = (cid: string, params: IUpdateContributio
 	return request.put<IContribution>(`contribution/${cid}/updateState`, 1, params);
 };
 
-export const getContributionList = (params: PageListParams & { projectId: string }) => {
+export const getContributionList = (
+	params: PageListParams & { projectId: string; wallet?: string },
+) => {
 	return request<PageListData<IContribution>>('contribution/list', 1, params);
 };
 

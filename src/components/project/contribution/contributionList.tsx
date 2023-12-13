@@ -89,6 +89,7 @@ export interface IContributionListProps {
 	projectId: string;
 	onUpdate?: () => void;
 	showHeader?: boolean;
+	wallet?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -102,7 +103,7 @@ BigInt.prototype.toJSON = function () {
 	return this.toString();
 };
 
-const ContributionList = ({ projectId, showHeader = true }: IContributionListProps) => {
+const ContributionList = ({ projectId, showHeader = true, wallet }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
 	const network = useNetwork();
 	const { address: myAddress } = useAccount();
@@ -143,8 +144,11 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 	}, [isLoading]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
-		['contribution/list', projectId],
-		() => fetchContributionList(projectId),
+		() =>
+			wallet
+				? 'contribution/list/wallet' + projectId + wallet
+				: 'contribution/list/wallet' + projectId,
+		() => fetchContributionList(projectId, wallet),
 		{
 			fallbackData: [],
 			onSuccess: (data) => console.log('[contributionList]', data),
@@ -242,12 +246,13 @@ const ContributionList = ({ projectId, showHeader = true }: IContributionListPro
 		});
 	};
 
-	const fetchContributionList = async (projectId: string) => {
+	const fetchContributionList = async (projectId: string, wallet?: string) => {
 		try {
 			const { list } = await getContributionList({
 				pageSize: 50,
 				currentPage: 1,
 				projectId: projectId,
+				wallet,
 			});
 			return list;
 		} catch (err) {
