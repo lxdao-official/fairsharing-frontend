@@ -51,8 +51,8 @@ export default function Nav() {
 
 	return (
 		<NavContainer>
-			<Link href={'/list'}>
-				<NavItem active={pathname === '/list'}>
+			<Link href={'/'}>
+				<NavItem active={pathname === '/'}>
 					<HomeIcon />
 				</NavItem>
 			</Link>
@@ -128,14 +128,14 @@ const NavItem = styled('div')<{ active: boolean }>(({ theme, active }) => ({
 	cursor: 'pointer',
 	'&::after': active
 		? {
-			content: '""',
-			position: 'absolute',
-			left: '0',
-			top: '24px',
-			height: '32px',
-			width: '6px',
-			borderRadius: '0 6px 6px 0',
-			backgroundColor: '#475569',
-		}
+				content: '""',
+				position: 'absolute',
+				left: '0',
+				top: '24px',
+				height: '32px',
+				width: '6px',
+				borderRadius: '0 6px 6px 0',
+				backgroundColor: '#475569',
+		  }
 		: {},
 }));
