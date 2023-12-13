@@ -524,7 +524,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								width: '48px',
 								height: '48px',
 								borderRadius: '48px',
-								border: '1px solid rgba(15,23,42,0.12)',
+								// border: '1px solid rgba(15,23,42,0.12)',
 							}}
 						/>
 					</Link>
