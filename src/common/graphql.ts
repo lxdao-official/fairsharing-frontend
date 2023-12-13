@@ -5,7 +5,7 @@ import axios from 'axios';
 import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
 
 const client = axios.create({
-	timeout: 5000,
+	timeout: 15000,
 	httpsAgent: new https.Agent({
 		rejectUnauthorized: false,
 	}),
