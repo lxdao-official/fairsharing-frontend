@@ -15,10 +15,10 @@ import {
 } from '@mui/material';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
-import { StyledFlexBox } from '@/components/styledComponents';
 import { showToast } from '@/store/utils';
 import { CreateProjectParams, VoteApproveEnum, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
+import { DefaultChainId } from '@/constant/eas';
 
 export interface IStepStrategyProps extends Partial<IStepBaseProps> {
 	data?: Pick<
@@ -46,7 +46,7 @@ export interface StepStrategyRef {
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep, canEdit = true, onSave, data } = props;
 	const [symbol, setSymbol] = useState(data?.symbol ?? '');
-	const [network, setNetwork] = useState(data?.network ?? 10);
+	const [network, setNetwork] = useState(data?.network ?? DefaultChainId);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
 
 	const [voteSystem, setVoteSystem] = useState<VoteSystemEnum>(

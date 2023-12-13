@@ -10,7 +10,7 @@ import { useNetwork } from 'wagmi';
 
 import axios from 'axios';
 
-import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { DefaultChainConfig, EAS_CHAIN_CONFIGS } from '@/constant/eas';
 import { useEthersSigner } from '@/common/ether';
 
 export type StoreAttestationRequest = { filename: string; textJson: string };
@@ -25,11 +25,9 @@ const useEas = () => {
 	const signer = useEthersSigner();
 	const network = useNetwork();
 
-	const opChainConfig = EAS_CHAIN_CONFIGS[1];
-
 	const easConfig = useMemo(() => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id)
-		return activeChainConfig || opChainConfig;
+		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id);
+		return activeChainConfig || DefaultChainConfig;
 	}, [network]);
 
 	const eas = useMemo(() => {

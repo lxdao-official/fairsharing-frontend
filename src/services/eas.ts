@@ -1,6 +1,6 @@
 import { request } from '@/common/request';
 import { fetchGraphqlData } from '@/common/graphql';
-import { EasSchemaContributionKey, EasSchemaMap, EasSchemaVoteKey } from '@/constant/eas';
+import { DefaultChainId, EasSchemaContributionKey, EasSchemaMap, EasSchemaVoteKey } from '@/constant/eas';
 
 export const getEasSignature = (params: { wallet: string; cId: number; chainId: number }) => {
 	return request<string>('eas/signature', 1, params);
@@ -72,7 +72,7 @@ export const getEASContributionList = async (ids: string[], chainId?: number) =>
 		}
 	`;
 	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaContributionKey>[] }>(
-		chainId || 10,
+		chainId || DefaultChainId,
 		query,
 	);
 };
@@ -108,7 +108,7 @@ export const getEASVoteRecord = async (uIds: string[], chainId?: number) => {
 		}
 	`;
 	return fetchGraphqlData<{ attestations: EasAttestation<EasSchemaVoteKey>[] }>(
-		chainId || 10,
+		chainId || DefaultChainId,
 		query,
 	);
 };
