@@ -218,7 +218,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const getVoteResultFromContract = async () => {
 		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
 		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
-		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer);
+		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer || provider);
 
 		// 当前project所有的contributor
 		const voters: string[] = contributorList.map((item) => item.wallet);
