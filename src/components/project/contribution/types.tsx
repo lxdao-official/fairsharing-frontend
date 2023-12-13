@@ -120,4 +120,5 @@ const Item = styled('span')<{ index: number, isFirst: boolean }>(({ index, isFir
 	padding: '0 6px',
 	backgroundColor: OptionBgColors[index],
 	color: OptionFontColors[index],
+	whiteSpace: 'nowrap'
 }));
