@@ -67,6 +67,7 @@ const useEas = () => {
 
 	return {
 		eas,
+		easConfig,
 		getEasScanURL,
 		submitSignedAttestation,
 		getOffchain,
