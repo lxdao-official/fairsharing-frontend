@@ -95,7 +95,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const { myInfo } = useUserStore();
 	const { chain } = useNetwork();
-	const { eas, getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
+	const { eas, getEasScanURL, submitSignedAttestation, getOffchain, easConfig } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
 	const { address: myAddress } = useAccount();
@@ -139,11 +139,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [voteData, myAddress]);
 
 	const EasLink = useMemo(() => {
-		const activeChainConfig =
-			EAS_CHAIN_CONFIGS.find((config) => config.chainId === chain?.id) ||
-			EAS_CHAIN_CONFIGS[2];
-		return `${activeChainConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
-	}, [contribution, chain]);
+		return `${easConfig.etherscanURL}/offchain/attestation/view/${contribution.uId}`;
+	}, [contribution, easConfig]);
 
 	const matchContributors = useMemo(() => {
 		return contributorList.filter((item) => contribution.toIds.includes(item.id));
