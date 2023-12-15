@@ -6,7 +6,7 @@ import NextTopLoader from 'nextjs-toploader';
 
 import { AppBar, Toolbar, Typography } from '@mui/material';
 
-// import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/react';
 
 import Image from 'next/image';
 
@@ -24,6 +24,7 @@ import User from '@/components/header/user';
 import NavLogo from '@/components/navLogo';
 
 import styles from '../styles/layout.module.css';
+import NavLayout from '@/components/navLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -66,12 +67,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								<User />
 							</Toolbar>
 						</AppBar>
-						<div className={styles.main}>{children}</div>
+						<div className={styles.main}>
+							<NavLayout>{children}</NavLayout>
+						</div>
 						<SimpleGlobalLoading />
 						<SimpleSnackbar />
 					</RainbowProvider>
 				</ThemeRegistry>
-				{/*<Analytics />*/}
+				<Analytics />
 			</body>
 		</html>
 	);

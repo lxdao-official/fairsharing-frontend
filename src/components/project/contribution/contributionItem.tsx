@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Img3 } from '@lxdao/img3';
-import { format, formatDistance } from 'date-fns';
+import { format, formatDistance, isSameDay } from 'date-fns';
 
 import Link from 'next/link';
 
@@ -201,7 +201,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const date = JSON.parse(contribution.contributionDate);
 		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy')
 		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy')
-		return `📆 ${startDate} - ${endDate}`;
+		const isSame = isSameDay(new Date(date.startDate), new Date(date.endDate));
+		return isSame ? `📆 ${startDate}` : `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
 
 	useEffect(() => {
@@ -217,7 +218,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const getVoteResultFromContract = async () => {
 		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
 		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
-		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer);
+		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer || provider);
 
 		// 当前project所有的contributor
 		const voters: string[] = contributorList.map((item) => item.wallet);
@@ -524,7 +525,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								width: '48px',
 								height: '48px',
 								borderRadius: '48px',
-								border: '1px solid rgba(15,23,42,0.12)',
+								// border: '1px solid rgba(15,23,42,0.12)',
 							}}
 						/>
 					</Link>
@@ -711,7 +712,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569', minWidth: '200px' }}
+										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
 									>
 										{contributionDate}
 									</Typography>

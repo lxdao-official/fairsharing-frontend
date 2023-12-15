@@ -1,6 +1,6 @@
 'use client';
 
-import { styled, Typography } from '@mui/material';
+import { styled, Tooltip, Typography } from '@mui/material';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo } from 'react';
@@ -51,8 +51,8 @@ export default function Nav() {
 
 	return (
 		<NavContainer>
-			<Link href={'/list'}>
-				<NavItem active={pathname === '/list'}>
+			<Link href={'/'}>
+				<NavItem active={pathname === '/'}>
 					<HomeIcon />
 				</NavItem>
 			</Link>
@@ -67,9 +67,11 @@ export default function Nav() {
 				/>
 			))}
 			<Link href={'/project/create'}>
-				<NavItem active={pathname.indexOf('/project/create') > -1}>
-					<AddIcon />
-				</NavItem>
+				<Tooltip title={'Create Project'} placement={'right'}>
+					<NavItem active={pathname.indexOf('/project/create') > -1}>
+						<AddIcon />
+					</NavItem>
+				</Tooltip>
 			</Link>
 		</NavContainer>
 	);
@@ -86,21 +88,23 @@ export interface IItemProps {
 const Item = (props: IItemProps) => {
 	const { image, name, projectId, isActive, onClickEvent } = props;
 	return (
-		<NavItem active={isActive} onClick={() => onClickEvent(projectId)}>
-			{image ? (
-				<Img3
-					src={image}
-					style={{
-						width: '56px',
-						height: '56px',
-						borderRadius: '56px',
-						border: '1px solid rgba(15,23,42,0.12)',
-					}}
-				/>
-			) : (
-				<Typography variant={'h4'}>{name || 'Project'}</Typography>
-			)}
-		</NavItem>
+		<Tooltip title={name} placement={'right'}>
+			<NavItem active={isActive} onClick={() => onClickEvent(projectId)}>
+				{image ? (
+					<Img3
+						src={image}
+						style={{
+							width: '56px',
+							height: '56px',
+							borderRadius: '56px',
+							border: '1px solid rgba(15,23,42,0.12)',
+						}}
+					/>
+				) : (
+					<Typography variant={'h4'}>{name || 'Project'}</Typography>
+				)}
+			</NavItem>
+		</Tooltip>
 	);
 };
 

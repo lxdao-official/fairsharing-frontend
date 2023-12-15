@@ -103,10 +103,10 @@ const PostContribution = ({
 	const [value, setValue] = React.useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
 			: null,
 	);
 	const { showTokenToolTip } = useUtilsStore();
@@ -210,13 +210,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-						...realOptions,
-						{
-							label: label,
-							id: ForCreateTagId,
-							color: 'red',
-						},
-				  ]
+					...realOptions,
+					{
+						label: label,
+						id: ForCreateTagId,
+						color: 'red',
+					},
+				]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -560,6 +560,10 @@ const PostContribution = ({
 								label={'Start Date'}
 								value={startDate}
 								onChange={(date) => setStartDate(date!)}
+								sx={{
+									width: '160px',
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+								}}
 							/>
 							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
 								to
@@ -569,6 +573,10 @@ const PostContribution = ({
 								label={'End Date'}
 								value={endDate}
 								onChange={(date) => setEndDate(date!)}
+								sx={{
+									width: '160px',
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+								}}
 							/>
 						</LocalizationProvider>
 					</StyledFlexBox>

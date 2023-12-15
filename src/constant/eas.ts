@@ -1,3 +1,5 @@
+import { isProd } from '@/constant/env';
+
 export interface EASChainConfig {
 	chainId: number;
 	chainName: string;
@@ -46,6 +48,11 @@ export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 		graphQLEndpoint: 'https://optimism-goerli-bedrock.easscan.org/graphql',
 	},
 ];
+
+export const OpChainConfig = EAS_CHAIN_CONFIGS[1];
+export const OpTestChainConfig = EAS_CHAIN_CONFIGS[2];
+export const DefaultChainConfig = isProd ? OpChainConfig : OpTestChainConfig;
+export const DefaultChainId = isProd ? OpChainConfig.chainId : OpTestChainConfig.chainId;
 
 /**
  * 本地开发，使用.env.local里的变量
