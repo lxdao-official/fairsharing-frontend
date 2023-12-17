@@ -634,16 +634,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenProofPopover}
 								>
-									<FileIcon width={14} height={14} />
 									<Typography
 										variant={'body2'}
 										sx={{
-											fontWeight: '500',
+											fontWeight: '400',
 											color: '#475569',
 											marginLeft: '4px',
+											whiteSpace: 'nowrap'
 										}}
 									>
-										Proof
+										📁 Proof
 									</Typography>
 								</CustomHoverButton>
 								<Popover
@@ -689,12 +689,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 									<Typography
 										variant={'body2'}
 										sx={{
-											fontWeight: '500',
+											fontWeight: '400',
 											color: '#475569',
 											whiteSpace: 'nowrap',
 										}}
 									>
-										@{toContributors}
+										👨‍💻 {toContributors}
 									</Typography>
 								</CustomHoverButton>
 								<Popover
@@ -718,7 +718,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									<Typography
 										variant={'body2'}
 										sx={{
-											fontWeight: '500',
+											fontWeight: '400',
 											color: '#475569',
 											whiteSpace: 'nowrap',
 										}}
