@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import {
 	Box,
 	FormControl,
@@ -20,6 +20,7 @@ import { CreateProjectParams, VoteApproveEnum, VoteSystemEnum } from '@/services
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DefaultChainId } from '@/constant/eas';
 import { isProd } from '@/constant/env';
+import useProjectCache from '@/components/createProject/useProjectCache';
 
 export interface IStepStrategyProps extends Partial<IStepBaseProps> {
 	data?: Pick<
@@ -46,6 +47,8 @@ export interface StepStrategyRef {
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep, canEdit = true, onSave, data } = props;
+	const { setCache, cache: createProjectCache } = useProjectCache();
+
 	const [symbol, setSymbol] = useState(data?.symbol ?? '');
 	const [network, setNetwork] = useState(data?.network ?? DefaultChainId);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
@@ -86,6 +89,20 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const [isEdited, setIsEdited] = useState(false);
 
 	const isSettingPage = !!data;
+
+	useEffect(() => {
+		if (!isSettingPage && createProjectCache?.strategy) {
+			const {symbol,network, period, voteSystem, voteApproveType, forWeightOfTotal, differWeightOfTotal} = createProjectCache.strategy
+			setSymbol(symbol);
+			setNetwork(network);
+			setPeriod(period);
+			setVoteSystem(voteSystem);
+			setVoteApproveType(voteApproveType);
+			setForWeightOfTotal(forWeightOfTotal);
+			setDifferWeightOfTotal(differWeightOfTotal);
+
+		}
+	}, []);
 
 	const handleSymbolInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setSymbol(event.target.value);
@@ -144,6 +161,15 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			showToast('The vote period must be a number', 'error');
 			return;
 		}
+		setCache('strategy', {
+			network,
+			period,
+			symbol,
+			voteSystem,
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		});
 		setActiveStep!(step! + 1);
 	};
 

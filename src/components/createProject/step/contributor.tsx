@@ -41,6 +41,7 @@ import {
 	DialogButton,
 	DialogConfirmButton,
 } from '@/components/project/contribution/contributionList';
+import useProjectCache from '@/components/createProject/useProjectCache';
 
 export interface IStepContributorProps extends Partial<IStepBaseProps> {
 	data?: IContributor[];
@@ -62,30 +63,37 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const { step, setActiveStep, onCreateProject, data, onSave, canEdit, isActive, voteSystem } =
 		props;
 	const { address: myAddress } = useAccount();
+	const { setCache, cache: createProjectCache } = useProjectCache();
 
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
-					return {
-						...item,
-						voteWeight: item.voteWeight * 100,
-					};
-			  })
+				return {
+					...item,
+					voteWeight: item.voteWeight * 100,
+				};
+			})
 			: [
-					{
-						nickName: '',
-						wallet: myAddress || '',
-						role: '',
-						permission: PermissionEnum.Admin,
-						voteWeight: 1,
-					},
-			  ],
+				{
+					nickName: '',
+					wallet: myAddress || '',
+					role: '',
+					permission: PermissionEnum.Admin,
+					voteWeight: 1,
+				},
+			],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
 	const [showRevokeOwnerDialog, setShowRevokeOwnerDialog] = useState(false);
 
 	const isSettingPage = !!data;
+
+	useEffect(() => {
+		if (!isSettingPage && createProjectCache?.contributor) {
+			setContributors(createProjectCache.contributor.contributors)
+		}
+	}, []);
 
 	const isContributorRepeat = useMemo(() => {
 		const wallets = contributors.map((item) => item.wallet);
@@ -96,17 +104,13 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const isOwnerAdminDeleted = useMemo(() => {
 		const ownerInfo = contributors.find((item) => item.wallet === myAddress);
 		if (!ownerInfo) return true;
-		if (!isAdmin(ownerInfo.permission)) return true;
-		return false;
+		return !isAdmin(ownerInfo.permission);
+
 	}, [myAddress, contributors]);
 
 	const showWeight = useMemo(() => {
-		if (voteSystem && voteSystem === VoteSystemEnum.EQUAL) {
-			return false;
-		} else {
-			return true;
-		}
-	}, [isActive, voteSystem]);
+		return !(voteSystem && voteSystem === VoteSystemEnum.EQUAL);
+	}, [voteSystem]);
 
 	const handleSubmit = (action: 'BACK' | 'NEXT') => {
 		if (action === 'BACK') {
@@ -132,6 +136,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 			onSave?.();
 			setIsEdited(false);
 		} else {
+			setCache('contributor', { contributors });
 			onCreateProject?.();
 		}
 	};
