@@ -24,7 +24,7 @@ import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR, { useSWRConfig, mutate } from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
@@ -174,7 +174,7 @@ const PostContribution = ({
 			setContributors([cache.toValue.id]);
 			setCredit(cache.credit);
 		}
-	}, [])
+	}, []);
 
 	useEffect(() => {
 		if (!toValue && !initTo) {
@@ -382,8 +382,8 @@ const PostContribution = ({
 				startDate,
 				endDate,
 				toValue: toValue!,
-				credit
-			}
+				credit,
+			};
 			setCache(cacheData);
 			const contribution = await createContribution({
 				projectId: projectId,
@@ -466,7 +466,7 @@ const PostContribution = ({
 			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
-			mutate(['contribution/list', projectId]);
+			await mutate(() => 'contribution/list/wallet' + projectId);
 		} catch (err: any) {
 			console.error(err);
 			if (err.message) {
