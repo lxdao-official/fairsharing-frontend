@@ -5,8 +5,6 @@ import { StepProfileFormData } from '@/components/createProject/step/profile';
 import { StepStrategyFormData } from '@/components/createProject/step/strategy';
 import { StepContributorFormData } from '@/components/createProject/step/contributor';
 
-export const ProjectFormStorageKey = '__FS_project_params__';
-
 export interface IProjectFormMap {
 	profile?: StepProfileFormData;
 	strategy?: StepStrategyFormData;
@@ -21,8 +19,10 @@ export type IProjectFormKey = keyof IProjectFormMap;
 
 const useProjectCache = () => {
 
+	const cacheKey = '__FS_create_project_cache__';
+
 	const getCache = () => {
-		const data = localStorage.getItem(ProjectFormStorageKey);
+		const data = localStorage.getItem(cacheKey);
 		if (data) {
 			return JSON.parse(data) as ICreateProjectCache;
 		} else {
@@ -39,12 +39,12 @@ const useProjectCache = () => {
 			[stepKey]: formData,
 			activeStep: ProjectFormStepEnum[stepKey],
 		};
-		localStorage.setItem(ProjectFormStorageKey, JSON.stringify(form));
+		localStorage.setItem(cacheKey, JSON.stringify(form));
 		setData(form);
 	};
 
 	const clearCache = () => {
-		localStorage.removeItem(ProjectFormStorageKey);
+		localStorage.removeItem(cacheKey);
 		setData(null);
 	};
 
