@@ -1,16 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import { Paper, Popover, styled, Typography } from '@mui/material';
+
+import { StyledFlexBox } from '@/components/styledComponents';
 
 export interface IProps {
 	types: string[];
 }
 
 const Types = ({ types }: IProps) => {
-
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [randomIndex] = useState<number[]>(() => {
-		return Array(types.length).fill(true).map(() => Math.floor(Math.random() * 10));
+		return Array(types.length)
+			.fill(true)
+			.map(() => Math.floor(Math.random() * 10));
 	});
 
 	const showType = useMemo(() => {
@@ -34,30 +37,21 @@ const Types = ({ types }: IProps) => {
 	const open = Boolean(anchorEl);
 
 	return (
-		<StyledFlexBox
-			onMouseEnter={handlePopoverOpen}
-			onMouseLeave={handlePopoverClose}
-		>
+		<StyledFlexBox onMouseEnter={handlePopoverOpen} onMouseLeave={handlePopoverClose}>
 			{showType.map((type, idx) => (
-				<Item
-					key={idx}
-					index={idx}
-					isFirst={idx === 0}
-				>
+				<Item key={idx} index={idx} isFirst={idx === 0}>
 					{type}
 				</Item>
 			))}
-			{extra > 0
-				?
+			{extra > 0 ? (
 				<Typography
-					variant={'body2'} color={'#475569'}
+					variant={'body2'}
+					color={'#475569'}
 					sx={{ marginLeft: '8px', fontWeight: 500 }}
 				>
 					+{extra}
 				</Typography>
-
-				: null
-			}
+			) : null}
 			<Popover
 				id="mouse-over-popover"
 				sx={{
@@ -72,11 +66,7 @@ const Types = ({ types }: IProps) => {
 			>
 				<Paper sx={{ padding: '12px' }}>
 					{types.map((type, idx) => (
-						<Item
-							key={idx}
-							index={idx}
-							isFirst={idx === 0}
-						>
+						<Item key={idx} index={idx} isFirst={idx === 0}>
 							{type}
 						</Item>
 					))}
@@ -113,12 +103,12 @@ export const OptionFontColors = [
 	'#3A071B',
 ];
 
-const Item = styled('span')<{ index: number, isFirst: boolean }>(({ index, isFirst }) => ({
+const Item = styled('span')<{ index: number; isFirst: boolean }>(({ index, isFirst }) => ({
 	borderRadius: 2,
 	marginLeft: isFirst ? 0 : 8,
 	fontSize: 14,
 	padding: '0 6px',
 	backgroundColor: OptionBgColors[index],
 	color: OptionFontColors[index],
-	whiteSpace: 'nowrap'
+	whiteSpace: 'nowrap',
 }));

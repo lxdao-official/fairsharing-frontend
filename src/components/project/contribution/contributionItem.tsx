@@ -196,8 +196,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const contributionDate = useMemo(() => {
 		const date = JSON.parse(contribution.contributionDate);
-		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy')
-		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy')
+		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy');
+		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy');
 		const isSame = isSameDay(new Date(date.startDate), new Date(date.endDate));
 		return isSame ? `📆 ${startDate}` : `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
@@ -272,7 +272,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			return false;
 		}
 		// 不在contributorList里，无权投票
-		if (!contributorList.find(contributor => contributor.wallet === myAddress)) {
+		if (!contributorList.find((contributor) => contributor.wallet === myAddress)) {
 			showToast('To participate in this project, reach out to the admin to join.', 'error');
 			return false;
 		}
@@ -619,7 +619,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*type*/}
 
 							<CustomHoverButton
-								sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
+								sx={{
+									marginLeft: '8px',
+									cursor: contribution.type?.length > 2 ? 'pointer' : 'auto',
+								}}
+							>
 								<Types types={contribution.type} />
 							</CustomHoverButton>
 
@@ -684,7 +688,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
+										sx={{
+											fontWeight: '500',
+											color: '#475569',
+											whiteSpace: 'nowrap',
+										}}
 									>
 										@{toContributors}
 									</Typography>
@@ -709,7 +717,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
+										sx={{
+											fontWeight: '500',
+											color: '#475569',
+											whiteSpace: 'nowrap',
+										}}
 									>
 										{contributionDate}
 									</Typography>

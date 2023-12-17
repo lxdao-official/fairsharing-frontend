@@ -98,7 +98,6 @@ const PostContribution = ({
 	showFullPost = true,
 	setShowFullPost,
 }: IPostContributionProps) => {
-
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
 	const [contributors, setContributors] = useState<string[]>([]);
@@ -107,10 +106,10 @@ const PostContribution = ({
 	const [toValue, setToValue] = useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
@@ -227,13 +226,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-					...realOptions,
-					{
-						label: label,
-						id: ForCreateTagId,
-						color: 'red',
-					},
-				]
+						...realOptions,
+						{
+							label: label,
+							id: ForCreateTagId,
+							color: 'red',
+						},
+				  ]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -355,7 +354,10 @@ const PostContribution = ({
 			showToast('The token amount must be numeric', 'error');
 			return;
 		}
-		const typeString = typeValue.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
+		const typeString = typeValue.reduce(
+			(pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`,
+			'',
+		);
 		const params: PostData = { detail, proof, contributors, credit, type: typeString };
 		if (contribution) {
 			onEditContribution(params);
@@ -590,7 +592,9 @@ const PostContribution = ({
 								onChange={(date) => setStartDate(date!)}
 								sx={{
 									width: '160px',
-									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+										border: 'none',
+									},
 								}}
 							/>
 							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
@@ -603,7 +607,9 @@ const PostContribution = ({
 								onChange={(date) => setEndDate(date!)}
 								sx={{
 									width: '160px',
-									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+										border: 'none',
+									},
 								}}
 							/>
 						</LocalizationProvider>

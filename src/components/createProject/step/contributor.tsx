@@ -68,20 +68,20 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
-				return {
-					...item,
-					voteWeight: item.voteWeight * 100,
-				};
-			})
+					return {
+						...item,
+						voteWeight: item.voteWeight * 100,
+					};
+			  })
 			: [
-				{
-					nickName: '',
-					wallet: myAddress || '',
-					role: '',
-					permission: PermissionEnum.Admin,
-					voteWeight: 1,
-				},
-			],
+					{
+						nickName: '',
+						wallet: myAddress || '',
+						role: '',
+						permission: PermissionEnum.Admin,
+						voteWeight: 1,
+					},
+			  ],
 	);
 
 	const [isEdited, setIsEdited] = useState(false);
@@ -91,7 +91,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 
 	useEffect(() => {
 		if (!isSettingPage && createProjectCache?.contributor) {
-			setContributors(createProjectCache.contributor.contributors)
+			setContributors(createProjectCache.contributor.contributors);
 		}
 	}, []);
 
@@ -105,7 +105,6 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 		const ownerInfo = contributors.find((item) => item.wallet === myAddress);
 		if (!ownerInfo) return true;
 		return !isAdmin(ownerInfo.permission);
-
 	}, [myAddress, contributors]);
 
 	const showWeight = useMemo(() => {

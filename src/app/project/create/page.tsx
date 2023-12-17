@@ -16,7 +16,9 @@ import { useRouter } from 'next/navigation';
 import StepStart from '@/components/createProject/step/start';
 import StepStrategy, { StepStrategyFormData } from '@/components/createProject/step/strategy';
 import StepProfile, { StepProfileFormData } from '@/components/createProject/step/profile';
-import StepContributor, { StepContributorFormData } from '@/components/createProject/step/contributor';
+import StepContributor, {
+	StepContributorFormData,
+} from '@/components/createProject/step/contributor';
 import { defaultGateways } from '@/constant/img3';
 
 import { useEthersSigner } from '@/common/ether';
@@ -342,8 +344,11 @@ export default function Page() {
 						<StepStart step={ProjectFormStepEnum.start} setActiveStep={setActiveStep} />
 					</StepContent>
 					<StepContent step={ProjectFormStepEnum.profile} activeStep={activeStep}>
-						<StepProfile ref={stepProfileRef} step={ProjectFormStepEnum.profile}
-									 setActiveStep={setActiveStep} />
+						<StepProfile
+							ref={stepProfileRef}
+							step={ProjectFormStepEnum.profile}
+							setActiveStep={setActiveStep}
+						/>
 					</StepContent>
 					<StepContent step={ProjectFormStepEnum.strategy} activeStep={activeStep}>
 						<StepStrategy

@@ -1,5 +1,6 @@
-import { AutoCompleteValue } from '@/components/project/contribution/postContribution';
 import { useEffect, useMemo, useState } from 'react';
+
+import { AutoCompleteValue } from '@/components/project/contribution/postContribution';
 
 export interface IPostContributionCacheItem {
 	detail: string;
@@ -14,15 +15,14 @@ export interface IPostContributionCacheItem {
 /**
  * Record<projectId, IPostContributionCacheItem>
  */
-export type ICachedPostContribution = Record<string, IPostContributionCacheItem>
+export type ICachedPostContribution = Record<string, IPostContributionCacheItem>;
 
 const usePostContributionCache = ({ projectId }: { projectId: string }) => {
-
 	const cacheKey = '__FS_post_contribution_cache__';
 
 	const getCacheMap = () => {
 		const data = localStorage.getItem(cacheKey);
-		return data ? JSON.parse(data) as ICachedPostContribution : {};
+		return data ? (JSON.parse(data) as ICachedPostContribution) : {};
 	};
 
 	const [cacheMap, setCacheMap] = useState<ICachedPostContribution>(() => getCacheMap());

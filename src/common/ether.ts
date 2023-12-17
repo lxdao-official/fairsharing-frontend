@@ -4,6 +4,7 @@ import { FallbackProvider, JsonRpcProvider } from 'ethers';
 import { type HttpTransport } from 'viem';
 import { type WalletClient, useWalletClient } from 'wagmi';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
+
 import { DefaultChainId } from '@/constant/eas';
 
 export function publicClientToProvider(publicClient: PublicClient) {

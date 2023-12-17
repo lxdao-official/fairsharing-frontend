@@ -18,7 +18,6 @@ export interface ICreateProjectCache extends IProjectFormMap {
 export type IProjectFormKey = keyof IProjectFormMap;
 
 const useProjectCache = () => {
-
 	const cacheKey = '__FS_create_project_cache__';
 
 	const getCache = () => {

@@ -92,7 +92,15 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 
 	useEffect(() => {
 		if (!isSettingPage && createProjectCache?.strategy) {
-			const {symbol,network, period, voteSystem, voteApproveType, forWeightOfTotal, differWeightOfTotal} = createProjectCache.strategy
+			const {
+				symbol,
+				network,
+				period,
+				voteSystem,
+				voteApproveType,
+				forWeightOfTotal,
+				differWeightOfTotal,
+			} = createProjectCache.strategy;
 			setSymbol(symbol);
 			setNetwork(network);
 			setPeriod(period);
@@ -100,7 +108,6 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			setVoteApproveType(voteApproveType);
 			setForWeightOfTotal(forWeightOfTotal);
 			setDifferWeightOfTotal(differWeightOfTotal);
-
 		}
 	}, []);
 
@@ -214,7 +221,11 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				sx={{ minWidth: '', marginTop: '32px', width: '200px' }}
 				disabled={isSettingPage}
 			>
-				{isProd ?  <MenuItem value={'10'}>Optimism</MenuItem> : <MenuItem value={'420'}>Optimism Goerli</MenuItem>}
+				{isProd ? (
+					<MenuItem value={'10'}>Optimism</MenuItem>
+				) : (
+					<MenuItem value={'420'}>Optimism Goerli</MenuItem>
+				)}
 			</Select>
 
 			<div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>
