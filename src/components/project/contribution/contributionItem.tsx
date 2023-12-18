@@ -60,6 +60,7 @@ import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
+import useProof from '@/components/project/contribution/useProof';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -101,6 +102,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	const { mutate } = useSWRConfig();
+	const { splitProof } = useProof();
 
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [openMore, setOpenMore] = useState(false);
@@ -201,6 +203,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const isSame = isSameDay(new Date(date.startDate), new Date(date.endDate));
 		return isSame ? `📆 ${startDate}` : `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
+
+	const proofList = useMemo(() => {
+		try {
+			return splitProof(contribution.proof);
+		} catch (err) {
+			return [{ type: 'plain', value: contribution.proof }];
+		}
+	}, [contribution.proof]);
 
 	useEffect(() => {
 		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
@@ -640,7 +650,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 											fontWeight: '400',
 											color: '#475569',
 											marginLeft: '4px',
-											whiteSpace: 'nowrap'
+											whiteSpace: 'nowrap',
 										}}
 									>
 										📁 Proof
@@ -657,24 +667,25 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper sx={{ padding: '12px' }}>
 										<Typography variant={'body1'}>
-											{contribution.proof}
+											{proofList.map((item, idx) => (
+												<span key={idx}>
+													{item.type === 'href' ? (
+														<Link
+															href={item.value}
+															target={'_blank'}
+															style={{
+																color: '#437EF7',
+																textDecoration: 'underline',
+															}}
+														>
+															{item.value}
+														</Link>
+													) : (
+														item.value
+													)}
+												</span>
+											))}
 										</Typography>
-										{/*{contribution.proof.split(',').map((proof) => (*/}
-										{/*	<Typography component="p" key={proof}>*/}
-										{/*		<MuiLink*/}
-										{/*			href={proof}*/}
-										{/*			target={'_blank'}*/}
-										{/*			underline={'hover'}*/}
-										{/*		>*/}
-										{/*			<LinkIcon*/}
-										{/*				width={16}*/}
-										{/*				height={16}*/}
-										{/*				style={{ marginRight: 8 }}*/}
-										{/*			/>*/}
-										{/*			{proof}*/}
-										{/*		</MuiLink>*/}
-										{/*	</Typography>*/}
-										{/*))}*/}
 									</Paper>
 								</Popover>
 							</>
