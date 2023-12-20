@@ -186,8 +186,6 @@ export default function Page() {
 				ProjectRegisterABI,
 				signer,
 			);
-			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry);
-			console.log('voteStrategyAddress', voteStrategyAddress);
 
 			const admins = contributors
 				.filter((contributor) => isAdmin(contributor.permission))
@@ -229,7 +227,7 @@ export default function Page() {
 			router.push(`/project/${result.id}/contribution`);
 		} catch (err: any) {
 			console.error('createProject', err);
-			err.message && showToast(err.message, 'error');
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
 		}

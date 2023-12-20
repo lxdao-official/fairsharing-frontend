@@ -455,9 +455,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			await mutateContributionList();
 		} catch (err: any) {
 			console.error('claim all error', err);
-			if (err.message) {
-				showToast(err.message, 'error');
-			}
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
 		}
