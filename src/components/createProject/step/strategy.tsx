@@ -10,7 +10,7 @@ import {
 	RadioGroup,
 	Select,
 	SelectChangeEvent,
-	TextField,
+	TextField, Tooltip,
 	Typography,
 } from '@mui/material';
 
@@ -65,6 +65,8 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const [differWeightOfTotal, setDifferWeightOfTotal] = useState(
 		data?.voteThreshold ? String(data?.voteThreshold * 100) : '',
 	);
+
+	const [showSymbolTip, setShowSymbolTip] = useState(false);
 
 	const handleVoteSystemChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const value = (event.target as HTMLInputElement).value;
@@ -201,16 +203,29 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 
 	return (
 		<>
-			<TextField
-				required
-				label="Symbol"
-				value={symbol}
-				placeholder={'Token Symbol *'}
-				onChange={handleSymbolInputChange}
-				sx={{ display: 'block', minWidth: '', width: '200px' }}
-				error={symbolError}
-				disabled={isSettingPage}
-			/>
+			<Tooltip
+				open={showSymbolTip}
+				title={'It is an ERC-20 token, similar to points, representing project ownership.Earned through approved contributions, there\'s no limit to its supply.'}
+				placement="bottom"
+				arrow={true}
+				disableTouchListener={true}
+				disableHoverListener={true}
+				disableFocusListener={true}
+				disableInteractive={true}
+			>
+				<TextField
+					required
+					label="Symbol"
+					value={symbol}
+					placeholder={'Token Symbol *'}
+					onChange={handleSymbolInputChange}
+					onMouseEnter={() => setShowSymbolTip(true)}
+					onMouseLeave={() => setShowSymbolTip(false)}
+					sx={{ display: 'block', minWidth: '', width: '200px' }}
+					error={symbolError}
+					disabled={isSettingPage}
+				/>
+			</Tooltip>
 
 			<Select
 				labelId="network-select-label"
