@@ -48,6 +48,7 @@ import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils'
 import {
 	deleteContribution,
 	getContributionList,
+	getContributionTypeList,
 	getContributorList,
 	getProjectDetail,
 	IContribution,
@@ -134,6 +135,12 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			console.log('[contributorList]', data);
 		},
 	});
+
+	const { data: contributionTypeList } = useSWR(
+		['project/contributionType', projectId],
+		() => getContributionTypeList(projectId),
+		{ fallbackData: [] }
+	);
 
 	useEffect(() => {
 		if (isLoading) {
@@ -563,6 +570,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 								projectDetail={projectDetail}
 								contributorList={contributorList}
 								contributionList={filterContributionList}
+								contributionTypeList={contributionTypeList}
 								voteData={easVoteNumberBySigner[contribution.uId!] || null}
 								setClaimed={setCanClaimedContribution}
 							/>

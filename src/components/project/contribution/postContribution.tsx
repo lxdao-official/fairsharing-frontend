@@ -53,10 +53,10 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import TokenToolTip from '@/components/project/contribution/tokenToolTip';
-import { OptionBgColors, OptionFontColors } from '@/components/project/contribution/types';
 import usePostContributionCache, {
 	IPostContributionCacheItem,
 } from '@/components/project/contribution/usePostContributionCache';
+import { TagBgColors, TagColorMap, TagTextColors } from '@/components/project/contribution/tag';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -215,10 +215,10 @@ const PostContribution = ({
 	}, [isEdit, contributionTypeList]);
 
 	const tagOptions = useMemo(() => {
-		const realOptions = contributionTypeList.map((item) => ({
+		const realOptions = contributionTypeList.map((item, index) => ({
 			label: item.name,
 			id: item.id,
-			color: item.color,
+			color: TagBgColors.includes(item.color) ? item.color : TagBgColors[index % 10],
 		}));
 		const label = inputText.trim();
 		if (realOptions.find((item) => item.label === label)) {
@@ -230,7 +230,7 @@ const PostContribution = ({
 						{
 							label: label,
 							id: ForCreateTagId,
-							color: 'red',
+							color: TagBgColors[realOptions.length % 10],
 						},
 				  ]
 				: realOptions;
@@ -306,6 +306,7 @@ const PostContribution = ({
 
 	const createNewTag = async (label: string) => {
 		try {
+			const newTagColor = TagBgColors[contributionTypeList.length % 10];
 			await mutate(
 				['project/contributionType', projectId],
 				[
@@ -313,7 +314,7 @@ const PostContribution = ({
 					{
 						name: label,
 						id: '__ready_for_create__',
-						color: 'red',
+						color: newTagColor,
 						projectId: projectId,
 					},
 				],
@@ -322,7 +323,7 @@ const PostContribution = ({
 			setInputText('');
 			const { name, id, color } = await createContributionType(projectId, {
 				name: label,
-				color: 'red',
+				color: newTagColor,
 			});
 			if (typeValue.find((tag) => tag.label === label)) {
 				setInputText('');
@@ -549,7 +550,7 @@ const PostContribution = ({
 								return (
 									<OptionLi selected={selected} {...props}>
 										{option.id === ForCreateTagId ? 'Create' : ''}
-										<OptionLabel index={index}>{option.label}</OptionLabel>
+										<OptionLabel index={index} bgColor={option.color}>{option.label}</OptionLabel>
 									</OptionLi>
 								);
 							}}
@@ -561,6 +562,7 @@ const PostContribution = ({
 										{...getTagProps({ index })}
 										size={'small'}
 										index={index}
+										bgColor={option.color}
 									/>
 								))
 							}
@@ -769,16 +771,16 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	padding: '8px 16px',
 }));
 
-const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
+const OptionLabel = styled('span')<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
 	fontSize: '14px',
 	lineHeight: '20px',
 	padding: '0 6px',
 	borderRadius: '4px',
-	backgroundColor: OptionBgColors[index % 10],
-	color: OptionFontColors[index % 10],
+	backgroundColor: bgColor || TagBgColors[index % 10],
+	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 }));
-const OptionChip = styled(Chip)<{ index: number }>(({ index }) => ({
-	backgroundColor: OptionBgColors[index % 10],
-	color: OptionFontColors[index % 10],
+const OptionChip = styled(Chip)<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
+	backgroundColor: bgColor || TagBgColors[index % 10],
+	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 	borderRadius: '4px',
 }));

@@ -32,7 +32,7 @@ import { ethers } from 'ethers';
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
+import { ContributionType, IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 import {
@@ -78,6 +78,7 @@ export interface IContributionItemProps {
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
 	setClaimed: (contribution: IContribution) => void;
+	contributionTypeList: ContributionType[]
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -92,6 +93,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributionList,
 		voteData,
 		setClaimed,
+		contributionTypeList
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -634,7 +636,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 									cursor: contribution.type?.length > 2 ? 'pointer' : 'auto',
 								}}
 							>
-								<Types types={contribution.type} />
+								<Types types={contribution.type} contributionTypeList={contributionTypeList} />
 							</CustomHoverButton>
 
 							{/*proof*/}
