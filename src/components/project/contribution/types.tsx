@@ -1,16 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { StyledFlexBox } from '@/components/styledComponents';
+import React, { useMemo, useState } from 'react';
+
 import { Paper, Popover, styled, Typography } from '@mui/material';
+
+import { StyledFlexBox } from '@/components/styledComponents';
+import { ContributionType } from '@/services';
+import { TagBgColors, TagColorMap, TagTextColors } from '@/components/project/contribution/tag';
 
 export interface IProps {
 	types: string[];
+	contributionTypeList: ContributionType[];
 }
 
-const Types = ({ types }: IProps) => {
-
+const Types = ({ types, contributionTypeList }: IProps) => {
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [randomIndex] = useState<number[]>(() => {
-		return Array(types.length).fill(true).map(() => Math.floor(Math.random() * 10));
+		return Array(types.length)
+			.fill(true)
+			.map(() => Math.floor(Math.random() * 10));
 	});
 
 	const showType = useMemo(() => {
@@ -20,6 +26,20 @@ const Types = ({ types }: IProps) => {
 	const extra = useMemo(() => {
 		return types.length > 2 ? types.length - 2 : 0;
 	}, [types]);
+
+	const typeMap = useMemo(() => {
+		return contributionTypeList.reduce((acc, cur, idx) => {
+			const isValidColor = TagBgColors.includes(cur.color);
+			return {
+				...acc,
+				[cur.name]: {
+					...cur,
+					color: isValidColor ? cur.color : TagBgColors[idx % 10],
+					textColor: isValidColor ? TagColorMap[cur.color] : TagTextColors[idx % 10],
+				},
+			};
+		}, {} as Record<string, ContributionType & { textColor: string }>);
+	}, [contributionTypeList]);
 
 	const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
 		if (types.length > 2) {
@@ -34,30 +54,22 @@ const Types = ({ types }: IProps) => {
 	const open = Boolean(anchorEl);
 
 	return (
-		<StyledFlexBox
-			onMouseEnter={handlePopoverOpen}
-			onMouseLeave={handlePopoverClose}
-		>
+		<StyledFlexBox onMouseEnter={handlePopoverOpen} onMouseLeave={handlePopoverClose}>
 			{showType.map((type, idx) => (
-				<Item
-					key={idx}
-					index={idx}
-					isFirst={idx === 0}
-				>
+				<Item key={idx} index={idx} isFirst={idx === 0} bgColor={typeMap[type]?.color}
+					  textColor={typeMap[type]?.textColor}>
 					{type}
 				</Item>
 			))}
-			{extra > 0
-				?
+			{extra > 0 ? (
 				<Typography
-					variant={'body2'} color={'#475569'}
+					variant={'body2'}
+					color={'#475569'}
 					sx={{ marginLeft: '8px', fontWeight: 500 }}
 				>
 					+{extra}
 				</Typography>
-
-				: null
-			}
+			) : null}
 			<Popover
 				id="mouse-over-popover"
 				sx={{
@@ -72,11 +84,8 @@ const Types = ({ types }: IProps) => {
 			>
 				<Paper sx={{ padding: '12px' }}>
 					{types.map((type, idx) => (
-						<Item
-							key={idx}
-							index={idx}
-							isFirst={idx === 0}
-						>
+						<Item key={idx} index={idx} isFirst={idx === 0} bgColor={typeMap[type]?.color}
+							  textColor={typeMap[type]?.textColor}>
 							{type}
 						</Item>
 					))}
@@ -88,37 +97,17 @@ const Types = ({ types }: IProps) => {
 
 export default Types;
 
-export const OptionBgColors = [
-	'#FEEDEB',
-	'#FFF3E0',
-	'#E6F7FF',
-	'#E1F3E2',
-	'#FBF6C7',
-	'#F2F4F6',
-	'#EDE7F6',
-	'#EDF1DA',
-	'#E9EBF7',
-	'#FCE8F9',
-];
-export const OptionFontColors = [
-	'#491410',
-	'#391A00',
-	'#002338',
-	'#00200D',
-	'#4D2100',
-	'#181D24',
-	'#180038',
-	'#182700',
-	'#0E184C',
-	'#3A071B',
-];
-
-const Item = styled('span')<{ index: number, isFirst: boolean }>(({ index, isFirst }) => ({
+const Item = styled('span')<{ index: number; isFirst: boolean, bgColor: string, textColor: string }>(({
+	index,
+	isFirst,
+	bgColor,
+	textColor,
+}) => ({
 	borderRadius: 2,
 	marginLeft: isFirst ? 0 : 8,
 	fontSize: 14,
 	padding: '0 6px',
-	backgroundColor: OptionBgColors[index],
-	color: OptionFontColors[index],
-	whiteSpace: 'nowrap'
+	backgroundColor: bgColor,
+	color: textColor,
+	whiteSpace: 'nowrap',
 }));

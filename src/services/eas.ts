@@ -1,6 +1,11 @@
 import { request } from '@/common/request';
 import { fetchGraphqlData } from '@/common/graphql';
-import { DefaultChainId, EasSchemaContributionKey, EasSchemaMap, EasSchemaVoteKey } from '@/constant/eas';
+import {
+	DefaultChainId,
+	EasSchemaContributionKey,
+	EasSchemaMap,
+	EasSchemaVoteKey,
+} from '@/constant/eas';
 
 export const getEasSignature = (params: { wallet: string; cId: number; chainId: number }) => {
 	return request<string>('eas/signature', 1, params);

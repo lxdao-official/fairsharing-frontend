@@ -26,7 +26,9 @@ const useEas = () => {
 	const network = useNetwork();
 
 	const easConfig = useMemo(() => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === network.chain?.id);
+		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
+			(config) => config.chainId === network.chain?.id,
+		);
 		return activeChainConfig || DefaultChainConfig;
 	}, [network]);
 

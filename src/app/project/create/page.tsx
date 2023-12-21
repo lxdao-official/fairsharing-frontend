@@ -36,6 +36,7 @@ import { isAdmin } from '@/utils/member';
 import { VoteSystemEnum } from '@/services';
 import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
 import { DefaultTypeKudos } from '@/components/project/contribution/postContribution';
+import useProjectCache from '@/components/createProject/useProjectCache';
 
 const steps = [
 	{
@@ -52,6 +53,13 @@ const steps = [
 	},
 ];
 
+export enum ProjectFormStepEnum {
+	start = 0,
+	profile = 1,
+	strategy = 2,
+	contributor = 3,
+}
+
 const ProjectParamStorageKey = '__fairSharing_create_project_params__';
 
 export default function Page() {
@@ -59,9 +67,11 @@ export default function Page() {
 	const signer = useEthersSigner();
 	const { address: myAddress } = useAccount();
 	const { userProjectList } = useProjectStore();
+	const { clearCache: clearCreateProjectCache, cache: createProjectCache } = useProjectCache();
+
 	const [latestProjectAddress, setLatestProjectAddress] = useState('');
 
-	const [activeStep, setActiveStep] = useState(0);
+	const [activeStep, setActiveStep] = useState(ProjectFormStepEnum.start);
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
 	const [formData, setFormData] = useState<{
 		profileFormData: StepProfileFormData | undefined;
@@ -72,6 +82,12 @@ export default function Page() {
 		strategyFormData: undefined,
 		contributorFormData: undefined,
 	});
+
+	useEffect(() => {
+		if (createProjectCache) {
+			setActiveStep(createProjectCache.activeStep);
+		}
+	}, []);
 
 	useEffect(() => {
 		if (myAddress && signer) {
@@ -104,6 +120,7 @@ export default function Page() {
 			createProject({ ...JSON.parse(param!), address: latestProjectAddress })
 				.then(() => {
 					localStorage.removeItem(ProjectParamStorageKey);
+					clearCreateProjectCache();
 					getUserProjectList();
 				})
 				.catch((err) => {
@@ -169,8 +186,6 @@ export default function Page() {
 				ProjectRegisterABI,
 				signer,
 			);
-			console.log('ProjectRegistry address', ContractAddressMap.ProjectRegistry);
-			console.log('voteStrategyAddress', voteStrategyAddress);
 
 			const admins = contributors
 				.filter((contributor) => isAdmin(contributor.permission))
@@ -205,13 +220,14 @@ export default function Page() {
 			}
 			const result = await createProject({ ...baseParams, address: projectAddress });
 			showToast('Project created', 'success');
+			clearCreateProjectCache();
 			localStorage.removeItem(ProjectParamStorageKey);
 			createDefaultTypeKudo(result.id);
 			getUserProjectList();
 			router.push(`/project/${result.id}/contribution`);
 		} catch (err: any) {
 			console.error('createProject', err);
-			err.message && showToast(err.message, 'error');
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
 		}
@@ -322,27 +338,31 @@ export default function Page() {
 						Create a project
 					</Typography>
 
-					<StepContent step={0} activeStep={activeStep}>
-						<StepStart step={0} setActiveStep={setActiveStep} />
+					<StepContent step={ProjectFormStepEnum.start} activeStep={activeStep}>
+						<StepStart step={ProjectFormStepEnum.start} setActiveStep={setActiveStep} />
 					</StepContent>
-					<StepContent step={1} activeStep={activeStep}>
-						<StepProfile ref={stepProfileRef} step={1} setActiveStep={setActiveStep} />
-					</StepContent>
-					<StepContent step={2} activeStep={activeStep}>
-						<StepStrategy
-							ref={stepStrategyRef}
-							step={2}
+					<StepContent step={ProjectFormStepEnum.profile} activeStep={activeStep}>
+						<StepProfile
+							ref={stepProfileRef}
+							step={ProjectFormStepEnum.profile}
 							setActiveStep={setActiveStep}
 						/>
 					</StepContent>
-					<StepContent step={3} activeStep={activeStep}>
+					<StepContent step={ProjectFormStepEnum.strategy} activeStep={activeStep}>
+						<StepStrategy
+							ref={stepStrategyRef}
+							step={ProjectFormStepEnum.strategy}
+							setActiveStep={setActiveStep}
+						/>
+					</StepContent>
+					<StepContent step={ProjectFormStepEnum.contributor} activeStep={activeStep}>
 						<StepContributor
 							ref={stepContributorRef}
 							step={3}
 							setActiveStep={setActiveStep}
 							onCreateProject={handleCreateProject}
 							canEdit={true}
-							isActive={activeStep === 3}
+							isActive={activeStep === ProjectFormStepEnum.contributor}
 							voteSystem={formData.strategyFormData?.voteSystem}
 						/>
 					</StepContent>

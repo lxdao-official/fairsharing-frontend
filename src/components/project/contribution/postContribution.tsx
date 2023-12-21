@@ -24,7 +24,7 @@ import { useAccount } from 'wagmi';
 
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import useSWR, { useSWRConfig, mutate } from 'swr';
+import useSWR, { useSWRConfig } from 'swr';
 
 import { endOfDay, startOfDay } from 'date-fns';
 
@@ -53,7 +53,10 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import TokenToolTip from '@/components/project/contribution/tokenToolTip';
-import { OptionBgColors, OptionFontColors } from '@/components/project/contribution/types';
+import usePostContributionCache, {
+	IPostContributionCacheItem,
+} from '@/components/project/contribution/usePostContributionCache';
+import { TagBgColors, TagColorMap, TagTextColors } from '@/components/project/contribution/tag';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -100,18 +103,15 @@ const PostContribution = ({
 	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || ''));
 	// 目前只允许选择一个to
-	const [value, setValue] = React.useState<AutoCompleteValue | null>(
+	const [toValue, setToValue] = useState<AutoCompleteValue | null>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: null,
 	);
-	const { showTokenToolTip } = useUtilsStore();
-	const [showTokenTip, setShowTokenTip] = useState(false);
-
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').startDate;
@@ -123,8 +123,10 @@ const PostContribution = ({
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').endDate;
 		return new Date(endDate);
 	});
+	const [typeValue, setTypeValue] = useState<AutoCompleteValue[]>([]);
 
-	const [tags, setTags] = useState<AutoCompleteValue[]>([]);
+	const { showTokenToolTip } = useUtilsStore();
+	const [showTokenTip, setShowTokenTip] = useState(false);
 	const [inputText, setInputText] = useState('');
 	const [initTo, setInitTo] = useState(false);
 
@@ -133,6 +135,7 @@ const PostContribution = ({
 	const provider = useEthersProvider();
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
+	const { cache, setCache, clearCache } = usePostContributionCache({ projectId });
 
 	const { getEasScanURL, submitSignedAttestation, getOffchain } = useEas();
 
@@ -160,12 +163,25 @@ const PostContribution = ({
 	);
 
 	useEffect(() => {
-		if (!value && !initTo) {
+		if (!isEdit && cache) {
+			setDetail(cache.detail);
+			setTypeValue(cache.typeValue);
+			setProof(cache.proof);
+			setStartDate(new Date(cache.startDate));
+			setEndDate(new Date(cache.endDate));
+			setToValue(cache.toValue);
+			setContributors([cache.toValue.id]);
+			setCredit(cache.credit);
+		}
+	}, []);
+
+	useEffect(() => {
+		if (!toValue && !initTo) {
 			const user = contributorList.filter(
 				(contributor) => contributor.wallet === myInfo?.wallet,
 			);
 			if (user.length > 0) {
-				setValue({
+				setToValue({
 					label: user[0].nickName,
 					id: user[0].id,
 					wallet: user[0].wallet,
@@ -174,7 +190,7 @@ const PostContribution = ({
 				setInitTo(true);
 			}
 		}
-	}, [contributorList, myInfo?.wallet, value, initTo]);
+	}, [contributorList, myInfo?.wallet, toValue, initTo]);
 
 	useEffect(() => {
 		if (isEdit && contributionTypeList.length > 0) {
@@ -194,15 +210,15 @@ const PostContribution = ({
 			const tags = contribution!.type.map((typeName) => {
 				return map[typeName];
 			});
-			setTags(tags);
+			setTypeValue(tags);
 		}
 	}, [isEdit, contributionTypeList]);
 
 	const tagOptions = useMemo(() => {
-		const realOptions = contributionTypeList.map((item) => ({
+		const realOptions = contributionTypeList.map((item, index) => ({
 			label: item.name,
 			id: item.id,
-			color: item.color,
+			color: TagBgColors.includes(item.color) ? item.color : TagBgColors[index % 10],
 		}));
 		const label = inputText.trim();
 		if (realOptions.find((item) => item.label === label)) {
@@ -210,13 +226,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-					...realOptions,
-					{
-						label: label,
-						id: ForCreateTagId,
-						color: 'red',
-					},
-				]
+						...realOptions,
+						{
+							label: label,
+							id: ForCreateTagId,
+							color: TagBgColors[realOptions.length % 10],
+						},
+				  ]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -245,10 +261,10 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
-		setValue(null);
+		setToValue(null);
 		setContributors([]);
 		setCredit('');
-		setTags([]);
+		setTypeValue([]);
 		setStartDate(new Date());
 		setEndDate(new Date());
 	};
@@ -284,12 +300,13 @@ const PostContribution = ({
 			console.log('createTagOption', label);
 			createNewTag(label);
 		} else {
-			setTags(newValue);
+			setTypeValue(newValue);
 		}
 	};
 
 	const createNewTag = async (label: string) => {
 		try {
+			const newTagColor = TagBgColors[contributionTypeList.length % 10];
 			await mutate(
 				['project/contributionType', projectId],
 				[
@@ -297,7 +314,7 @@ const PostContribution = ({
 					{
 						name: label,
 						id: '__ready_for_create__',
-						color: 'red',
+						color: newTagColor,
 						projectId: projectId,
 					},
 				],
@@ -306,13 +323,13 @@ const PostContribution = ({
 			setInputText('');
 			const { name, id, color } = await createContributionType(projectId, {
 				name: label,
-				color: 'red',
+				color: newTagColor,
 			});
-			if (tags.find((tag) => tag.label === label)) {
+			if (typeValue.find((tag) => tag.label === label)) {
 				setInputText('');
 				return false;
 			}
-			setTags([...tags, { id, color, label: name, projectId }]);
+			setTypeValue([...typeValue, { id, color, label: name, projectId }]);
 			mutateContributionTypeList();
 		} catch (err) {
 			console.error(err);
@@ -338,7 +355,10 @@ const PostContribution = ({
 			showToast('The token amount must be numeric', 'error');
 			return;
 		}
-		const typeString = tags.reduce((pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`, '');
+		const typeString = typeValue.reduce(
+			(pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`,
+			'',
+		);
 		const params: PostData = { detail, proof, contributors, credit, type: typeString };
 		if (contribution) {
 			onEditContribution(params);
@@ -358,13 +378,23 @@ const PostContribution = ({
 		}
 		try {
 			openGlobalLoading();
+			const cacheData: IPostContributionCacheItem = {
+				detail,
+				typeValue,
+				proof,
+				startDate,
+				endDate,
+				toValue: toValue!,
+				credit,
+			};
+			setCache(cacheData);
 			const contribution = await createContribution({
 				projectId: projectId,
 				operatorId: operatorId as string,
 				...postData,
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
-				type: tags.map((item) => item.label),
+				type: typeValue.map((item) => item.label),
 				contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
@@ -435,10 +465,11 @@ const PostContribution = ({
 				uId: res.data.offchainAttestationId as string,
 				operatorId: operatorId,
 			});
+			clearCache();
 			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
-			mutate(['contribution/list', projectId]);
+			await mutate(() => 'contribution/list/wallet' + projectId);
 		} catch (err: any) {
 			console.error(err);
 			if (err.message) {
@@ -499,7 +530,7 @@ const PostContribution = ({
 							}}
 							size={'small'}
 							options={tagOptions as AutoCompleteValue[]}
-							value={tags}
+							value={typeValue}
 							isOptionEqualToValue={(option, value) => option.id === value.id}
 							autoFocus={true}
 							onKeyDown={onTypeKeyDown}
@@ -519,7 +550,7 @@ const PostContribution = ({
 								return (
 									<OptionLi selected={selected} {...props}>
 										{option.id === ForCreateTagId ? 'Create' : ''}
-										<OptionLabel index={index}>{option.label}</OptionLabel>
+										<OptionLabel index={index} bgColor={option.color}>{option.label}</OptionLabel>
 									</OptionLi>
 								);
 							}}
@@ -531,6 +562,7 @@ const PostContribution = ({
 										{...getTagProps({ index })}
 										size={'small'}
 										index={index}
+										bgColor={option.color}
 									/>
 								))
 							}
@@ -562,7 +594,9 @@ const PostContribution = ({
 								onChange={(date) => setStartDate(date!)}
 								sx={{
 									width: '160px',
-									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+										border: 'none',
+									},
 								}}
 							/>
 							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
@@ -575,7 +609,9 @@ const PostContribution = ({
 								onChange={(date) => setEndDate(date!)}
 								sx={{
 									width: '160px',
-									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { border: 'none' },
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+										border: 'none',
+									},
 								}}
 							/>
 						</LocalizationProvider>
@@ -602,9 +638,9 @@ const PostContribution = ({
 							size={'small'}
 							options={contributorOptions}
 							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
-							value={value}
+							value={toValue}
 							onChange={(event, newValue: AutoCompleteValue | null) => {
-								setValue(newValue);
+								setToValue(newValue);
 								setContributors(newValue ? [newValue.id] : []);
 							}}
 							popupIcon={''}
@@ -735,16 +771,16 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	padding: '8px 16px',
 }));
 
-const OptionLabel = styled('span')<{ index: number }>(({ index }) => ({
+const OptionLabel = styled('span')<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
 	fontSize: '14px',
 	lineHeight: '20px',
 	padding: '0 6px',
 	borderRadius: '4px',
-	backgroundColor: OptionBgColors[index % 10],
-	color: OptionFontColors[index % 10],
+	backgroundColor: bgColor || TagBgColors[index % 10],
+	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 }));
-const OptionChip = styled(Chip)<{ index: number }>(({ index }) => ({
-	backgroundColor: OptionBgColors[index % 10],
-	color: OptionFontColors[index % 10],
+const OptionChip = styled(Chip)<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
+	backgroundColor: bgColor || TagBgColors[index % 10],
+	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 	borderRadius: '4px',
 }));

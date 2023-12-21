@@ -32,7 +32,7 @@ import { ethers } from 'ethers';
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
+import { ContributionType, IContribution, IContributor, IProject, VoteSystemEnum } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 import {
@@ -60,6 +60,7 @@ import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
+import useProof from '@/components/project/contribution/useProof';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -77,6 +78,7 @@ export interface IContributionItemProps {
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
 	setClaimed: (contribution: IContribution) => void;
+	contributionTypeList: ContributionType[]
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -91,6 +93,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributionList,
 		voteData,
 		setClaimed,
+		contributionTypeList
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -101,6 +104,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	const { mutate } = useSWRConfig();
+	const { splitProof } = useProof();
 
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [openMore, setOpenMore] = useState(false);
@@ -196,11 +200,19 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const contributionDate = useMemo(() => {
 		const date = JSON.parse(contribution.contributionDate);
-		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy')
-		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy')
+		const startDate = format(new Date(date.startDate), 'MMM dd, yyyy');
+		const endDate = format(new Date(date.endDate), 'MMM dd, yyyy');
 		const isSame = isSameDay(new Date(date.startDate), new Date(date.endDate));
 		return isSame ? `📆 ${startDate}` : `📆 ${startDate} - ${endDate}`;
 	}, [contribution.contributionDate]);
+
+	const proofList = useMemo(() => {
+		try {
+			return splitProof(contribution.proof);
+		} catch (err) {
+			return [{ type: 'plain', value: contribution.proof }];
+		}
+	}, [contribution.proof]);
 
 	useEffect(() => {
 		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
@@ -272,7 +284,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			return false;
 		}
 		// 不在contributorList里，无权投票
-		if (!contributorList.find(contributor => contributor.wallet === myAddress)) {
+		if (!contributorList.find((contributor) => contributor.wallet === myAddress)) {
 			showToast('To participate in this project, reach out to the admin to join.', 'error');
 			return false;
 		}
@@ -448,9 +460,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);
-			if (err.message) {
-				showToast(err.message, 'error');
-			}
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
 		}
@@ -619,8 +629,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 							{/*type*/}
 
 							<CustomHoverButton
-								sx={{ marginLeft: '8px', cursor: contribution.type?.length > 2 ? 'pointer' : 'auto' }}>
-								<Types types={contribution.type} />
+								sx={{
+									marginLeft: '8px',
+									cursor: contribution.type?.length > 2 ? 'pointer' : 'auto',
+								}}
+							>
+								<Types types={contribution.type} contributionTypeList={contributionTypeList} />
 							</CustomHoverButton>
 
 							{/*proof*/}
@@ -630,16 +644,16 @@ const ContributionItem = (props: IContributionItemProps) => {
 									sx={{ cursor: 'pointer', marginLeft: '8px' }}
 									onClick={handleOpenProofPopover}
 								>
-									<FileIcon width={14} height={14} />
 									<Typography
 										variant={'body2'}
 										sx={{
-											fontWeight: '500',
+											fontWeight: '400',
 											color: '#475569',
 											marginLeft: '4px',
+											whiteSpace: 'nowrap',
 										}}
 									>
-										Proof
+										📁 Proof
 									</Typography>
 								</CustomHoverButton>
 								<Popover
@@ -653,24 +667,25 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper sx={{ padding: '12px' }}>
 										<Typography variant={'body1'}>
-											{contribution.proof}
+											{proofList.map((item, idx) => (
+												<span key={idx}>
+													{item.type === 'href' ? (
+														<Link
+															href={item.value}
+															target={'_blank'}
+															style={{
+																color: '#437EF7',
+																textDecoration: 'underline',
+															}}
+														>
+															{item.value}
+														</Link>
+													) : (
+														item.value
+													)}
+												</span>
+											))}
 										</Typography>
-										{/*{contribution.proof.split(',').map((proof) => (*/}
-										{/*	<Typography component="p" key={proof}>*/}
-										{/*		<MuiLink*/}
-										{/*			href={proof}*/}
-										{/*			target={'_blank'}*/}
-										{/*			underline={'hover'}*/}
-										{/*		>*/}
-										{/*			<LinkIcon*/}
-										{/*				width={16}*/}
-										{/*				height={16}*/}
-										{/*				style={{ marginRight: 8 }}*/}
-										{/*			/>*/}
-										{/*			{proof}*/}
-										{/*		</MuiLink>*/}
-										{/*	</Typography>*/}
-										{/*))}*/}
 									</Paper>
 								</Popover>
 							</>
@@ -684,9 +699,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
+										sx={{
+											fontWeight: '400',
+											color: '#475569',
+											whiteSpace: 'nowrap',
+										}}
 									>
-										@{toContributors}
+										👨‍💻 {toContributors}
 									</Typography>
 								</CustomHoverButton>
 								<Popover
@@ -709,7 +728,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 								<CustomHoverButton sx={{ margin: '0 8px' }}>
 									<Typography
 										variant={'body2'}
-										sx={{ fontWeight: '500', color: '#475569', whiteSpace: 'nowrap' }}
+										sx={{
+											fontWeight: '400',
+											color: '#475569',
+											whiteSpace: 'nowrap',
+										}}
 									>
 										{contributionDate}
 									</Typography>

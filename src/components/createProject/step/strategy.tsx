@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import {
 	Box,
 	FormControl,
@@ -10,7 +10,7 @@ import {
 	RadioGroup,
 	Select,
 	SelectChangeEvent,
-	TextField,
+	TextField, Tooltip,
 	Typography,
 } from '@mui/material';
 
@@ -19,6 +19,8 @@ import { showToast } from '@/store/utils';
 import { CreateProjectParams, VoteApproveEnum, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DefaultChainId } from '@/constant/eas';
+import { isProd } from '@/constant/env';
+import useProjectCache from '@/components/createProject/useProjectCache';
 
 export interface IStepStrategyProps extends Partial<IStepBaseProps> {
 	data?: Pick<
@@ -45,6 +47,8 @@ export interface StepStrategyRef {
 
 const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref) => {
 	const { step, setActiveStep, canEdit = true, onSave, data } = props;
+	const { setCache, cache: createProjectCache } = useProjectCache();
+
 	const [symbol, setSymbol] = useState(data?.symbol ?? '');
 	const [network, setNetwork] = useState(data?.network ?? DefaultChainId);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
@@ -61,6 +65,8 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const [differWeightOfTotal, setDifferWeightOfTotal] = useState(
 		data?.voteThreshold ? String(data?.voteThreshold * 100) : '',
 	);
+
+	const [showSymbolTip, setShowSymbolTip] = useState(false);
 
 	const handleVoteSystemChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const value = (event.target as HTMLInputElement).value;
@@ -85,6 +91,27 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const [isEdited, setIsEdited] = useState(false);
 
 	const isSettingPage = !!data;
+
+	useEffect(() => {
+		if (!isSettingPage && createProjectCache?.strategy) {
+			const {
+				symbol,
+				network,
+				period,
+				voteSystem,
+				voteApproveType,
+				forWeightOfTotal,
+				differWeightOfTotal,
+			} = createProjectCache.strategy;
+			setSymbol(symbol);
+			setNetwork(network);
+			setPeriod(period);
+			setVoteSystem(voteSystem);
+			setVoteApproveType(voteApproveType);
+			setForWeightOfTotal(forWeightOfTotal);
+			setDifferWeightOfTotal(differWeightOfTotal);
+		}
+	}, []);
 
 	const handleSymbolInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setSymbol(event.target.value);
@@ -143,6 +170,15 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 			showToast('The vote period must be a number', 'error');
 			return;
 		}
+		setCache('strategy', {
+			network,
+			period,
+			symbol,
+			voteSystem,
+			voteApproveType,
+			forWeightOfTotal,
+			differWeightOfTotal,
+		});
 		setActiveStep!(step! + 1);
 	};
 
@@ -167,16 +203,29 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 
 	return (
 		<>
-			<TextField
-				required
-				label="Symbol"
-				value={symbol}
-				placeholder={'Token Symbol *'}
-				onChange={handleSymbolInputChange}
-				sx={{ display: 'block', minWidth: '', width: '200px' }}
-				error={symbolError}
-				disabled={isSettingPage}
-			/>
+			<Tooltip
+				open={showSymbolTip}
+				title={'It is an ERC-20 token, similar to points, representing project ownership.Earned through approved contributions, there\'s no limit to its supply.'}
+				placement="bottom"
+				arrow={true}
+				disableTouchListener={true}
+				disableHoverListener={true}
+				disableFocusListener={true}
+				disableInteractive={true}
+			>
+				<TextField
+					required
+					label="Symbol"
+					value={symbol}
+					placeholder={'Token Symbol *'}
+					onChange={handleSymbolInputChange}
+					onMouseEnter={() => setShowSymbolTip(true)}
+					onMouseLeave={() => setShowSymbolTip(false)}
+					sx={{ display: 'block', minWidth: '', width: '200px' }}
+					error={symbolError}
+					disabled={isSettingPage}
+				/>
+			</Tooltip>
 
 			<Select
 				labelId="network-select-label"
@@ -187,8 +236,11 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				sx={{ minWidth: '', marginTop: '32px', width: '200px' }}
 				disabled={isSettingPage}
 			>
-				<MenuItem value={'10'}>Optimism</MenuItem>
-				<MenuItem value={'420'}>Optimism Goerli</MenuItem>
+				{isProd ? (
+					<MenuItem value={'10'}>Optimism</MenuItem>
+				) : (
+					<MenuItem value={'420'}>Optimism Goerli</MenuItem>
+				)}
 			</Select>
 
 			<div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>

@@ -23,8 +23,9 @@ import User from '@/components/header/user';
 
 import NavLogo from '@/components/navLogo';
 
-import styles from '../styles/layout.module.css';
 import NavLayout from '@/components/navLayout';
+
+import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
 

@@ -1,5 +1,5 @@
 import { TextareaAutosize, TextField, Typography } from '@mui/material';
-import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
 import { Img3 } from '@lxdao/img3';
 
@@ -9,6 +9,7 @@ import UploadImage from '@/components/uploadImage/uploadImage';
 import { CreateProjectParams } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { LogoImage } from '@/constant/img3';
+import useProjectCache from '@/components/createProject/useProjectCache';
 
 export interface IStepProfileProps extends Partial<IStepBaseProps> {
 	data?: Pick<CreateProjectParams, 'intro' | 'logo' | 'name'>;
@@ -29,6 +30,9 @@ export interface StepProfileRef {
 const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 	(props: IStepProfileProps, ref) => {
 		const { step, setActiveStep, data, onSave, canEdit = true } = props;
+
+		const { setCache, cache: createProjectCache } = useProjectCache();
+
 		const [name, setName] = useState(data?.name ?? '');
 		const [intro, setIntro] = useState(data?.intro ?? '');
 		const [nameError, setNameError] = useState(false);
@@ -45,6 +49,14 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 			}),
 			[name, intro, avatar],
 		);
+
+		useEffect(() => {
+			if (!isSettingPage && createProjectCache?.profile) {
+				setName(createProjectCache.profile.name);
+				setIntro(createProjectCache.profile.intro);
+				setAvatar(createProjectCache.profile.avatar);
+			}
+		}, []);
 
 		const handleNameInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 			setIsEdited(true);
@@ -74,6 +86,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 				onSave!();
 				setIsEdited(false);
 			} else {
+				setCache('profile', { name, intro, avatar });
 				setActiveStep!(step! + 1);
 			}
 		};
