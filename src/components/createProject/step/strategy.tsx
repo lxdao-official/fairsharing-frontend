@@ -205,7 +205,12 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 		<>
 			<Tooltip
 				open={showSymbolTip}
-				title={'It is an ERC-20 token, similar to points, representing project ownership.Earned through approved contributions, there\'s no limit to its supply.'}
+				title={
+					<Typography variant={'body1'} sx={{
+						padding: '8px',
+						fontSize: '14px'
+					}}>It is an ERC-20 token, similar to points, representing project ownership.Earned through approved contributions, there's no limit to its supply.</Typography>
+				}
 				placement="bottom"
 				arrow={true}
 				disableTouchListener={true}
