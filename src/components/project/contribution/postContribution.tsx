@@ -103,14 +103,14 @@ const PostContribution = ({
 	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || ''));
 	// 目前只允许选择一个to
-	const [toValue, setToValue] = useState<AutoCompleteValue | null>(
+	const [toValue, setToValue] = useState<AutoCompleteValue | undefined>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-					label: selectedContributors[0].nickName,
-					id: selectedContributors[0].id,
-					wallet: selectedContributors[0].wallet,
-			  }
-			: null,
+				label: selectedContributors[0].nickName,
+				id: selectedContributors[0].id,
+				wallet: selectedContributors[0].wallet,
+			}
+			: undefined,
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
@@ -129,6 +129,9 @@ const PostContribution = ({
 	const [showTokenTip, setShowTokenTip] = useState(false);
 	const [inputText, setInputText] = useState('');
 	const [initTo, setInitTo] = useState(false);
+
+	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
+	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -226,13 +229,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-						...realOptions,
-						{
-							label: label,
-							id: ForCreateTagId,
-							color: TagBgColors[realOptions.length % 10],
-						},
-				  ]
+					...realOptions,
+					{
+						label: label,
+						id: ForCreateTagId,
+						color: TagBgColors[realOptions.length % 10],
+					},
+				]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -261,7 +264,7 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
-		setToValue(null);
+		setToValue(undefined);
 		setContributors([]);
 		setCredit('');
 		setTypeValue([]);
@@ -472,9 +475,11 @@ const PostContribution = ({
 			await mutate(() => 'contribution/list/wallet' + projectId);
 		} catch (err: any) {
 			console.error(err);
-			if (err.message) {
-				showToast(err.message, 'error');
+			if (err.code && err.code === 'ACTION_REJECTED') {
+				showToast('Unsuccessful: Signing request rejected by you', 'error');
+				return;
 			}
+			showToast('post contribution failed', 'error');
 		} finally {
 			closeGlobalLoading();
 		}
@@ -591,29 +596,41 @@ const PostContribution = ({
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
 								format={'MM/dd/yyyy'}
-								label={'Start Date'}
 								value={startDate}
 								onChange={(date) => setStartDate(date!)}
+								open={openStartDatePicker}
+								onOpen={() => setOpenStartDatePicker(true)}
+								onClose={() => setOpenStartDatePicker(false)}
+								sx={{
+									width: '120px',
+									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+										border: 'none',
+									},
+								}}
+								slotProps={{
+									openPickerButton: { sx: { display: 'none' } },
+									textField: { onClick: () => setOpenStartDatePicker(true) }
+								}}
+							/>
+							<Typography variant={'body2'} sx={{ margin: '0 4px 0 0' }}>
+								to
+							</Typography>
+							<DatePicker
+								format={'MM/dd/yyyy'}
+								value={endDate}
+								onChange={(date) => setEndDate(date!)}
+								open={openEndDatePicker}
+								onOpen={() => setOpenEndDatePicker(true)}
+								onClose={() => setOpenEndDatePicker(false)}
 								sx={{
 									width: '160px',
 									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
 										border: 'none',
 									},
 								}}
-							/>
-							<Typography variant={'body2'} sx={{ margin: '0 12px' }}>
-								to
-							</Typography>
-							<DatePicker
-								format={'MM/dd/yyyy'}
-								label={'End Date'}
-								value={endDate}
-								onChange={(date) => setEndDate(date!)}
-								sx={{
-									width: '160px',
-									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-										border: 'none',
-									},
+								slotProps={{
+									openPickerIcon: { sx: { opacity: 0.2 } },
+									textField: { onClick: () => setOpenEndDatePicker(true) }
 								}}
 							/>
 						</LocalizationProvider>
@@ -641,7 +658,7 @@ const PostContribution = ({
 							options={contributorOptions}
 							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
 							value={toValue}
-							onChange={(event, newValue: AutoCompleteValue | null) => {
+							onChange={(event, newValue: AutoCompleteValue | undefined) => {
 								setToValue(newValue);
 								setContributors(newValue ? [newValue.id] : []);
 							}}
@@ -649,6 +666,7 @@ const PostContribution = ({
 							renderInput={(params) => (
 								<TextField {...params} sx={{ '& input': { color: '#437EF7' } }} />
 							)}
+							disableClearable={true}
 						/>
 					</StyledFlexBox>
 				</>

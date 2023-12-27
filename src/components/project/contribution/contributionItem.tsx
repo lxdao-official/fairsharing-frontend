@@ -73,7 +73,7 @@ export interface IContributionItemProps {
 	showSelect: boolean;
 	selected: string[];
 	onSelect: (idList: string[]) => void;
-	showDeleteDialog: (contributionId: string) => void;
+	showDeleteDialog: (contributionId: string, uId: string) => void;
 	contributorList: IContributor[];
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
@@ -363,8 +363,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 			// Update ENS names
 			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 			await mutate(['eas/vote/list', contributionUIds]);
-		} catch (e) {
-			console.error('onVote error', e);
+		} catch (err: any) {
+			console.error('onVote error', err);
+			if (err.code && err.code === 'ACTION_REJECTED') {
+				showToast('Unsuccessful: Signing request rejected by you', 'error');
+				return;
+			}
 		} finally {
 			closeGlobalLoading();
 		}
@@ -460,6 +464,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 			await mutate(['contribution/list', projectDetail.id]);
 		} catch (err: any) {
 			console.error('onClaim error', err);
+			if (err.code && err.code === 'ACTION_REJECTED') {
+				showToast('Unsuccessful: Signing request rejected by you', 'error');
+				return;
+			}
 			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
@@ -497,7 +505,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const onDelete = () => {
-		showDeleteDialog(contribution.id);
+		showDeleteDialog(contribution.id, contribution.uId!);
 		handleClosePopover();
 	};
 
@@ -505,9 +513,12 @@ const ContributionItem = (props: IContributionItemProps) => {
 		setShowEdit(false);
 	}, []);
 
-	const onPost = useCallback(() => {
+	const onPost = useCallback(async () => {
 		console.log('re-post');
-	}, []);
+		await eas.revokeOffchain(contribution.uId!);
+		// post new contribution -> update DB status -> revoke old contribution
+
+	}, [contribution]);
 
 	return (
 		<>

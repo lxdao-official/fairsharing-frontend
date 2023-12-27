@@ -227,6 +227,10 @@ export default function Page() {
 			router.push(`/project/${result.id}/contribution`);
 		} catch (err: any) {
 			console.error('createProject', err);
+			if (err.code && err.code === 'ACTION_REJECTED') {
+				showToast('Unsuccessful: Signing request rejected by you', 'error');
+				return;
+			}
 			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
