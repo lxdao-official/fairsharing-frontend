@@ -26,6 +26,7 @@ import NavLogo from '@/components/navLogo';
 import NavLayout from '@/components/navLayout';
 
 import styles from '../styles/layout.module.css';
+import { ZIndexMap } from '@/constant/style';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -48,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								height: '64px',
 								borderBottom: '0.5px solid #CBD5E1',
 								boxShadow: 'none',
-								zIndex: 1000,
+								zIndex: ZIndexMap.AppBar,
 							}}
 							enableColorOnDark={true}
 						>
