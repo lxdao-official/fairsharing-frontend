@@ -229,6 +229,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					sx={{ display: 'block', minWidth: '', width: '200px' }}
 					error={symbolError}
 					disabled={isSettingPage}
+					autoComplete={'off'}
 				/>
 			</Tooltip>
 

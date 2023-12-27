@@ -504,6 +504,7 @@ const PostContribution = ({
 					onChange={handleDetailInputChange}
 					placeholder={'I developed sign in with [wallet] feature'}
 					onFocus={() => setShowFullPost?.(true)}
+					autoComplete={'off'}
 				/>
 			</StyledFlexBox>
 
@@ -580,6 +581,7 @@ const PostContribution = ({
 							size={'small'}
 							onChange={handleProofInputChange}
 							placeholder="It can be links or texts."
+							autoComplete={'off'}
 						/>
 					</StyledFlexBox>
 
@@ -693,6 +695,7 @@ const PostContribution = ({
 								</InputAdornment>
 							) : null,
 						}}
+						autoComplete={'off'}
 					/>
 				</Tooltip>
 			</CreditContainer>
