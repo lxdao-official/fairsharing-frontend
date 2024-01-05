@@ -14,7 +14,11 @@ export default function SimpleGlobalLoading() {
 
 	return (
 		<div>
-			<Backdrop sx={{ color: '#fff', zIndex: ZIndexMap.Loading }} open={open} onClick={handleClose}>
+			<Backdrop
+				sx={{ color: '#fff', zIndex: ZIndexMap.Loading }}
+				open={open}
+				onClick={handleClose}
+			>
 				<CircularProgress color="inherit" />
 			</Backdrop>
 		</div>

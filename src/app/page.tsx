@@ -19,7 +19,7 @@ export default function Home() {
 			}),
 		{
 			fallbackData: { list: [], total: 0, totalPage: 0, currentPage: 1, pageSize: 50 },
-			onSuccess: (data) => console.log('getProjectList ALL', data),
+			// onSuccess: (data) => console.log('getProjectList ALL', data),
 		},
 	);
 

@@ -47,7 +47,7 @@ const ProjectNav = () => {
 			}
 		},
 		{
-			onSuccess: (data) => console.log('[ProjectNav projectDetail]', data),
+			// onSuccess: (data) => console.log('[ProjectNav projectDetail]', data),
 		},
 	);
 

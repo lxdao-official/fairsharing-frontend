@@ -25,8 +25,9 @@ import NavLogo from '@/components/navLogo';
 
 import NavLayout from '@/components/navLayout';
 
-import styles from '../styles/layout.module.css';
 import { ZIndexMap } from '@/constant/style';
+
+import styles from '../styles/layout.module.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
