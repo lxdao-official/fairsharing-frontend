@@ -1,14 +1,6 @@
 'use client';
 
-import {
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	styled,
-	Typography,
-} from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, styled, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
@@ -18,8 +10,6 @@ import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import { useAccount, useNetwork } from 'wagmi';
 
 import useSWR from 'swr';
-
-import { ethers } from 'ethers';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -33,7 +23,6 @@ import {
 	getEASVoteRecord,
 } from '@/services/eas';
 import {
-	DefaultChainId,
 	EasSchemaClaimKey,
 	EasSchemaContributionKey,
 	EasSchemaData,
@@ -115,7 +104,8 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const [selected, setSelected] = useState<Array<string>>([]);
 	const [showDialog, setShowDialog] = useState(false);
-	const [activeCId, setActiveCId] = useState<string>();
+	const [activeCid, setActiveCid] = useState<string>();
+	const [activeUid, setActiveUid] = useState<string>();
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -139,7 +129,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const { data: contributionTypeList } = useSWR(
 		['project/contributionType', projectId],
 		() => getContributionTypeList(projectId),
-		{ fallbackData: [] }
+		{ fallbackData: [] },
 	);
 
 	useEffect(() => {
@@ -289,14 +279,13 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		if (uIds.length === 0) return Promise.resolve([]);
 		try {
 			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
-			const easVoteList = attestations.map((item) => ({
+			return attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
 					item.decodedDataJson as string,
 				) as EasAttestationDecodedData<EasSchemaVoteKey>[],
 				data: JSON.parse(item.data as string) as EasAttestationData,
 			}));
-			return easVoteList;
 		} catch (err) {
 			console.error('EAS Data[graphql] -> getEASVoteRecord error', err);
 			return Promise.reject(err);
@@ -332,23 +321,23 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const onCloseDialog = () => {
 		setShowDialog(false);
 	};
-	const showDeleteDialog = useCallback((contributionId: string) => {
-		setActiveCId(contributionId);
+	const showDeleteDialog = useCallback((contributionId: string, uId: string) => {
+		setActiveCid(contributionId);
+		setActiveUid(uId);
 		setShowDialog(true);
 	}, []);
 
 	const onDelete = async () => {
 		try {
 			openGlobalLoading();
-			if (!activeCId) return false;
-			// TODO 合约也需要revoke
-			const res = await deleteContribution(activeCId, operatorId);
+			if (!activeCid) return false;
+			await eas.revokeOffchain(activeUid!);
+			await deleteContribution(activeCid, operatorId);
 			setShowDialog(false);
+			showToast('Revoked', 'success');
 			await mutateContributionList();
 		} catch (err: any) {
-			if (err.message) {
-				showToast(err.message, 'error');
-			}
+			showToast('Revoke failed', 'error');
 			console.error('onDelete error', err);
 		} finally {
 			closeGlobalLoading();
@@ -455,6 +444,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			await mutateContributionList();
 		} catch (err: any) {
 			console.error('claim all error', err);
+			if (err.code && err.code === 'ACTION_REJECTED') {
+				showToast('Unsuccessful: Signing request rejected by you', 'error');
+				return;
+			}
 			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		} finally {
 			closeGlobalLoading();
@@ -556,23 +549,23 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 			{projectDetail && filterContributionList.length > 0
 				? filterContributionList
-						.filter((item) => item.status !== Status.UNREADY)
-						.map((contribution, idx) => (
-							<ContributionItem
-								key={contribution.id}
-								contribution={contribution}
-								showSelect={showMultiSelect}
-								selected={selected}
-								onSelect={onSelect}
-								showDeleteDialog={showDeleteDialog}
-								projectDetail={projectDetail}
-								contributorList={contributorList}
-								contributionList={filterContributionList}
-								contributionTypeList={contributionTypeList}
-								voteData={easVoteNumberBySigner[contribution.uId!] || null}
-								setClaimed={setCanClaimedContribution}
-							/>
-						))
+					.filter((item) => item.status !== Status.UNREADY)
+					.map((contribution, idx) => (
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showMultiSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							contributorList={contributorList}
+							contributionList={filterContributionList}
+							contributionTypeList={contributionTypeList}
+							voteData={easVoteNumberBySigner[contribution.uId!] || null}
+							setClaimed={setCanClaimedContribution}
+						/>
+					))
 				: null}
 
 			<Dialog

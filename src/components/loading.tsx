@@ -3,7 +3,8 @@
 import React from 'react';
 import { Backdrop, Button, CircularProgress } from '@mui/material';
 
-import { closeGlobalLoading, openGlobalLoading, useUtilsStore } from '@/store/utils';
+import { useUtilsStore } from '@/store/utils';
+import { ZIndexMap } from '@/constant/style';
 
 export default function SimpleGlobalLoading() {
 	const { open } = useUtilsStore();
@@ -13,7 +14,7 @@ export default function SimpleGlobalLoading() {
 
 	return (
 		<div>
-			<Backdrop sx={{ color: '#fff', zIndex: 1400 }} open={open} onClick={handleClose}>
+			<Backdrop sx={{ color: '#fff', zIndex: ZIndexMap.Loading }} open={open} onClick={handleClose}>
 				<CircularProgress color="inherit" />
 			</Backdrop>
 		</div>
