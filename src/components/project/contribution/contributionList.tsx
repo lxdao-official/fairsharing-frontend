@@ -246,7 +246,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const fetchContributionList = async (projectId: string, wallet?: string) => {
 		try {
 			const { list } = await getContributionList({
-				pageSize: 50,
+				pageSize: 200,
 				currentPage: 1,
 				projectId: projectId,
 				wallet,
