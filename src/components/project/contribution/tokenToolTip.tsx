@@ -18,7 +18,7 @@ const TokenToolTip = ({ setShowTokenTip, tokenSymbol }: IProps) => {
 	}, []);
 
 	const hideTipForever = () => {
-		console.log('hideTipForever');
+		// console.log('hideTipForever');
 		hideTokenToolTip();
 	};
 

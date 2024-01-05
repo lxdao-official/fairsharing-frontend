@@ -56,7 +56,7 @@ const useContributionListFilter = ({
 
 	const timestamp = useMemo(() => {
 		if (filterPeriod === PeriodEnum.All) {
-			return [addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()];
+			return [new Date('2/1/22').getTime(), new Date('2/1/30').getTime()];
 		} else if (filterPeriod === PeriodEnum.Year) {
 			return [startOfYear(new Date()).getTime(), endOfYear(new Date()).getTime()];
 		} else if (filterPeriod === PeriodEnum.Season) {

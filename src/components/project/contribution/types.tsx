@@ -28,17 +28,20 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 	}, [types]);
 
 	const typeMap = useMemo(() => {
-		return contributionTypeList.reduce((acc, cur, idx) => {
-			const isValidColor = TagBgColors.includes(cur.color);
-			return {
-				...acc,
-				[cur.name]: {
-					...cur,
-					color: isValidColor ? cur.color : TagBgColors[idx % 10],
-					textColor: isValidColor ? TagColorMap[cur.color] : TagTextColors[idx % 10],
-				},
-			};
-		}, {} as Record<string, ContributionType & { textColor: string }>);
+		return contributionTypeList.reduce(
+			(acc, cur, idx) => {
+				const isValidColor = TagBgColors.includes(cur.color);
+				return {
+					...acc,
+					[cur.name]: {
+						...cur,
+						color: isValidColor ? cur.color : TagBgColors[idx % 10],
+						textColor: isValidColor ? TagColorMap[cur.color] : TagTextColors[idx % 10],
+					},
+				};
+			},
+			{} as Record<string, ContributionType & { textColor: string }>,
+		);
 	}, [contributionTypeList]);
 
 	const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -56,8 +59,13 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 	return (
 		<StyledFlexBox onMouseEnter={handlePopoverOpen} onMouseLeave={handlePopoverClose}>
 			{showType.map((type, idx) => (
-				<Item key={idx} index={idx} isFirst={idx === 0} bgColor={typeMap[type]?.color}
-					  textColor={typeMap[type]?.textColor}>
+				<Item
+					key={idx}
+					index={idx}
+					isFirst={idx === 0}
+					bgColor={typeMap[type]?.color}
+					textColor={typeMap[type]?.textColor}
+				>
 					{type}
 				</Item>
 			))}
@@ -84,8 +92,13 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 			>
 				<Paper sx={{ padding: '12px' }}>
 					{types.map((type, idx) => (
-						<Item key={idx} index={idx} isFirst={idx === 0} bgColor={typeMap[type]?.color}
-							  textColor={typeMap[type]?.textColor}>
+						<Item
+							key={idx}
+							index={idx}
+							isFirst={idx === 0}
+							bgColor={typeMap[type]?.color}
+							textColor={typeMap[type]?.textColor}
+						>
 							{type}
 						</Item>
 					))}
@@ -97,12 +110,12 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 
 export default Types;
 
-const Item = styled('span')<{ index: number; isFirst: boolean, bgColor: string, textColor: string }>(({
-	index,
-	isFirst,
-	bgColor,
-	textColor,
-}) => ({
+const Item = styled('span')<{
+	index: number;
+	isFirst: boolean;
+	bgColor: string;
+	textColor: string;
+}>(({ index, isFirst, bgColor, textColor }) => ({
 	borderRadius: 2,
 	marginLeft: isFirst ? 0 : 8,
 	fontSize: 14,

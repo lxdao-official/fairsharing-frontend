@@ -104,10 +104,6 @@ export default function Page() {
 		if (!latestProjectAddress) return true;
 		const findItem = userProjectList.find((item) => item.id === latestProjectAddress);
 		if (!findItem && localStorage.getItem(ProjectParamStorageKey)) {
-			console.log(
-				'need to auto register project',
-				localStorage.getItem(ProjectParamStorageKey),
-			);
 			return false;
 		}
 		return true;
@@ -201,7 +197,7 @@ export default function Page() {
 				voteThreshold: voteThreshold, // uint256
 				voteStrategyData: ethers.toUtf8Bytes(''),
 			};
-			console.log('【Contract】create project params', registerProjectContractParams);
+			// console.log('【Contract】create project params', registerProjectContractParams);
 			const tx: TransactionResponse = await projectRegistryContract.create(
 				registerProjectContractParams,
 			);
@@ -268,7 +264,7 @@ export default function Page() {
 				0,
 				Number(count) - 1,
 			);
-			console.log('[contract] getOwnerLatestProject', projectAddress);
+			// console.log('[contract] getOwnerLatestProject', projectAddress);
 			setLatestProjectAddress(projectAddress);
 			return projectAddress;
 		} catch (err) {

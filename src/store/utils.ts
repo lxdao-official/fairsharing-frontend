@@ -64,7 +64,6 @@ export function initShowTokenToolTip() {
 }
 
 export function hideTokenToolTip() {
-	console.log('hideTokenToolTip');
 	localStorage.setItem(storageTokenTip, 'never');
 	UtilsStore.showTokenToolTip = false;
 }

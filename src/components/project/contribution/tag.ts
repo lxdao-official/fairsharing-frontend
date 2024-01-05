@@ -16,4 +16,4 @@ export type ITagBgColor = keyof typeof TagColorMap;
 export type ITagTextColor = ValueOf<typeof TagColorMap>;
 
 export const TagBgColors: ITagBgColor[] = Object.keys(TagColorMap);
-export const TagTextColors: ITagTextColor[] = TagBgColors.map(key => TagColorMap[key]);
+export const TagTextColors: ITagTextColor[] = TagBgColors.map((key) => TagColorMap[key]);

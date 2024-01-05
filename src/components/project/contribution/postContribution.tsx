@@ -106,10 +106,10 @@ const PostContribution = ({
 	const [toValue, setToValue] = useState<AutoCompleteValue | undefined>(
 		selectedContributors && selectedContributors.length > 0
 			? {
-				label: selectedContributors[0].nickName,
-				id: selectedContributors[0].id,
-				wallet: selectedContributors[0].wallet,
-			}
+					label: selectedContributors[0].nickName,
+					id: selectedContributors[0].id,
+					wallet: selectedContributors[0].wallet,
+			  }
 			: undefined,
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
@@ -148,7 +148,7 @@ const PostContribution = ({
 		() => getContributorList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('getContributorList', data),
+			// onSuccess: (data) => console.log('getContributorList', data),
 		},
 	);
 
@@ -157,7 +157,7 @@ const PostContribution = ({
 		() => getContributionTypeList(projectId),
 		{
 			fallbackData: [],
-			onSuccess: (data) => console.log('contributionType', data),
+			// onSuccess: (data) => console.log('contributionType', data),
 		},
 	);
 
@@ -229,13 +229,13 @@ const PostContribution = ({
 		} else {
 			return label
 				? [
-					...realOptions,
-					{
-						label: label,
-						id: ForCreateTagId,
-						color: TagBgColors[realOptions.length % 10],
-					},
-				]
+						...realOptions,
+						{
+							label: label,
+							id: ForCreateTagId,
+							color: TagBgColors[realOptions.length % 10],
+						},
+				  ]
 				: realOptions;
 		}
 	}, [contributionTypeList, inputText]);
@@ -300,7 +300,7 @@ const PostContribution = ({
 		const createTagOption = newValue.find((option) => option.id === ForCreateTagId);
 		if (createTagOption) {
 			const label = inputText.trim();
-			console.log('createTagOption', label);
+			// console.log('createTagOption', label);
 			createNewTag(label);
 		} else {
 			setTypeValue(newValue);
@@ -428,7 +428,7 @@ const PostContribution = ({
 				},
 				{ name: 'Extended', value: '', type: 'string' },
 			];
-			console.log('[EAS postContribution data]', data);
+			// console.log('[EAS postContribution data]', data);
 			const encodedData = schemaEncoder.encodeData(data);
 			const block = await provider.getBlock('latest');
 			if (!signer) {
@@ -556,7 +556,9 @@ const PostContribution = ({
 								return (
 									<OptionLi selected={selected} {...props}>
 										{option.id === ForCreateTagId ? 'Create' : ''}
-										<OptionLabel index={index} bgColor={option.color}>{option.label}</OptionLabel>
+										<OptionLabel index={index} bgColor={option.color}>
+											{option.label}
+										</OptionLabel>
 									</OptionLi>
 								);
 							}}
@@ -609,7 +611,7 @@ const PostContribution = ({
 								}}
 								slotProps={{
 									openPickerButton: { sx: { display: 'none' } },
-									textField: { onClick: () => setOpenStartDatePicker(true) }
+									textField: { onClick: () => setOpenStartDatePicker(true) },
 								}}
 							/>
 							<Typography variant={'body2'} sx={{ margin: '0 4px 0 0' }}>
@@ -630,7 +632,7 @@ const PostContribution = ({
 								}}
 								slotProps={{
 									openPickerIcon: { sx: { opacity: 0.2 } },
-									textField: { onClick: () => setOpenEndDatePicker(true) }
+									textField: { onClick: () => setOpenEndDatePicker(true) },
 								}}
 							/>
 						</LocalizationProvider>
@@ -792,7 +794,7 @@ const OptionLi = styled('li')<{ selected: boolean }>(({ selected }) => ({
 	padding: '8px 16px',
 }));
 
-const OptionLabel = styled('span')<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
+const OptionLabel = styled('span')<{ index: number; bgColor: string }>(({ index, bgColor }) => ({
 	fontSize: '14px',
 	lineHeight: '20px',
 	padding: '0 6px',
@@ -800,7 +802,7 @@ const OptionLabel = styled('span')<{ index: number, bgColor: string }>(({ index,
 	backgroundColor: bgColor || TagBgColors[index % 10],
 	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 }));
-const OptionChip = styled(Chip)<{ index: number, bgColor: string }>(({ index, bgColor }) => ({
+const OptionChip = styled(Chip)<{ index: number; bgColor: string }>(({ index, bgColor }) => ({
 	backgroundColor: bgColor || TagBgColors[index % 10],
 	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 	borderRadius: '4px',

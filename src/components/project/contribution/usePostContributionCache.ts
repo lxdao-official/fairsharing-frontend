@@ -33,7 +33,7 @@ const usePostContributionCache = ({ projectId }: { projectId: string }) => {
 
 	useEffect(() => {
 		if (cacheMap) {
-			console.log('cacheMap', cacheMap);
+			// console.log('cacheMap', cacheMap);
 		}
 	}, [cacheMap]);
 
