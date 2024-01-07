@@ -11,6 +11,9 @@ export interface IProps {
 	contributionTypeList: ContributionType[];
 }
 
+const DefaultBgColor = '#f5f6f6';
+const DefaultTextColor = '#ccc';
+
 const Types = ({ types, contributionTypeList }: IProps) => {
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [randomIndex] = useState<number[]>(() => {
@@ -63,8 +66,8 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 					key={idx}
 					index={idx}
 					isFirst={idx === 0}
-					bgColor={typeMap[type]?.color}
-					textColor={typeMap[type]?.textColor}
+					bgColor={typeMap[type]?.color || DefaultBgColor}
+					textColor={typeMap[type]?.textColor || DefaultTextColor}
 				>
 					{type}
 				</Item>
@@ -96,8 +99,8 @@ const Types = ({ types, contributionTypeList }: IProps) => {
 							key={idx}
 							index={idx}
 							isFirst={idx === 0}
-							bgColor={typeMap[type]?.color}
-							textColor={typeMap[type]?.textColor}
+							bgColor={typeMap[type]?.color || DefaultBgColor}
+							textColor={typeMap[type]?.textColor || DefaultTextColor}
 						>
 							{type}
 						</Item>

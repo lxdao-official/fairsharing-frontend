@@ -509,8 +509,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, []);
 
 	const onPost = useCallback(async () => {
-		// console.log('re-post');
-		await eas.revokeOffchain(contribution.uId!);
+		// 直接创建一个新的contribution, 但先不先 revoke 旧的（避免多唤起一次钱包进行确认）
+		// DB：先把状态改为最初的状态，然后再改uId
+		// await eas.revokeOffchain(contribution.uId!);
 		// post new contribution -> update DB status -> revoke old contribution
 	}, [contribution]);
 
