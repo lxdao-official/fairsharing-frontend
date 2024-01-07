@@ -49,13 +49,13 @@ export default function Page({ params }: { params: { id: string } }) {
 				<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
 					Post a contribution
 				</Typography>
-				<Image
-					src={'/images/book.png'}
-					width={24}
-					height={24}
-					alt={'contribution'}
-					style={{ marginLeft: '10px' }}
-				/>
+				{/*<Image*/}
+				{/*	src={'/images/book.png'}*/}
+				{/*	width={24}*/}
+				{/*	height={24}*/}
+				{/*	alt={'contribution'}*/}
+				{/*	style={{ marginLeft: '10px' }}*/}
+				{/*/>*/}
 			</StyledFlexBox>
 
 			<PostContribution

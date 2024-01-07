@@ -520,7 +520,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				}}
 			>
 				{renderFilter}
-				<TextButton onClick={onClickSelectBtn}>Select</TextButton>
+				{/*<TextButton onClick={onClickSelectBtn}>Select</TextButton>*/}
 			</StyledFlexBox>
 
 			{showMultiSelect ? (
