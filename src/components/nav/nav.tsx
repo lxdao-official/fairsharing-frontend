@@ -6,13 +6,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo } from 'react';
 
 import { useAccount } from 'wagmi';
-import { Img3 } from '@lxdao/img3';
+import { Img3, Img3Provider } from '@lxdao/img3';
 
 import { setCurrentProjectId, setUserProjectList, useProjectStore } from '@/store/project';
 import { getUserInfo, signup } from '@/services/user';
 import { setUser } from '@/store/user';
 import { getProjectListByWallet } from '@/services/project';
 import { AddIcon, HomeIcon } from '@/icons';
+import { defaultGateways } from '@/constant/img3';
 
 export default function Nav() {
 	const { currentProjectId, userProjectList } = useProjectStore();
@@ -50,30 +51,32 @@ export default function Nav() {
 	}, []);
 
 	return (
-		<NavContainer>
-			<Link href={'/'}>
-				<NavItem active={pathname === '/'}>
-					<HomeIcon />
-				</NavItem>
-			</Link>
-			{userProjectList.map((project, idx) => (
-				<Item
-					key={project.id}
-					name={project.name}
-					isActive={isProjectRoute && currentProjectId === project.id}
-					image={project.logo}
-					onClickEvent={handleClickItem}
-					projectId={project.id}
-				/>
-			))}
-			<Link href={'/project/create'}>
-				<Tooltip title={'Create Project'} placement={'right'}>
-					<NavItem active={pathname.indexOf('/project/create') > -1}>
-						<AddIcon />
+		<Img3Provider defaultGateways={defaultGateways}>
+			<NavContainer>
+				<Link href={'/'}>
+					<NavItem active={pathname === '/'}>
+						<HomeIcon />
 					</NavItem>
-				</Tooltip>
-			</Link>
-		</NavContainer>
+				</Link>
+				{userProjectList.map((project, idx) => (
+					<Item
+						key={project.id}
+						name={project.name}
+						isActive={isProjectRoute && currentProjectId === project.id}
+						image={project.logo}
+						onClickEvent={handleClickItem}
+						projectId={project.id}
+					/>
+				))}
+				<Link href={'/project/create'}>
+					<Tooltip title={'Create Project'} placement={'right'}>
+						<NavItem active={pathname.indexOf('/project/create') > -1}>
+							<AddIcon />
+						</NavItem>
+					</Tooltip>
+				</Link>
+			</NavContainer>
+		</Img3Provider>
 	);
 }
 
