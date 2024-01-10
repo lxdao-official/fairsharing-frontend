@@ -2,9 +2,9 @@
 
 import { Typography } from '@mui/material';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import Image from 'next/image';
+import { Img3Provider } from '@lxdao/img3';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 
@@ -12,6 +12,7 @@ import ContributionList from '@/components/project/contribution/contributionList
 
 import { setCurrentProjectId } from '@/store/project';
 import PostContribution from '@/components/project/contribution/postContribution';
+import { defaultGateways } from '@/constant/img3';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [showFullPost, setShowFullPost] = useState(false);
@@ -44,28 +45,30 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [showFullPost]);
 
 	return (
-		<div style={{ flex: '1', minWidth: '600px' }}>
-			<StyledFlexBox sx={{ marginBottom: '16px' }}>
-				<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
-					Post a contribution
-				</Typography>
-				{/*<Image*/}
-				{/*	src={'/images/book.png'}*/}
-				{/*	width={24}*/}
-				{/*	height={24}*/}
-				{/*	alt={'contribution'}*/}
-				{/*	style={{ marginLeft: '10px' }}*/}
-				{/*/>*/}
-			</StyledFlexBox>
+		<Img3Provider defaultGateways={defaultGateways}>
+			<div style={{ flex: '1', minWidth: '600px' }}>
+				<StyledFlexBox sx={{ marginBottom: '16px' }}>
+					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
+						Post a contribution
+					</Typography>
+					{/*<Image*/}
+					{/*	src={'/images/book.png'}*/}
+					{/*	width={24}*/}
+					{/*	height={24}*/}
+					{/*	alt={'contribution'}*/}
+					{/*	style={{ marginLeft: '10px' }}*/}
+					{/*/>*/}
+				</StyledFlexBox>
 
-			<PostContribution
-				projectId={params.id}
-				confirmText={'Post'}
-				setShowFullPost={setShowFullPost}
-				showFullPost={showFullPost}
-			/>
+				<PostContribution
+					projectId={params.id}
+					confirmText={'Post'}
+					setShowFullPost={setShowFullPost}
+					showFullPost={showFullPost}
+				/>
 
-			<ContributionList projectId={params.id} />
-		</div>
+				<ContributionList projectId={params.id} />
+			</div>
+		</Img3Provider>
 	);
 }
