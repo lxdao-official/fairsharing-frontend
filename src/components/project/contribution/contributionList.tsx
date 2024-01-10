@@ -6,7 +6,9 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogContentText,
+	Stack,
 	styled,
+	TablePagination,
 	Typography,
 } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -20,6 +22,8 @@ import { useAccount, useNetwork } from 'wagmi';
 import useSWR from 'swr';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+
+import Image from 'next/image';
 
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -115,6 +119,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const [activeCid, setActiveCid] = useState<string>();
 	const [activeUid, setActiveUid] = useState<string>();
 
+	const [curPage, setCurPage] = useState(0);
+	const [pageSize, setPageSize] = useState(25);
+	const [total, setTotal] = useState(0);
+
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
 		() => getProjectDetail(projectId),
@@ -151,12 +159,13 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		() =>
 			wallet
-				? 'contribution/list/wallet' + projectId + wallet
-				: 'contribution/list/wallet' + projectId,
-		() => fetchContributionList(projectId, wallet),
+				? 'contribution/list/wallet' + projectId + wallet + curPage + pageSize
+				: 'contribution/list/wallet' + projectId + curPage + pageSize,
+		() => fetchContributionList({ projectId, curPage, pageSize, wallet }),
 		{
 			fallbackData: [],
 			// onSuccess: (data) => console.log('[contributionList]', data),
+			keepPreviousData: true,
 		},
 	);
 
@@ -247,17 +256,37 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		});
 	};
 
-	const fetchContributionList = async (projectId: string, wallet?: string) => {
+	const onPageChange = (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => {
+		setCurPage(page);
+	};
+	const handlePageSizeChange = (
+		event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+	) => {
+		setPageSize(parseInt(event.target.value, 10));
+		setCurPage(0);
+	};
+
+	const fetchContributionList = async (params: {
+		projectId: string;
+		curPage: number;
+		pageSize: number;
+		wallet?: string;
+	}) => {
 		try {
-			const { list } = await getContributionList({
-				pageSize: 200,
-				currentPage: 1,
+			openGlobalLoading();
+			const { projectId, curPage, pageSize, wallet } = params;
+			const { list, total } = await getContributionList({
+				pageSize: pageSize,
+				currentPage: curPage + 1,
 				projectId: projectId,
 				wallet,
 			});
+			setTotal(total);
 			return list;
 		} catch (err) {
 			return Promise.reject(err);
+		} finally {
+			closeGlobalLoading();
 		}
 	};
 
@@ -491,7 +520,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				}}
 			>
 				{renderFilter}
-				<TextButton onClick={onClickSelectBtn}>Select</TextButton>
+				{/*<TextButton onClick={onClickSelectBtn}>Select</TextButton>*/}
 			</StyledFlexBox>
 
 			{showMultiSelect ? (
@@ -551,26 +580,61 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				</StyledFlexBox>
 			) : null}
 
-			{projectDetail && filterContributionList.length > 0
-				? filterContributionList
-						.filter((item) => item.status !== Status.UNREADY)
-						.map((contribution, idx) => (
-							<ContributionItem
-								key={contribution.id}
-								contribution={contribution}
-								showSelect={showMultiSelect}
-								selected={selected}
-								onSelect={onSelect}
-								showDeleteDialog={showDeleteDialog}
-								projectDetail={projectDetail}
-								contributorList={contributorList}
-								contributionList={filterContributionList}
-								contributionTypeList={contributionTypeList}
-								voteData={easVoteNumberBySigner[contribution.uId!] || null}
-								setClaimed={setCanClaimedContribution}
-							/>
-						))
-				: null}
+			{projectDetail && filterContributionList.length > 0 ? (
+				filterContributionList
+					.filter((item) => item.status !== Status.UNREADY)
+					.map((contribution, idx) => (
+						<ContributionItem
+							key={contribution.id}
+							contribution={contribution}
+							showSelect={showMultiSelect}
+							selected={selected}
+							onSelect={onSelect}
+							showDeleteDialog={showDeleteDialog}
+							projectDetail={projectDetail}
+							contributorList={contributorList}
+							contributionList={filterContributionList}
+							contributionTypeList={contributionTypeList}
+							voteData={easVoteNumberBySigner[contribution.uId!] || null}
+							setClaimed={setCanClaimedContribution}
+						/>
+					))
+			) : (
+				<Stack
+					alignItems={'center'}
+					sx={{
+						marginTop: '190px',
+					}}
+				>
+					<Image
+						src={'/images/contribution_empty.png'}
+						alt={'empty'}
+						width={96}
+						height={96}
+					/>
+					<Typography color={'#0F172A'} variant={'subtitle1'}>
+						No contributions yet. Be the trailblazer and drop the first one!
+					</Typography>
+				</Stack>
+			)}
+
+			{projectDetail && filterContributionList.length > 0 ? (
+				<Stack
+					justifyContent={'flex-end'}
+					sx={{
+						marginTop: '100px',
+					}}
+				>
+					<TablePagination
+						component="div"
+						count={total}
+						page={curPage}
+						onPageChange={onPageChange}
+						rowsPerPage={pageSize}
+						onRowsPerPageChange={handlePageSizeChange}
+					/>
+				</Stack>
+			) : null}
 
 			<Dialog
 				open={showDialog}

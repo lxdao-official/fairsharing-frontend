@@ -5,8 +5,8 @@ export type TextElement = {
 
 const useProof = () => {
 	const splitProof = (text: string): Array<{ type: 'plain' | 'href'; value: string }> => {
-		// eslint-disable-next-line no-useless-escape
-		const regex = /((http|https)\:\/\/)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g;
+		const regex =
+			/((http|https):\/\/)([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g;
 		const result: TextElement[] = [];
 		let lastIndex = 0;
 

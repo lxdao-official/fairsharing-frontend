@@ -4,7 +4,9 @@ import {
 	Autocomplete,
 	Button,
 	Chip,
+	IconButton,
 	InputAdornment,
+	Paper,
 	styled,
 	TextField,
 	Tooltip,
@@ -30,12 +32,15 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 import Image from 'next/image';
 
+import { MoreHoriz } from '@mui/icons-material';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
 import {
 	createContribution,
 	createContributionType,
+	deleteContributionType,
 	getContributionTypeList,
 	getContributorList,
 	getProjectDetail,
@@ -57,6 +62,7 @@ import usePostContributionCache, {
 	IPostContributionCacheItem,
 } from '@/components/project/contribution/usePostContributionCache';
 import { TagBgColors, TagColorMap, TagTextColors } from '@/components/project/contribution/tag';
+import { DeleteIcon } from '@/icons';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -124,6 +130,9 @@ const PostContribution = ({
 		return new Date(endDate);
 	});
 	const [typeValue, setTypeValue] = useState<AutoCompleteValue[]>([]);
+	const [showTypeEdit, setShowTypeEdit] = useState(false);
+	const [activeTypeEditId, setActiveTypeEditId] = useState<string | undefined>(undefined);
+	const [activeTypeHoverId, setActiveTypeHoverId] = useState<string | undefined>(undefined);
 
 	const { showTokenToolTip } = useUtilsStore();
 	const [showTokenTip, setShowTokenTip] = useState(false);
@@ -249,6 +258,11 @@ const PostContribution = ({
 			return '';
 		}
 		return contributorList.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorList, myInfo]);
+
+	const isProjectMember = useMemo(() => {
+		if (!myInfo) return false;
+		return !!contributorList.find((contributor) => contributor.userId === myInfo?.id);
 	}, [contributorList, myInfo]);
 
 	const contributorOptions = useMemo(() => {
@@ -495,6 +509,79 @@ const PostContribution = ({
 		setShowTokenTip(false);
 	};
 
+	const handleTypeEdit = (event: React.MouseEvent<HTMLElement>, option: AutoCompleteValue) => {
+		setShowTypeEdit(true);
+		setActiveTypeEditId(option.id);
+		event.stopPropagation();
+	};
+
+	const renderTypeEditEntry = (option: AutoCompleteValue) => {
+		if (option.label === DefaultTypeKudos) {
+			return null;
+		}
+		if (activeTypeHoverId !== option.id) {
+			return null;
+		}
+		if (!isProjectMember) {
+			return null;
+		}
+		// 当前已经选中的也不能出现
+		if (typeValue.find((item) => item.id === option.id)) {
+			return null;
+		}
+		return (
+			<Tooltip
+				open={showTypeEdit && activeTypeEditId === option.id}
+				title={renderTypeEdit(option)}
+				placement={'top-start'}
+				PopperProps={{ sx: { '.MuiTooltip-tooltip': { backgroundColor: '#fff' } } }}
+				onClose={() => {
+					setShowTypeEdit(false);
+					setActiveTypeEditId(undefined);
+				}}
+				disableHoverListener={true}
+				disableInteractive={false}
+			>
+				<TypeEditButton
+					aria-describedby={option.id}
+					onClick={(event) => handleTypeEdit(event, option)}
+				>
+					<MoreHoriz color={'disabled'} />
+				</TypeEditButton>
+			</Tooltip>
+		);
+	};
+
+	const handleDeleteType = async (
+		event: React.MouseEvent<HTMLElement>,
+		option: AutoCompleteValue,
+	) => {
+		event.stopPropagation();
+		openGlobalLoading();
+		try {
+			await deleteContributionType(option.id);
+			await mutateContributionTypeList();
+			showToast('Delete success', 'success');
+			setShowTypeEdit(false);
+		} catch (e) {
+			console.error('deleteContributionType', e);
+		} finally {
+			closeGlobalLoading();
+		}
+	};
+
+	const renderTypeEdit = (option: AutoCompleteValue) => {
+		return (
+			<Button
+				variant="outlined"
+				startIcon={<DeleteIcon />}
+				onClick={(event) => handleDeleteType(event, option)}
+			>
+				Delete
+			</Button>
+		);
+	};
+
 	return (
 		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
@@ -553,12 +640,34 @@ const PostContribution = ({
 								/>
 							)}
 							renderOption={(props, option, { selected, index }) => {
-								return (
+								return option.id === ForCreateTagId ? (
 									<OptionLi selected={selected} {...props}>
-										{option.id === ForCreateTagId ? 'Create' : ''}
+										Create
 										<OptionLabel index={index} bgColor={option.color}>
 											{option.label}
 										</OptionLabel>
+									</OptionLi>
+								) : (
+									<OptionLi
+										selected={selected}
+										{...props}
+										sx={{ display: 'flex', justifyContent: 'space-between' }}
+										onMouseEnter={(event: React.MouseEvent<HTMLElement>) => {
+											setActiveTypeHoverId(option.id);
+										}}
+										onMouseLeave={() => {
+											setActiveTypeHoverId(undefined);
+											setActiveTypeEditId(undefined);
+										}}
+									>
+										<OptionLabel index={index} bgColor={option.color}>
+											{option.label}
+										</OptionLabel>
+										<StyledFlexBox
+											sx={{ flex: '1', justifyContent: 'flex-end' }}
+										>
+											{renderTypeEditEntry(option)}
+										</StyledFlexBox>
 									</OptionLi>
 								);
 							}}
@@ -574,6 +683,9 @@ const PostContribution = ({
 									/>
 								))
 							}
+							PaperComponent={({ children }) => (
+								<Paper style={{ width: '460px' }}>{children}</Paper>
+							)}
 						/>
 					</StyledFlexBox>
 
@@ -807,3 +919,10 @@ const OptionChip = styled(Chip)<{ index: number; bgColor: string }>(({ index, bg
 	color: TagColorMap[bgColor] || TagTextColors[index % 10],
 	borderRadius: '4px',
 }));
+
+const TypeEditButton = styled(IconButton)({
+	width: '24px',
+	height: '24px',
+	borderRadius: '4px',
+	padding: '0',
+});

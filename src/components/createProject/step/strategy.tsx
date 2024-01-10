@@ -284,7 +284,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				>
 					<FormControlLabel
 						value={VoteSystemEnum.EQUAL}
-						control={<Radio />}
+						control={<Radio disabled={!canEdit} />}
 						sx={{ marginTop: '12px' }}
 						label={
 							<>
@@ -298,7 +298,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					/>
 					<FormControlLabel
 						value={VoteSystemEnum.WEIGHT}
-						control={<Radio />}
+						control={<Radio disabled={!canEdit} />}
 						sx={{ marginTop: '20px' }}
 						label={
 							<>
@@ -327,7 +327,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					<FormControlLabel
 						value={VoteApproveEnum.RELATIVE2}
 						sx={{ marginTop: '12px' }}
-						control={<Radio />}
+						control={<Radio disabled={!canEdit} />}
 						label={
 							<>
 								<Typography variant={'subtitle2'}>
@@ -342,7 +342,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 					<FormControlLabel
 						value={VoteApproveEnum.DEFAULT}
 						sx={{ marginTop: '12px' }}
-						control={<Radio />}
+						control={<Radio disabled={!canEdit} />}
 						label={
 							<>
 								<Typography variant={'subtitle2'}>
