@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Typography, TextField } from '@mui/material';
+import { Typography, TextField, Button } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 
@@ -140,7 +140,14 @@ export default function Page({ params }: { params: { id: string } }) {
 		<div style={{ width: '100%' }}>
 			<StyledFlexBox sx={{ justifyContent: 'space-between', marginBottom: '30px' }}>
 				<Typography variant="h3">Dashboard</Typography>
-				<TextField label="Search" size="small" onChange={handleSearch} />
+				<StyledFlexBox>
+					<TextField label="Search" size="small" onChange={handleSearch} />
+					<Link href={`/project/${params.id}/payment/create`}>
+						<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
+							Create payment
+						</Button>
+					</Link>
+				</StyledFlexBox>
 			</StyledFlexBox>
 			<div style={{ width: '100%' }}>
 				<DataGrid

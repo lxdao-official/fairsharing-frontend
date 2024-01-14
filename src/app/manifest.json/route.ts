@@ -7,9 +7,9 @@ export async function GET(request: Request, res: Response) {
 	return new Response(jsonData, {
 		status: 200,
 		headers: {
-			"Access-Control-Allow-Origin": "*",
-			"Access-Control-Allow-Methods": "GET",
-			"Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization",
+			'Access-Control-Allow-Origin': '*',
+			'Access-Control-Allow-Methods': 'GET',
+			'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
 		},
 	});
 }
