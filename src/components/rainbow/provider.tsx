@@ -17,27 +17,29 @@ import { publicProvider } from 'wagmi/providers/public';
 import { isProd } from '@/constant/env';
 
 // TODO Determine the configuration in different environments
-const Chains = isProd ? [optimism, optimismGoerli] : [optimism, optimismGoerli, goerli]
+const Chains = isProd ? [optimism, optimismGoerli] : [optimism, optimismGoerli, goerli];
 const AlchemyApiKey = isProd
 	? process.env.NEXT_PUBLIC_ALCHEMY_ID_PROD
 	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
 const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string;
 
-export const ChainList = isProd ? [
-	{
-		name: 'Optimism',
-		chainId: '10'
-	}
-] : [
-	{
-		name: 'Optimism Goerli',
-		chainId: '420'
-	},
-	{
-		name: 'Goerli',
-		chainId: '5'
-	}
-]
+export const ChainList = isProd
+	? [
+			{
+				name: 'Optimism',
+				chainId: '10',
+			},
+	  ]
+	: [
+			{
+				name: 'Optimism Goerli',
+				chainId: '420',
+			},
+			{
+				name: 'Goerli',
+				chainId: '5',
+			},
+	  ];
 
 // @ts-ignore
 const { chains, publicClient, webSocketPublicClient } = configureChains(Chains, [

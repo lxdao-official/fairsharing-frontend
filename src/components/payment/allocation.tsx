@@ -1,18 +1,28 @@
-import { Button, MenuItem, Select, SelectChangeEvent, styled, TextField, Typography } from '@mui/material';
+import {
+	Button,
+	MenuItem,
+	Select,
+	SelectChangeEvent,
+	styled,
+	TextField,
+	Typography,
+} from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
-import { getContributorList, getMintRecord, IMintRecord } from '@/services';
+
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import Link from 'next/link';
 import { Img3, Img3Provider } from '@lxdao/img3';
-import { defaultGateways, LogoImage } from '@/constant/img3';
-import { StyledFlexBox } from '@/components/styledComponents';
-import { walletCell } from '@/components/table/cell';
+
 import Image from 'next/image';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { walletCell } from '@/components/table/cell';
+import { StyledFlexBox } from '@/components/styledComponents';
+import { defaultGateways, LogoImage } from '@/constant/img3';
+import { getContributorList, getMintRecord, IMintRecord } from '@/services';
 
 export interface IAllocationProps {
 	id: string;
@@ -33,14 +43,10 @@ export default function Allocation(props: IAllocationProps) {
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 	const [filterContributor, setFilterContributor] = useState('All');
 
-	const { isLoading, data } = useSWR(
-		['getMintRecord', props.id],
-		() => getMintRecord(props.id),
-		{
-			fallbackData: [],
-			onSuccess: (data) => setRecordList(data),
-		},
-	);
+	const { isLoading, data } = useSWR(['getMintRecord', props.id], () => getMintRecord(props.id), {
+		fallbackData: [],
+		onSuccess: (data) => setRecordList(data),
+	});
 
 	const { data: contributorList } = useSWR(
 		['contributor/list', props.id],
@@ -143,7 +149,7 @@ export default function Allocation(props: IAllocationProps) {
 				sortable: true,
 				minWidth: 200,
 				valueGetter: (params) => {
-					const percentage = (params.row.credit / claimedAmount);
+					const percentage = params.row.credit / claimedAmount;
 					const value = props.totalAmount * percentage;
 					return value.toFixed(2);
 				},
@@ -152,9 +158,9 @@ export default function Allocation(props: IAllocationProps) {
 						<Typography variant="body1" fontSize={16}>
 							{item.value}
 						</Typography>
-					)
-				}
-			}
+					);
+				},
+			},
 		];
 		return columns;
 	}, [claimedAmount, contributorList, recordList, props.totalAmount]);
@@ -173,13 +179,10 @@ export default function Allocation(props: IAllocationProps) {
 		},
 		[data],
 	);
-	const handleRest = () => {
-
-	}
+	const handleRest = () => {};
 
 	return (
 		<Container>
-
 			<Typography variant={'h3'}>Allocation Details</Typography>
 
 			<FormContainer>
@@ -284,7 +287,7 @@ const Container = styled('div')(({ theme }) => ({
 const FormContainer = styled(StyledFlexBox)(({ theme }) => ({
 	width: '100%',
 	margin: '24px 0',
-	gap: '16px'
+	gap: '16px',
 }));
 const DateContainer = styled(StyledFlexBox)(({ theme }) => ({
 	width: '300px',
@@ -292,8 +295,8 @@ const DateContainer = styled(StyledFlexBox)(({ theme }) => ({
 	borderRadius: '4px',
 	height: '40px',
 	'&:hover': {
-		borderColor: 'rgba(15, 23, 42, 0.5)'
-	}
+		borderColor: 'rgba(15, 23, 42, 0.5)',
+	},
 }));
 const TextButton = styled('span')({
 	cursor: 'pointer',

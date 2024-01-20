@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { usePathname, useRouter } from 'next/navigation';
+
 import styles from '@/styles/project.module.css';
 import ProjectNav from '@/components/project/projectNav';
-import { usePathname, useRouter } from 'next/navigation';
 
 export default function ProjectLayout({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();

@@ -14,13 +14,21 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
+
+import { useRouter } from 'next/navigation';
+
+import FormControl from '@mui/material/FormControl';
+
+import { SafeProvider, useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { BackIcon } from '@/icons';
-import { useRouter } from 'next/navigation';
 import { isProd } from '@/constant/env';
-import FormControl from '@mui/material/FormControl';
+
+
 import { useSafeBalances } from '@/hooks/useSafeBalances';
-import { SafeProvider, useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
+
+
 import AllocationPage from '@/components/payment/allocation';
 import Allocation from '@/components/payment/allocation';
 
@@ -73,7 +81,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
 	const handleAllocate = () => {
 		setTotalAmount(Number(amount));
-	}
+	};
 
 	return (
 		<PageContainer>
@@ -189,13 +197,19 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
 			<BottomLine>
 				<ContentWrapper>
-
-				<Button variant={'contained'}>Create Payment</Button>
-				<Button variant={'outlined'} sx={{marginLeft: '16px'}}>Cancel</Button>
-					<Typography variant={'body2'} sx={{
-						marginLeft: '16px',
-						color: '#64748B'
-					}}>Allocation details have been auto-saved as a draft.</Typography>
+					<Button variant={'contained'}>Create Payment</Button>
+					<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
+						Cancel
+					</Button>
+					<Typography
+						variant={'body2'}
+						sx={{
+							marginLeft: '16px',
+							color: '#64748B',
+						}}
+					>
+						Allocation details have been auto-saved as a draft.
+					</Typography>
 				</ContentWrapper>
 			</BottomLine>
 		</PageContainer>
@@ -208,8 +222,8 @@ const PageContainer = styled('div')({
 	margin: '0 auto',
 	padding: '0 32px 32px',
 	height: 'calc(100vh - 64px - 80px)',
-	overflowY: 'scroll'
-})
+	overflowY: 'scroll',
+});
 
 const FormWrapper = styled('div')({
 	// width: '1195px',
@@ -229,7 +243,7 @@ const BottomLine = styled('div')({
 	right: '0',
 	height: '80px',
 	borderTop: '0.5px solid rgba(15, 23, 42, 0.16)',
-	backgroundColor: '#fff'
+	backgroundColor: '#fff',
 });
 
 const ContentWrapper = styled('div')({

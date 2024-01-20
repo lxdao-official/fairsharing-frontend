@@ -6,7 +6,6 @@ import { SafeProvider } from '@safe-global/safe-apps-react-sdk';
 import { CircularProgress, Typography } from '@mui/material';
 
 export default function ProjectLayout({ children }: { children: React.ReactNode }) {
-
 	return (
 		// <SafeProvider loader={
 		// 	<>
@@ -16,8 +15,6 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
 		// }>
 		// 	{children}
 		// </SafeProvider>
-		<>
-			{children}
-		</>
+		<>{children}</>
 	);
 }
