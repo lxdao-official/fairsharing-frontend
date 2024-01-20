@@ -1,4 +1,7 @@
 'use client';
+// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/01-bootstrap-the-app.md
+// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/02-display-safe-assets.md
+// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -16,17 +19,28 @@ import { BackIcon } from '@/icons';
 import { useRouter } from 'next/navigation';
 import { isProd } from '@/constant/env';
 import FormControl from '@mui/material/FormControl';
+import { useSafeBalances } from '@/hooks/useSafeBalances';
+import { SafeProvider, useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
+import AllocationPage from '@/components/payment/allocation';
+import Allocation from '@/components/payment/allocation';
 
-export default function page({ params }: { params: { id: string } }) {
+export default function PaymentPage({ params }: { params: { id: string } }) {
 	const router = useRouter();
 	const [address, setAddress] = useState('');
 	const [category, setCategory] = useState('');
 	const [purpose, setPurpose] = useState('');
 	const [amount, setAmount] = useState('');
+	const [totalAmount, setTotalAmount] = useState(0);
 	const [walletType, setWalletType] = useState('Multi');
 	const [currency, setCurrency] = useState('USDT');
 	const [network, setNetwork] = useState('ERC20');
 	const [allocator, setAllocator] = useState('ProportionBased');
+
+	// const { sdk, safe } = useSafeAppsSDK();
+	// const [balances] = useSafeBalances(sdk);
+	// useEffect(() => {
+	// 	console.log('balances', { balances });
+	// }, [balances]);
 
 	const handleBack = () => {
 		router.back();
@@ -57,8 +71,12 @@ export default function page({ params }: { params: { id: string } }) {
 		setAllocator(event.target.value);
 	};
 
+	const handleAllocate = () => {
+		setTotalAmount(Number(amount));
+	}
+
 	return (
-		<>
+		<PageContainer>
 			<StyledFlexBox
 				sx={{ padding: '8px 4px', cursor: 'pointer', marginBottom: '16px' }}
 				onClick={handleBack}
@@ -160,15 +178,38 @@ export default function page({ params }: { params: { id: string } }) {
 				</StyledFlexBox>
 			</FormWrapper>
 
-			<Button variant={'contained'} sx={{ marginTop: '40px' }}>
+			<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={handleAllocate}>
 				Allocate
 			</Button>
 			<Typography variant={'body2'} sx={{ marginTop: '8px', color: '#64748B' }}>
 				The results will be displayed below.
 			</Typography>
-		</>
+
+			{totalAmount > 0 ? <Allocation id={params.id} totalAmount={totalAmount} /> : null}
+
+			<BottomLine>
+				<ContentWrapper>
+
+				<Button variant={'contained'}>Create Payment</Button>
+				<Button variant={'outlined'} sx={{marginLeft: '16px'}}>Cancel</Button>
+					<Typography variant={'body2'} sx={{
+						marginLeft: '16px',
+						color: '#64748B'
+					}}>Allocation details have been auto-saved as a draft.</Typography>
+				</ContentWrapper>
+			</BottomLine>
+		</PageContainer>
 	);
 }
+
+const PageContainer = styled('div')({
+	width: '1264px',
+	minWidth: '1264px',
+	margin: '0 auto',
+	padding: '0 32px 32px',
+	height: 'calc(100vh - 64px - 80px)',
+	overflowY: 'scroll'
+})
 
 const FormWrapper = styled('div')({
 	// width: '1195px',
@@ -179,4 +220,23 @@ const TitleLine = styled('div')({
 	justifyContent: 'flex-start',
 	alignItems: 'center',
 	height: '44px',
+});
+
+const BottomLine = styled('div')({
+	position: 'fixed',
+	bottom: '0',
+	left: '80px',
+	right: '0',
+	height: '80px',
+	borderTop: '0.5px solid rgba(15, 23, 42, 0.16)',
+	backgroundColor: '#fff'
+});
+
+const ContentWrapper = styled('div')({
+	height: '100%',
+	margin: '0 auto',
+	width: '1264px',
+	padding: '0 32px',
+	display: 'flex',
+	alignItems: 'center',
 });

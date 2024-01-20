@@ -142,7 +142,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				<Typography variant="h3">Dashboard</Typography>
 				<StyledFlexBox>
 					<TextField label="Search" size="small" onChange={handleSearch} />
-					<Link href={`/project/${params.id}/payment/create`}>
+					<Link href={`/payment/${params.id}/create`}>
 						<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
 							Create payment
 						</Button>
