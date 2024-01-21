@@ -7,14 +7,16 @@ import { CircularProgress, Typography } from '@mui/material';
 
 export default function ProjectLayout({ children }: { children: React.ReactNode }) {
 	return (
-		// <SafeProvider loader={
-		// 	<>
-		// 		<Typography variant="h1">Waiting for Safe...</Typography>
-		// 		<CircularProgress color="primary" />
-		// 	</>
-		// }>
-		// 	{children}
-		// </SafeProvider>
-		<>{children}</>
+		<SafeProvider
+			loader={
+				<>
+					<Typography variant="h1">Waiting for Safe...</Typography>
+					<CircularProgress color="primary" />
+				</>
+			}
+		>
+			{children}
+		</SafeProvider>
+		// <>{children}</>
 	);
 }

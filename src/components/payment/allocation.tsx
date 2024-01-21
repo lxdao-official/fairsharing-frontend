@@ -7,7 +7,7 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -27,6 +27,8 @@ import { getContributorList, getMintRecord, IMintRecord } from '@/services';
 export interface IAllocationProps {
 	id: string;
 	totalAmount: number;
+	currencyName: string;
+	onChange: (list: IMintRecord[], claimedAmount: number) => void;
 }
 
 export default function Allocation(props: IAllocationProps) {
@@ -45,8 +47,22 @@ export default function Allocation(props: IAllocationProps) {
 
 	const { isLoading, data } = useSWR(['getMintRecord', props.id], () => getMintRecord(props.id), {
 		fallbackData: [],
-		onSuccess: (data) => setRecordList(data),
+		onSuccess: (data) => {
+			setRecordList(data);
+			console.log('setRecordList', data);
+		},
 	});
+
+	const filterRecordList = useMemo(() => {
+		// TODO time filter
+		let list = recordList;
+		if (filterContributor !== 'All') {
+			list = list.filter((item) => {
+				return item.contributor.id === filterContributor;
+			});
+		}
+		return list;
+	}, [filterContributor, recordList]);
 
 	const { data: contributorList } = useSWR(
 		['contributor/list', props.id],
@@ -57,16 +73,16 @@ export default function Allocation(props: IAllocationProps) {
 	);
 
 	const claimedAmount = useMemo(() => {
-		return recordList.reduce((acc, cur) => {
+		return filterRecordList.reduce((acc, cur) => {
 			return acc + cur.credit;
 		}, 0);
-	}, [recordList]);
+	}, [filterRecordList]);
 
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
 			{
 				field: 'nickName',
-				headerName: `Name (${recordList.length})`,
+				headerName: `Name (${filterRecordList.length})`,
 				sortable: false,
 				flex: 1,
 				minWidth: 150,
@@ -145,13 +161,13 @@ export default function Allocation(props: IAllocationProps) {
 			},
 			{
 				field: 'amount',
-				headerName: 'Token Amount',
+				headerName: `Total: ${props.totalAmount} ${props.currencyName}`,
 				sortable: true,
 				minWidth: 200,
 				valueGetter: (params) => {
 					const percentage = params.row.credit / claimedAmount;
 					const value = props.totalAmount * percentage;
-					return value.toFixed(2);
+					return value.toFixed(8);
 				},
 				renderCell: (item) => {
 					return (
@@ -163,7 +179,20 @@ export default function Allocation(props: IAllocationProps) {
 			},
 		];
 		return columns;
-	}, [claimedAmount, contributorList, recordList, props.totalAmount]);
+	}, [
+		claimedAmount,
+		contributorList,
+		filterRecordList.length,
+		props.currencyName,
+		props.totalAmount,
+	]);
+
+	useEffect(() => {
+		const totalClaimedAmount = filterRecordList.reduce((acc, cur) => {
+			return acc + cur.credit;
+		}, 0);
+		props.onChange(filterRecordList, totalClaimedAmount);
+	}, [filterRecordList, props.onChange]);
 
 	const handleContributorChange = (event: SelectChangeEvent) => {
 		setFilterContributor(event.target.value);
@@ -171,13 +200,13 @@ export default function Allocation(props: IAllocationProps) {
 
 	const handleSearch = useCallback(
 		(e: any) => {
-			const list = data.filter((item) => {
+			const list = filterRecordList.filter((item) => {
 				const regex = new RegExp(e.target.value, 'i');
 				return regex.test(item.contributor.nickName);
 			});
 			setRecordList(list);
 		},
-		[data],
+		[filterRecordList],
 	);
 	const handleRest = () => {};
 
@@ -253,7 +282,7 @@ export default function Allocation(props: IAllocationProps) {
 			<div style={{ width: '100%' }}>
 				<DataGrid
 					loading={isLoading}
-					rows={recordList || []}
+					rows={filterRecordList}
 					columns={columns}
 					rowHeight={72}
 					autoHeight

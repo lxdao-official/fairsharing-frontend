@@ -3,7 +3,7 @@
 // https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/02-display-safe-assets.md
 // https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	Button,
 	InputLabel,
@@ -17,20 +17,15 @@ import {
 
 import { useRouter } from 'next/navigation';
 
-import FormControl from '@mui/material/FormControl';
-
 import { SafeProvider, useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { BackIcon } from '@/icons';
-import { isProd } from '@/constant/env';
-
 
 import { useSafeBalances } from '@/hooks/useSafeBalances';
 
-
-import AllocationPage from '@/components/payment/allocation';
 import Allocation from '@/components/payment/allocation';
+import { IMintRecord } from '@/services';
 
 export default function PaymentPage({ params }: { params: { id: string } }) {
 	const router = useRouter();
@@ -40,15 +35,62 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	const [amount, setAmount] = useState('');
 	const [totalAmount, setTotalAmount] = useState(0);
 	const [walletType, setWalletType] = useState('Multi');
-	const [currency, setCurrency] = useState('USDT');
-	const [network, setNetwork] = useState('ERC20');
-	const [allocator, setAllocator] = useState('ProportionBased');
+	const [currency, setCurrency] = useState<string>('');
+	const [network, setNetwork] = useState<string>('');
+	const [allocatorType, setAllocatorType] = useState('ProportionBased');
 
-	// const { sdk, safe } = useSafeAppsSDK();
-	// const [balances] = useSafeBalances(sdk);
-	// useEffect(() => {
-	// 	console.log('balances', { balances });
-	// }, [balances]);
+	const [allocationInfo, setAllocationInfo] = useState<{
+		list: IMintRecord[];
+		claimedAmount: number;
+	}>({
+		list: [],
+		claimedAmount: 0,
+	});
+
+	const { sdk, safe } = useSafeAppsSDK();
+	const [balances] = useSafeBalances(sdk);
+
+	const currencyOptions = useMemo(() => {
+		if (!balances || !balances.length) return [];
+		return balances.map((balance) => {
+			const { tokenInfo } = balance;
+			return {
+				value: tokenInfo.symbol,
+				label: tokenInfo.name,
+			};
+		});
+	}, [balances]);
+
+	const currencyName = useMemo(() => {
+		if (!currencyOptions || !currencyOptions.length) return '';
+		return currencyOptions.find((item) => item.value === currency)?.label || '';
+	}, [currency, currencyOptions]);
+
+	const networkOptions = useMemo(() => {
+		if (!safe) return [];
+		return [
+			{
+				value: safe.chainId,
+				// @ts-ignore
+				label: safe?.network as string,
+			},
+		];
+	}, [safe]);
+
+	useEffect(() => {
+		console.log('balances', { balances });
+		if (balances && balances.length) {
+			setCurrency(balances[0].tokenInfo.symbol);
+		}
+	}, [balances]);
+
+	useEffect(() => {
+		console.log('safe', safe);
+		if (safe && safe.safeAddress) {
+			setAddress(safe.safeAddress);
+			setNetwork(String(safe.chainId));
+		}
+	}, [safe]);
 
 	const handleBack = () => {
 		router.back();
@@ -76,11 +118,41 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		setNetwork(event.target.value);
 	};
 	const handleAllocatorChange = (event: SelectChangeEvent) => {
-		setAllocator(event.target.value);
+		setAllocatorType(event.target.value);
 	};
 
 	const handleAllocate = () => {
 		setTotalAmount(Number(amount));
+	};
+
+	const onAllocationChange = useCallback((list: IMintRecord[], claimedAmount: number) => {
+		console.log('onAllocationChange', { list, claimedAmount });
+		setAllocationInfo({ list, claimedAmount });
+	}, []);
+
+	const handleCreatePayment = async () => {
+		try {
+			const { list, claimedAmount } = allocationInfo;
+			// TODO confirm unit
+			// 手动将ETH转换为wei
+			const totalAmountWei = Math.round(totalAmount * 1e18);
+			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
+			const txs = list.map((item) => {
+				const percent = item.credit / claimedAmount;
+				// TODO confirm ETH or other token types
+				return {
+					to: item.contributor.wallet,
+					value: String(Math.round(totalAmountWei * percent)),
+					data: '0x',
+				};
+			});
+			const { safeTxHash } = await sdk.txs.send({ txs });
+			console.log({ safeTxHash });
+			const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
+			console.log({ safeTx });
+		} catch (err: any) {
+			console.error('handleCreatePayment error', err);
+		}
 	};
 
 	return (
@@ -109,6 +181,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						value={address}
 						onChange={handleAddressInputChange}
 						sx={{ width: '440px', marginRight: '16px' }}
+						disabled={true}
 					/>
 					<Select
 						id="wallet-type-select"
@@ -147,7 +220,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						value={amount}
 						onChange={handleAmountInputChange}
 						label={'Amount*'}
-						sx={{ width: '135px', marginRight: '16px' }}
+						sx={{ width: '180px', marginRight: '16px' }}
 					/>
 					<Select
 						id="currency-select"
@@ -157,9 +230,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						onChange={handleCurrencyChange}
 						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
 					>
-						<MenuItem value={'USDT'}>USDT</MenuItem>
-						<MenuItem value={'USDC'}>USDC</MenuItem>
-						<MenuItem value={'ETH'}>ETH</MenuItem>
+						{currencyOptions.map((item) => (
+							<MenuItem key={item.value} value={item.value}>
+								{item.label}
+							</MenuItem>
+						))}
 					</Select>
 					<Select
 						id="network-select"
@@ -167,18 +242,22 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						label={'Network*'}
 						value={network}
 						onChange={handleNetworkChange}
-						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
+						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
+						disabled={true}
 					>
-						<MenuItem value={'ERC20'}>Ethereum(ERC-20)</MenuItem>
-						<MenuItem value={'Optimism'}>Optimism</MenuItem>
+						{networkOptions.map((item) => (
+							<MenuItem key={item.value} value={item.value}>
+								{item.label}
+							</MenuItem>
+						))}
 					</Select>
 					<Select
 						id="allocator-select"
 						labelId="allocator-select-label"
 						label={'Allocator by*'}
-						value={allocator}
+						value={allocatorType}
 						onChange={handleAllocatorChange}
-						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
+						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
 					>
 						<MenuItem value={'ProportionBased'}>Proportion-based</MenuItem>
 						<MenuItem value={'manual'}>Manual</MenuItem>
@@ -186,32 +265,48 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 				</StyledFlexBox>
 			</FormWrapper>
 
-			<Button variant={'contained'} sx={{ marginTop: '40px' }} onClick={handleAllocate}>
+			<Button
+				variant={'contained'}
+				sx={{ marginTop: '40px' }}
+				onClick={handleAllocate}
+				disabled={!(Number(amount) > 0)}
+			>
 				Allocate
 			</Button>
 			<Typography variant={'body2'} sx={{ marginTop: '8px', color: '#64748B' }}>
 				The results will be displayed below.
 			</Typography>
 
-			{totalAmount > 0 ? <Allocation id={params.id} totalAmount={totalAmount} /> : null}
+			{totalAmount > 0 ? (
+				<Allocation
+					id={params.id}
+					totalAmount={totalAmount}
+					currencyName={currencyName}
+					onChange={onAllocationChange}
+				/>
+			) : null}
 
-			<BottomLine>
-				<ContentWrapper>
-					<Button variant={'contained'}>Create Payment</Button>
-					<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
-						Cancel
-					</Button>
-					<Typography
-						variant={'body2'}
-						sx={{
-							marginLeft: '16px',
-							color: '#64748B',
-						}}
-					>
-						Allocation details have been auto-saved as a draft.
-					</Typography>
-				</ContentWrapper>
-			</BottomLine>
+			{allocationInfo.list.length > 0 ? (
+				<BottomLine>
+					<ContentWrapper>
+						<Button variant={'contained'} onClick={handleCreatePayment}>
+							Create Payment
+						</Button>
+						<Button variant={'outlined'} sx={{ marginLeft: '16px' }}>
+							Cancel
+						</Button>
+						<Typography
+							variant={'body2'}
+							sx={{
+								marginLeft: '16px',
+								color: '#64748B',
+							}}
+						>
+							Allocation details have been auto-saved as a draft.
+						</Typography>
+					</ContentWrapper>
+				</BottomLine>
+			) : null}
 		</PageContainer>
 	);
 }
