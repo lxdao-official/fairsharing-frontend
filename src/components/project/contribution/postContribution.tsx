@@ -686,6 +686,12 @@ const PostContribution = ({
 							PaperComponent={({ children }) => (
 								<Paper style={{ width: '460px' }}>{children}</Paper>
 							)}
+							ListboxProps={{
+								style: {
+									maxHeight: '1600px', // 设置下拉菜单的最大高度
+									overflow: 'auto'    // 添加滚动条
+								}
+							}}
 						/>
 					</StyledFlexBox>
 
