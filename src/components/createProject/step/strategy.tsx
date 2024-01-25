@@ -22,6 +22,7 @@ import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { DefaultChainId } from '@/constant/eas';
 import { isProd } from '@/constant/env';
 import useProjectCache from '@/components/createProject/useProjectCache';
+import { ChainList } from '@/components/rainbow/provider';
 
 export interface IStepStrategyProps extends Partial<IStepBaseProps> {
 	data?: Pick<
@@ -214,9 +215,8 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 							fontSize: '14px',
 						}}
 					>
-						It is an ERC-20 token, similar to points, representing project
-						ownership.Earned through approved contributions, there's no limit to its
-						supply.
+						It is an ERC-20 token, similar to points, representing project ownership.
+						Earned through approved contributions, there's no limit to its supply.
 					</Typography>
 				}
 				placement="bottom"
@@ -250,11 +250,11 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 				sx={{ minWidth: '', marginTop: '32px', width: '200px' }}
 				disabled={isSettingPage}
 			>
-				{isProd ? (
-					<MenuItem value={'10'}>Optimism</MenuItem>
-				) : (
-					<MenuItem value={'420'}>Optimism Goerli</MenuItem>
-				)}
+				{ChainList.map((chain) => (
+					<MenuItem key={chain.chainId} value={chain.chainId}>
+						{chain.name}
+					</MenuItem>
+				))}
 			</Select>
 
 			<div style={{ display: 'flex', alignItems: 'center', marginTop: '32px' }}>
