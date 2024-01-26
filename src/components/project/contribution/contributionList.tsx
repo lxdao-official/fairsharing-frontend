@@ -25,6 +25,8 @@ import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
 import Image from 'next/image';
 
+import { ethers } from 'ethers';
+
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
