@@ -444,7 +444,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 					{ name: 'Recipient', value: toWallet, type: 'address' },
 					{
 						name: 'TokenAmount',
-						value: BigInt(credit),
+						value: ethers.parseUnits(credit.toString()),
 						type: 'uint256',
 					},
 					{ name: 'Signatures', value: signatures[i], type: 'bytes' },
