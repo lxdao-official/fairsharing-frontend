@@ -25,6 +25,8 @@ import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
 import Image from 'next/image';
 
+import { ethers } from 'ethers';
+
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
@@ -444,7 +446,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 					{ name: 'Recipient', value: toWallet, type: 'address' },
 					{
 						name: 'TokenAmount',
-						value: BigInt(credit),
+						value: ethers.parseUnits(credit.toString()),
 						type: 'uint256',
 					},
 					{ name: 'Signatures', value: signatures[i], type: 'bytes' },
