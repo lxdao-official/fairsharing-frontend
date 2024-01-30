@@ -1,5 +1,32 @@
 {
-  "name": "SafeFairSharing",
-  "description": "FairSharing salary module for safe",
-  "iconPath": "myAppIcon.svg"
+  "short_name": "FairSharing Pay",
+  "name": "FairSharing Pay",
+  "description": "Easily pay contributors by FairSharing proportion or manually",
+  "icons": [
+    {
+      "src": "/safe/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/safe/logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/safe/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
 }
