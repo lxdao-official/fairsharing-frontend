@@ -4,7 +4,7 @@
   "description": "Easily pay contributors by FairSharing proportion or manually",
   "icons": [
     {
-      "src": "/safe/logo.svg",
+      "src": "safe/LOGO.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
@@ -19,12 +19,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/safe/logo-192.png",
+      "src": "safe/LOGO-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/safe/logo-512.png",
+      "src": "safe/LOGO-512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
