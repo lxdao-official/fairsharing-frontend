@@ -3,7 +3,7 @@
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Typography, TextField, Button } from '@mui/material';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
 import { Img3, Img3Provider } from '@lxdao/img3';
@@ -14,8 +14,12 @@ import { StyledFlexBox } from '@/components/styledComponents';
 import { IMintRecord, getMintRecord, getContributorList } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
+import { isProd } from '@/constant/env';
 
 export default function Page({ params }: { params: { id: string } }) {
+
+	const [safeUrl, setSafeUrl] = useState('')
+
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 	const { isLoading, data } = useSWR(
 		['getMintRecord', params.id],
@@ -136,13 +140,22 @@ export default function Page({ params }: { params: { id: string } }) {
 		[data],
 	);
 
+	useEffect(() => {
+		const inSafeApp = window.parent.location !== window.location
+		if (inSafeApp) {
+			setSafeUrl(`/payment/${params.id}/create`)
+		} else {
+			setSafeUrl(`https://app.safe.global/share/safe-app?appUrl=${encodeURIComponent(location.origin)}`)
+		}
+	}, []);
+
 	return (
 		<div style={{ width: '100%' }}>
 			<StyledFlexBox sx={{ justifyContent: 'space-between', marginBottom: '30px' }}>
 				<Typography variant="h3">Dashboard</Typography>
 				<StyledFlexBox>
 					<TextField label="Search" size="small" onChange={handleSearch} />
-					<Link href={`/payment/${params.id}/create`}>
+					<Link href={safeUrl}>
 						<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
 							Create payment
 						</Button>
