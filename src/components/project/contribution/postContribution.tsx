@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
 	Autocomplete,
@@ -74,6 +74,7 @@ export interface IPostContributionProps {
 	isEdit?: boolean;
 	showFullPost?: boolean;
 	setShowFullPost?: (show: boolean) => void;
+	setIsEditing?: (isEditing: boolean) => void;
 }
 
 export interface PostData {
@@ -103,6 +104,7 @@ const PostContribution = ({
 	isEdit,
 	showFullPost = true,
 	setShowFullPost,
+	setIsEditing,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -184,6 +186,7 @@ const PostContribution = ({
 			setToValue(cache.toValue);
 			setContributors([cache.toValue.id]);
 			setCredit(cache.credit);
+			setIsEditing?.(true);
 		}
 	}, []);
 
@@ -284,7 +287,23 @@ const PostContribution = ({
 		setTypeValue([]);
 		setStartDate(new Date());
 		setEndDate(new Date());
+		setIsEditing?.(false);
 	};
+
+	useEffect(() => {
+		if (
+			!detail &&
+			!proof &&
+			contributors.length === 0 &&
+			!toValue &&
+			!credit &&
+			typeValue.length === 0
+		) {
+			setIsEditing?.(false);
+		} else {
+			setIsEditing?.(true);
+		}
+	}, [detail, proof, contributors, toValue, credit, typeValue]);
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -689,8 +708,8 @@ const PostContribution = ({
 							ListboxProps={{
 								style: {
 									maxHeight: '1600px', // 设置下拉菜单的最大高度
-									overflow: 'auto'    // 添加滚动条
-								}
+									overflow: 'auto', // 添加滚动条
+								},
 							}}
 						/>
 					</StyledFlexBox>

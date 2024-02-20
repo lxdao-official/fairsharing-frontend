@@ -16,11 +16,16 @@ import { defaultGateways } from '@/constant/img3';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [showFullPost, setShowFullPost] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+
 	useEffect(() => {
 		setCurrentProjectId(params.id as string);
 
 		const handleClickOutside = (event: any) => {
 			const targetElement = event.target;
+			if (isEditing) {
+				return;
+			}
 			if (showFullPost && targetElement.closest('.MuiPopper-root')) {
 				return;
 			}
@@ -42,7 +47,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
-	}, [showFullPost]);
+	}, [showFullPost, isEditing]);
 
 	return (
 		<Img3Provider defaultGateways={defaultGateways}>
@@ -65,6 +70,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					confirmText={'Post'}
 					setShowFullPost={setShowFullPost}
 					showFullPost={showFullPost}
+					setIsEditing={setIsEditing}
 				/>
 
 				<ContributionList projectId={params.id} />
