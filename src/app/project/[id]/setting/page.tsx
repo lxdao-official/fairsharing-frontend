@@ -60,7 +60,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 
 	const isProjectAdmin = useMemo(() => {
 		const user = contributorsData?.find((item) => item.wallet === address);
-		return user && isAdmin(user.permission);
+		return !!user && isAdmin(user.permission);
 	}, [contributorsData, address]);
 
 	const handleTabChange = useCallback((_: any, value: string) => {
