@@ -32,6 +32,7 @@ import { scanUrl } from '@/constant/url';
 import { ProjectABI } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
 import { compareMemberArrays, isAdmin } from '@/utils/member';
+import { useUserStore } from '@/store/user';
 
 export default function Setting({ params }: { params: { id: string } }) {
 	const { stepStrategyRef, stepProfileRef, stepContributorRef } = useProjectInfoRef();
@@ -39,6 +40,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	const [contributorList, setContributorList] = useState<IContributor[]>([]);
+	const { myInfo } = useUserStore();
 
 	const {
 		isLoading: detailLoading,
@@ -63,6 +65,13 @@ export default function Setting({ params }: { params: { id: string } }) {
 		return !!user && isAdmin(user.permission);
 	}, [contributorsData, address]);
 
+	const operatorId = useMemo(() => {
+		if (contributorsData.length === 0 || !myInfo) {
+			return '';
+		}
+		return contributorsData.filter((contributor) => contributor.userId === myInfo?.id)[0]?.id;
+	}, [contributorsData, myInfo]);
+
 	const handleTabChange = useCallback((_: any, value: string) => {
 		setActiveTab(value);
 	}, []);
@@ -75,6 +84,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			if (type === 'profile' && formData) {
 				const { name, intro, avatar } = formData;
 				await editProject({
+					operatorId,
 					id: params.id,
 					name,
 					intro,
@@ -95,6 +105,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 				} = strategyData;
 				const { name, intro, logo } = data!;
 				await editProject({
+					operatorId,
 					id: params.id,
 					name,
 					intro,
@@ -111,7 +122,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			showToast(`Project settings updated`);
 			await mutate();
 		},
-		[data],
+		[data, operatorId],
 	);
 
 	const handleContributorSubmit = useCallback(async () => {
@@ -127,6 +138,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 				contributorList,
 				formData?.contributors as IContributor[],
 			);
+
 			const { addAdminList, removeAdminList, addMemberList, removeMemberList } = diffRes;
 			const isChange =
 				addAdminList.length > 0 ||
