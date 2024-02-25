@@ -68,8 +68,8 @@ export const deleteContribution = (contributionId: string, operatorId: string) =
 
 export interface IAllocationQuery {
 	projectId: string;
-	startDate: number;
-	endDate: number;
+	endDateFrom: number;
+	endDateTo: number;
 }
 
 /**
