@@ -205,8 +205,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 	}, [contribution, contributorList]);
 
 	const contributionDate = useMemo(() => {
-		const {contributionDate, startDate: startTime, endDate: endTime} = contribution;
-		const oldDate = contributionDate ? JSON.parse(contributionDate) : null
+		const { contributionDate, startDate: startTime, endDate: endTime } = contribution;
+		const oldDate = contributionDate ? JSON.parse(contributionDate) : null;
 		const start = startTime || oldDate?.startDate;
 		const end = endTime || oldDate?.endDate;
 		const isSame = isSameDay(new Date(start), new Date(end));

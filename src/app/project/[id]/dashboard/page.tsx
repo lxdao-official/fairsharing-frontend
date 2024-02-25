@@ -17,8 +17,7 @@ import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
 
 export default function Page({ params }: { params: { id: string } }) {
-
-	const [safeUrl, setSafeUrl] = useState('')
+	const [safeUrl, setSafeUrl] = useState('');
 
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 	const { isLoading, data } = useSWR(
@@ -141,11 +140,15 @@ export default function Page({ params }: { params: { id: string } }) {
 	);
 
 	useEffect(() => {
-		const inSafeApp = window.parent.location !== window.location
+		const inSafeApp = window.parent.location !== window.location;
 		if (inSafeApp) {
-			setSafeUrl(`/payment/${params.id}/create`)
+			setSafeUrl(`/payment/${params.id}/create`);
 		} else {
-			setSafeUrl(`https://app.safe.global/share/safe-app?appUrl=${encodeURIComponent(location.origin)}`)
+			setSafeUrl(
+				`https://app.safe.global/share/safe-app?appUrl=${encodeURIComponent(
+					location.origin,
+				)}`,
+			);
 		}
 	}, []);
 

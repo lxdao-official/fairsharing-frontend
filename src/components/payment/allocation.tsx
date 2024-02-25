@@ -19,11 +19,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { endOfDay, startOfDay } from 'date-fns';
+
 import { walletCell } from '@/components/table/cell';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { getAllocationDetails, getContributorList, getMintRecord, IMintRecord } from '@/services';
-import { endOfDay, startOfDay } from 'date-fns';
 
 export interface IAllocationProps {
 	id: string;
@@ -54,23 +55,23 @@ export default function Allocation(props: IAllocationProps) {
 		},
 	});
 
-	const { data: allocationDetails } = useSWR([
-		'getAllocationDetails',
-		props.id,
-		startDate,
-		endDate,
-	], () => getAllocationDetails({
-		projectId: props.id,
-		startDate: new Date(startDate).getTime(),
-		endDate: new Date(endDate).getTime(),
-	}), {
-		fallbackData: {},
-		onSuccess: (data) => console.log('allocationDetails', data),
-	});
+	const { data: allocationDetails } = useSWR(
+		['getAllocationDetails', props.id, startDate, endDate],
+		() =>
+			getAllocationDetails({
+				projectId: props.id,
+				startDate: new Date(startDate).getTime(),
+				endDate: new Date(endDate).getTime(),
+			}),
+		{
+			fallbackData: {},
+			onSuccess: (data) => console.log('allocationDetails', data),
+		},
+	);
 
 	const filterRecordList = useMemo(() => {
 		// allocationDetails里有key才会过滤出来
-		let list = recordList.filter(item => {
+		let list = recordList.filter((item) => {
 			const contributorId = item.contributor.id;
 			const credit = allocationDetails[contributorId];
 			return credit || credit === 0;

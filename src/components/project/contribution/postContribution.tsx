@@ -432,7 +432,7 @@ const PostContribution = ({
 				toIds: postData.contributors,
 				type: typeValue.map((item) => item.label),
 				startDate: new Date(startDate).getTime(),
-				endDate: new Date(endDate).getTime()
+				endDate: new Date(endDate).getTime(),
 				// contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
@@ -684,7 +684,13 @@ const PostContribution = ({
 										<OptionLabel index={index} bgColor={option.color}>
 											{option.label}
 										</OptionLabel>
-										<StyledFlexBox sx={{ flex: '1', justifyContent: 'flex-end', width: '32px' }}>
+										<StyledFlexBox
+											sx={{
+												flex: '1',
+												justifyContent: 'flex-end',
+												width: '32px',
+											}}
+										>
 											{renderTypeEditEntry(option)}
 										</StyledFlexBox>
 									</OptionLi>
@@ -938,7 +944,7 @@ const OptionLabel = styled('span')<{ index: number; bgColor: string }>(({ index,
 	borderRadius: '4px',
 	backgroundColor: bgColor || TagBgColors[index % 10],
 	color: TagColorMap[bgColor] || TagTextColors[index % 10],
-	maxWidth: '400px'
+	maxWidth: '400px',
 }));
 const OptionChip = styled(Chip)<{ index: number; bgColor: string }>(({ index, bgColor }) => ({
 	backgroundColor: bgColor || TagBgColors[index % 10],

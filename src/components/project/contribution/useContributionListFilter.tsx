@@ -75,7 +75,7 @@ const useContributionListFilter = ({
 		const [filterStart, filterEnd] = timestamp;
 		return list.filter(({ endDate, contributionDate }) => {
 			const endTime = endDate;
-			const oldEndTime = contributionDate ? JSON.parse(contributionDate).endDate : null
+			const oldEndTime = contributionDate ? JSON.parse(contributionDate).endDate : null;
 			const end = new Date(endTime || oldEndTime).getTime();
 			return end >= filterStart && end <= filterEnd;
 		});
