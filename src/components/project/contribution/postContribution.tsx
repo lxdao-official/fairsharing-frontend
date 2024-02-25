@@ -122,12 +122,14 @@ const PostContribution = ({
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
+		if (contribution?.startDate) return new Date(contribution?.startDate);
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').startDate;
 		return new Date(endDate);
 	});
 
 	const [endDate, setEndDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
+		if (contribution?.endDate) return new Date(contribution?.endDate);
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').endDate;
 		return new Date(endDate);
 	});
@@ -624,7 +626,7 @@ const PostContribution = ({
 			{showFullPost ? (
 				<>
 					{/*type*/}
-					<StyledFlexBox sx={{ marginTop: '8px' }}>
+					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#type</TagLabel>
 						<Autocomplete
 							multiple
@@ -721,7 +723,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*proof*/}
-					<StyledFlexBox sx={{ marginTop: '8px' }}>
+					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#proof</TagLabel>
 						<StyledInput
 							variant={'standard'}
@@ -736,7 +738,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*date*/}
-					<StyledFlexBox sx={{ marginTop: '16px' }}>
+					<StyledFlexBox sx={{ margin: '-4px 0 -16px', }}>
 						<TagLabel>#date</TagLabel>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
@@ -747,6 +749,7 @@ const PostContribution = ({
 								onOpen={() => setOpenStartDatePicker(true)}
 								onClose={() => setOpenStartDatePicker(false)}
 								sx={{
+
 									width: '120px',
 									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
 										border: 'none',
@@ -782,7 +785,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*to*/}
-					<StyledFlexBox sx={{ marginTop: '8px' }}>
+					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#to</TagLabel>
 						<Autocomplete
 							id="contributor-select"
@@ -920,7 +923,7 @@ const StyledInput = styled(TextField)({
 
 const CreditContainer = styled(StyledFlexBox)({
 	justifyContent: 'center',
-	marginTop: '8px',
+	marginTop: '0',
 	width: '220px',
 	height: '30px',
 	borderRadius: '5px',

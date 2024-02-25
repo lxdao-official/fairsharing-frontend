@@ -15,7 +15,7 @@ import PostContribution from '@/components/project/contribution/postContribution
 import { defaultGateways } from '@/constant/img3';
 
 export default function Page({ params }: { params: { id: string } }) {
-	const [showFullPost, setShowFullPost] = useState(false);
+	const [showFullPost, setShowFullPost] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
 
 	useEffect(() => {
@@ -41,12 +41,12 @@ export default function Page({ params }: { params: { id: string } }) {
 				setShowFullPost(false);
 			}
 		};
-
-		document.addEventListener('click', handleClickOutside);
-
-		return () => {
-			document.removeEventListener('click', handleClickOutside);
-		};
+		//
+		// document.addEventListener('click', handleClickOutside);
+		//
+		// return () => {
+		// 	document.removeEventListener('click', handleClickOutside);
+		// };
 	}, [showFullPost, isEditing]);
 
 	return (
