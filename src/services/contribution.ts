@@ -16,7 +16,11 @@ export interface ICreateContributionParams extends IAuthBody {
 	toIds: string[];
 	uId?: string;
 	type: string[];
-	contributionDate: string;
+	/**
+	 * 2024.02.25 remove contributionDate
+	 */
+	startDate: number;
+	endDate: number;
 }
 
 export interface IUpdateContributionParams {

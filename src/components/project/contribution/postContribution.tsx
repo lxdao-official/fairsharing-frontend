@@ -431,7 +431,9 @@ const PostContribution = ({
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
 				type: typeValue.map((item) => item.label),
-				contributionDate: JSON.stringify({ startDate, endDate }),
+				startDate: new Date(startDate).getTime(),
+				endDate: new Date(endDate).getTime()
+				// contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
 
