@@ -22,7 +22,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { walletCell } from '@/components/table/cell';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { defaultGateways, LogoImage } from '@/constant/img3';
-import { getContributorList, getMintRecord, IMintRecord } from '@/services';
+import { getAllocationDetails, getContributorList, getMintRecord, IMintRecord } from '@/services';
+import { endOfDay, startOfDay } from 'date-fns';
 
 export interface IAllocationProps {
 	id: string;
@@ -35,11 +36,11 @@ export default function Allocation(props: IAllocationProps) {
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
-		return new Date();
+		return startOfDay(new Date());
 	});
 
 	const [endDate, setEndDate] = useState<Date>(() => {
-		return new Date();
+		return endOfDay(new Date());
 	});
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
@@ -53,16 +54,34 @@ export default function Allocation(props: IAllocationProps) {
 		},
 	});
 
+	const { data: allocationDetails } = useSWR([
+		'getAllocationDetails',
+		props.id,
+		startDate,
+		endDate,
+	], () => getAllocationDetails({
+		projectId: props.id,
+		startDate: new Date(startDate).getTime(),
+		endDate: new Date(endDate).getTime(),
+	}), {
+		fallbackData: {},
+		onSuccess: (data) => console.log('allocationDetails', data),
+	});
+
 	const filterRecordList = useMemo(() => {
-		// TODO time filter
-		let list = recordList;
+		// allocationDetails里有key才会过滤出来
+		let list = recordList.filter(item => {
+			const contributorId = item.contributor.id;
+			const credit = allocationDetails[contributorId];
+			return credit || credit === 0;
+		});
 		if (filterContributor !== 'All') {
 			list = list.filter((item) => {
 				return item.contributor.id === filterContributor;
 			});
 		}
 		return list;
-	}, [filterContributor, recordList]);
+	}, [filterContributor, recordList, allocationDetails]);
 
 	const { data: contributorList } = useSWR(
 		['contributor/list', props.id],
@@ -73,10 +92,10 @@ export default function Allocation(props: IAllocationProps) {
 	);
 
 	const claimedAmount = useMemo(() => {
-		return filterRecordList.reduce((acc, cur) => {
-			return acc + cur.credit;
+		return Object.keys(allocationDetails).reduce((acc, cur) => {
+			return acc + allocationDetails[cur];
 		}, 0);
-	}, [filterRecordList]);
+	}, [allocationDetails]);
 
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
@@ -149,11 +168,12 @@ export default function Allocation(props: IAllocationProps) {
 				flex: 1,
 				minWidth: 150,
 				renderCell: (item) => {
+					const credit = allocationDetails[item.id] || 0;
 					return (
 						<StyledFlexBox sx={{ gap: '4px' }}>
 							<Image src="/images/pizza1.png" width={24} height={24} alt="pizza" />
 							<Typography variant="subtitle2" fontSize={14} color="#12C29C">
-								{item.value}
+								{credit}
 							</Typography>
 						</StyledFlexBox>
 					);
@@ -185,6 +205,7 @@ export default function Allocation(props: IAllocationProps) {
 		filterRecordList.length,
 		props.currencyName,
 		props.totalAmount,
+		allocationDetails,
 	]);
 
 	useEffect(() => {
@@ -208,7 +229,12 @@ export default function Allocation(props: IAllocationProps) {
 		},
 		[filterRecordList],
 	);
-	const handleRest = () => {};
+	const handleRest = () => {
+		setStartDate(startOfDay(new Date()));
+		setEndDate(endOfDay(new Date()));
+		setFilterContributor('All');
+		setRecordList(filterRecordList);
+	};
 
 	return (
 		<Container>

@@ -65,3 +65,16 @@ export const prepareClaim = (data: {
 export const deleteContribution = (contributionId: string, operatorId: string) => {
 	return request.delete(`contribution/${contributionId}`, 1, { operatorId });
 };
+
+export interface IAllocationQuery {
+	projectId: string;
+	startDate: number;
+	endDate: number;
+}
+
+/**
+ * res: Record<contributorId, credit>
+ */
+export const getAllocationDetails = (query: IAllocationQuery) => {
+	return request<Record<string, number>>('contribution/allocationDetails', 1, query);
+};
