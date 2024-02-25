@@ -74,13 +74,14 @@ export default function Allocation(props: IAllocationProps) {
 		let list = recordList.filter((item) => {
 			const contributorId = item.contributor.id;
 			const credit = allocationDetails[contributorId];
-			return credit || credit === 0;
+			return !!credit || credit === 0;
 		});
 		if (filterContributor !== 'All') {
 			list = list.filter((item) => {
 				return item.contributor.id === filterContributor;
 			});
 		}
+		console.log('filterRecordList', list);
 		return list;
 	}, [filterContributor, recordList, allocationDetails]);
 
@@ -149,7 +150,8 @@ export default function Allocation(props: IAllocationProps) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					const percentage = (params.row.credit / claimedAmount) * 100;
+					const credit = allocationDetails[params.row.contributorId] || 0;
+					const percentage = (credit / claimedAmount) * 100;
 					return percentage.toFixed(2);
 				},
 				renderCell: (item) => {
@@ -169,7 +171,7 @@ export default function Allocation(props: IAllocationProps) {
 				flex: 1,
 				minWidth: 150,
 				renderCell: (item) => {
-					const credit = allocationDetails[item.id] || 0;
+					const credit = allocationDetails[item.row.contributorId] || 0;
 					return (
 						<StyledFlexBox sx={{ gap: '4px' }}>
 							<Image src="/images/pizza1.png" width={24} height={24} alt="pizza" />
@@ -186,7 +188,8 @@ export default function Allocation(props: IAllocationProps) {
 				sortable: true,
 				minWidth: 200,
 				valueGetter: (params) => {
-					const percentage = params.row.credit / claimedAmount;
+					const credit = allocationDetails[params.row.contributorId] || 0;
+					const percentage = (credit / claimedAmount);
 					const value = props.totalAmount * percentage;
 					return value.toFixed(8);
 				},
