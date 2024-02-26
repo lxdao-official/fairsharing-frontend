@@ -16,11 +16,7 @@ export interface ICreateContributionParams extends IAuthBody {
 	toIds: string[];
 	uId?: string;
 	type: string[];
-	/**
-	 * 2024.02.25 remove contributionDate
-	 */
-	startDate: number;
-	endDate: number;
+	contributionDate: string;
 }
 
 export interface IUpdateContributionParams {
@@ -64,17 +60,4 @@ export const prepareClaim = (data: {
 
 export const deleteContribution = (contributionId: string, operatorId: string) => {
 	return request.delete(`contribution/${contributionId}`, 1, { operatorId });
-};
-
-export interface IAllocationQuery {
-	projectId: string;
-	endDateFrom: number;
-	endDateTo: number;
-}
-
-/**
- * res: Record<contributorId, credit>
- */
-export const getAllocationDetails = (query: IAllocationQuery) => {
-	return request<Record<string, number>>('contribution/allocationDetails', 1, query);
 };
