@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import {
 	Autocomplete,
@@ -74,7 +74,6 @@ export interface IPostContributionProps {
 	isEdit?: boolean;
 	showFullPost?: boolean;
 	setShowFullPost?: (show: boolean) => void;
-	setIsEditing?: (isEditing: boolean) => void;
 }
 
 export interface PostData {
@@ -104,7 +103,6 @@ const PostContribution = ({
 	isEdit,
 	showFullPost = true,
 	setShowFullPost,
-	setIsEditing,
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
@@ -122,14 +120,12 @@ const PostContribution = ({
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
-		if (contribution?.startDate) return new Date(contribution?.startDate);
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').startDate;
 		return new Date(endDate);
 	});
 
 	const [endDate, setEndDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
-		if (contribution?.endDate) return new Date(contribution?.endDate);
 		const endDate = JSON.parse(contribution?.contributionDate || '{}').endDate;
 		return new Date(endDate);
 	});
@@ -188,7 +184,6 @@ const PostContribution = ({
 			setToValue(cache.toValue);
 			setContributors([cache.toValue.id]);
 			setCredit(cache.credit);
-			setIsEditing?.(true);
 		}
 	}, []);
 
@@ -289,23 +284,7 @@ const PostContribution = ({
 		setTypeValue([]);
 		setStartDate(new Date());
 		setEndDate(new Date());
-		setIsEditing?.(false);
 	};
-
-	useEffect(() => {
-		if (
-			!detail &&
-			!proof &&
-			contributors.length === 0 &&
-			!toValue &&
-			!credit &&
-			typeValue.length === 0
-		) {
-			setIsEditing?.(false);
-		} else {
-			setIsEditing?.(true);
-		}
-	}, [detail, proof, contributors, toValue, credit, typeValue]);
 
 	const handleDetailInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setDetail(event.target.value);
@@ -433,9 +412,7 @@ const PostContribution = ({
 				credit: Number(postData.credit),
 				toIds: postData.contributors,
 				type: typeValue.map((item) => item.label),
-				startDate: new Date(startDate).getTime(),
-				endDate: new Date(endDate).getTime(),
-				// contributionDate: JSON.stringify({ startDate, endDate }),
+				contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
 
@@ -626,7 +603,7 @@ const PostContribution = ({
 			{showFullPost ? (
 				<>
 					{/*type*/}
-					<StyledFlexBox sx={{ marginTop: '0' }}>
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
 						<TagLabel>#type</TagLabel>
 						<Autocomplete
 							multiple
@@ -687,11 +664,7 @@ const PostContribution = ({
 											{option.label}
 										</OptionLabel>
 										<StyledFlexBox
-											sx={{
-												flex: '1',
-												justifyContent: 'flex-end',
-												width: '32px',
-											}}
+											sx={{ flex: '1', justifyContent: 'flex-end' }}
 										>
 											{renderTypeEditEntry(option)}
 										</StyledFlexBox>
@@ -716,14 +689,14 @@ const PostContribution = ({
 							ListboxProps={{
 								style: {
 									maxHeight: '1600px', // 设置下拉菜单的最大高度
-									overflow: 'auto', // 添加滚动条
-								},
+									overflow: 'auto'    // 添加滚动条
+								}
 							}}
 						/>
 					</StyledFlexBox>
 
 					{/*proof*/}
-					<StyledFlexBox sx={{ marginTop: '0' }}>
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
 						<TagLabel>#proof</TagLabel>
 						<StyledInput
 							variant={'standard'}
@@ -738,7 +711,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*date*/}
-					<StyledFlexBox sx={{ margin: '-4px 0 -16px', }}>
+					<StyledFlexBox sx={{ marginTop: '16px' }}>
 						<TagLabel>#date</TagLabel>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
@@ -749,7 +722,6 @@ const PostContribution = ({
 								onOpen={() => setOpenStartDatePicker(true)}
 								onClose={() => setOpenStartDatePicker(false)}
 								sx={{
-
 									width: '120px',
 									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
 										border: 'none',
@@ -785,7 +757,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*to*/}
-					<StyledFlexBox sx={{ marginTop: '0' }}>
+					<StyledFlexBox sx={{ marginTop: '8px' }}>
 						<TagLabel>#to</TagLabel>
 						<Autocomplete
 							id="contributor-select"
@@ -923,7 +895,7 @@ const StyledInput = styled(TextField)({
 
 const CreditContainer = styled(StyledFlexBox)({
 	justifyContent: 'center',
-	marginTop: '0',
+	marginTop: '8px',
 	width: '220px',
 	height: '30px',
 	borderRadius: '5px',
@@ -947,7 +919,6 @@ const OptionLabel = styled('span')<{ index: number; bgColor: string }>(({ index,
 	borderRadius: '4px',
 	backgroundColor: bgColor || TagBgColors[index % 10],
 	color: TagColorMap[bgColor] || TagTextColors[index % 10],
-	maxWidth: '400px',
 }));
 const OptionChip = styled(Chip)<{ index: number; bgColor: string }>(({ index, bgColor }) => ({
 	backgroundColor: bgColor || TagBgColors[index % 10],

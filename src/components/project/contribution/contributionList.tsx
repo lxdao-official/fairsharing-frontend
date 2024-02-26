@@ -150,13 +150,13 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		{ fallbackData: [] },
 	);
 
-	// useEffect(() => {
-	// 	if (isLoading) {
-	// 		openGlobalLoading();
-	// 	} else {
-	// 		closeGlobalLoading();
-	// 	}
-	// }, [isLoading]);
+	useEffect(() => {
+		if (isLoading) {
+			openGlobalLoading();
+		} else {
+			closeGlobalLoading();
+		}
+	}, [isLoading]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		() =>

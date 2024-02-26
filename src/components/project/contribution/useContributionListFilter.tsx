@@ -73,11 +73,9 @@ const useContributionListFilter = ({
 	const filterByPeriod = (list: IContribution[]) => {
 		if (!projectDetail) return list;
 		const [filterStart, filterEnd] = timestamp;
-		return list.filter(({ endDate, contributionDate }) => {
-			const endTime = endDate;
-			const oldEndTime = contributionDate ? JSON.parse(contributionDate).endDate : null;
-			const end = new Date(endTime || oldEndTime).getTime();
-			return end >= filterStart && end <= filterEnd;
+		return list.filter(({ createAt }) => {
+			const startTime = new Date(createAt).getTime();
+			return startTime >= filterStart && startTime <= filterEnd;
 		});
 	};
 

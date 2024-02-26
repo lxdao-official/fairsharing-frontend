@@ -27,7 +27,6 @@ export interface CreateProjectParams {
 }
 
 export interface EditProjectParams {
-	operatorId: string;
 	id: string;
 	name: string;
 	logo: string;
