@@ -33,7 +33,12 @@ export interface IContribution {
 	updatedAt: string;
 	createAt: string;
 	type: string[];
-	contributionDate: string;
+	/**
+	 * 2024.02.25 add startDate and endDate, remove contributionDate
+	 */
+	contributionDate: string | null;
+	startDate: number | Date | null;
+	endDate: number | Date | null;
 }
 
 export enum Status {
