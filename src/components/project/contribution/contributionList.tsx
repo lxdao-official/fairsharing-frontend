@@ -615,7 +615,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						height={96}
 					/>
 					<Typography color={'#0F172A'} variant={'subtitle1'}>
-						No contributions yet. Be the trailblazer and drop the first one!
+						No contributions found. Refine the contribution end date filter.
 					</Typography>
 				</Stack>
 			)}
