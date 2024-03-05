@@ -55,6 +55,7 @@
     "valtio": "^1.11.1",
     "viem": "^1.5.3",
     "wagmi": "^1.3.9",
+    "web3-validator": "^2.0.4",
     "zod": "^3.22.3"
   },
   "devDependencies": {
