@@ -161,7 +161,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		} catch (err) {
 			saveContractFail = true;
 			console.error('【projectContract】 setMembers error', err);
-			showToast('Failed to save onchain, please try again.', 'error');
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		}
 
 		if (saveContractFail) return;
