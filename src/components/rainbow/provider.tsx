@@ -3,9 +3,11 @@
 import * as React from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 import {
-	RainbowKitProvider, getDefaultConfig,
+	RainbowKitProvider, getDefaultConfig, Theme, darkTheme,
 } from '@rainbow-me/rainbowkit';
 
+// @ts-ignore
+import merge from 'lodash.merge';
 import { WagmiProvider } from 'wagmi';
 import {
 	optimism,
@@ -44,13 +46,20 @@ const wagmiConfig = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
+const myTheme = merge(darkTheme(), {
+	colors: {
+		accentColor: '#0F172A',
+		connectButtonBackground: '#0F172A',
+	},
+} as Theme);
+
 export function RainbowProvider({ children }: { children: React.ReactNode }) {
 	const [mounted, setMounted] = React.useState(false);
 	React.useEffect(() => setMounted(true), []);
 	return (
 		<WagmiProvider config={wagmiConfig}>
 			<QueryClientProvider client={queryClient}>
-				<RainbowKitProvider>
+				<RainbowKitProvider theme={myTheme}>
 					{mounted && children}
 				</RainbowKitProvider>
 			</QueryClientProvider>

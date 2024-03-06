@@ -44,6 +44,7 @@
     "eslint-config-next": "13.4.12",
     "ethers": "^6.7.1",
     "graphql": "^16.8.0",
+    "lodash.merge": "^4.6.2",
     "next": "13.4.12",
     "nextjs-toploader": "^1.4.2",
     "react": "18.2.0",
