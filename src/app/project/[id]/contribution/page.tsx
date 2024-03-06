@@ -21,7 +21,6 @@ import usePrivilege from '@/components/project/contribution/usePrivilege';
 import { InfoIcon } from '@/icons';
 import { isProd } from '@/constant/env';
 
-
 export default function Page({ params }: { params: { id: string } }) {
 	const [showFullPost, setShowFullPost] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);

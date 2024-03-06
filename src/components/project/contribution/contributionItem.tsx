@@ -390,6 +390,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		const own = contributorList.find((contributor) => contributor.wallet === myAddress);
+		if (!own) {
+			showToast(`You can't claim as you're not in the project.`);
+			return false;
+		}
 		// 非本人的不允许claim
 		if (contribution.toIds[0] !== operatorId) {
 			showToast(`This contribution isn't yours to claim.`, 'error');

@@ -4,6 +4,11 @@ import { Button, List, ListItem, ListItemIcon, ListItemText, Typography } from '
 import CircleIcon from '@mui/icons-material/Circle';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
+import { useMemo } from 'react';
+
+import { DefaultEasChainConfig } from '@/constant/contract';
+import { showToast } from '@/store/utils';
+import { isProd } from '@/constant/env';
 
 const StartTip = [
 	'For a project, we facilitate it by recording contributions and ensuring fair allocation.',
@@ -20,13 +25,26 @@ export interface IStepStartProps extends IStepBaseProps {}
 
 const StepStart = ({ step, setActiveStep }: IStepStartProps) => {
 	const { openConnectModal } = useConnectModal();
-	const { address } = useAccount();
+	const { address, chainId } = useAccount();
+
+	const isChainCorrect = useMemo(() => {
+		if (!chainId) return false;
+		return chainId === DefaultEasChainConfig.chainId;
+	}, [chainId]);
 
 	const onClickStart = () => {
 		if (!address) {
 			openConnectModal?.();
 			return false;
 		}
+		if (!isChainCorrect) {
+			showToast(
+				`Switch the network to ${isProd ? 'Optimism' : 'Optimism Sepolia'} in your wallet.`,
+				'error',
+			);
+			return false;
+		}
+
 		setActiveStep(step + 1);
 	};
 

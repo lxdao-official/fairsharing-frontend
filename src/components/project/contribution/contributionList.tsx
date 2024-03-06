@@ -430,6 +430,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		if (!canClaimedContributionList || canClaimedContributionList.length === 0) {
 			return;
 		}
+		const own = contributorList.find((contributor) => contributor.wallet === myAddress);
+		if (!own) {
+			showToast(`You can't claim as you're not in the project.`);
+			return false;
+		}
 		try {
 			openGlobalLoading();
 			const claimSchemaUid = EasSchemaMap.claim;

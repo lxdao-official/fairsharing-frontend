@@ -7,14 +7,14 @@ import { getContributorList } from '@/services';
 import { DefaultEasChainConfig } from '@/constant/contract';
 
 export interface IProps {
-	projectId: string;
+	projectId?: string;
 }
 
 const usePrivilege = ({ projectId }: IProps) => {
 	const { address, chainId } = useAccount();
 	const { data: contributorList } = useSWR(
 		['contributor/list', projectId],
-		() => getContributorList(projectId),
+		() => (projectId ? getContributorList(projectId) : Promise.resolve([])),
 		{
 			fallbackData: [],
 			onSuccess: (data) => {},
