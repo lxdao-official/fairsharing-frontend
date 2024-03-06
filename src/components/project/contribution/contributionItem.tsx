@@ -17,7 +17,7 @@ import { format, formatDistance, isSameDay } from 'date-fns';
 
 import Link from 'next/link';
 
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -103,7 +103,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	} = props;
 
 	const { myInfo } = useUserStore();
-	const { chain } = useNetwork();
+	const { chain } = useAccount();
 	const { eas, getEasScanURL, submitSignedAttestation, getOffchain, easConfig } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();

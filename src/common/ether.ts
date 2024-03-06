@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { type PublicClient, usePublicClient } from 'wagmi';
+import {  usePublicClient } from 'wagmi';
 import { FallbackProvider, JsonRpcProvider } from 'ethers';
 import { type HttpTransport } from 'viem';
-import { type WalletClient, useWalletClient } from 'wagmi';
+import {  useWalletClient } from 'wagmi';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 
 import { DefaultEasChainConfig } from '@/constant/contract';
 
-export function publicClientToProvider(publicClient: PublicClient) {
+export function publicClientToProvider(publicClient: any) {
 	const { chain, transport } = publicClient;
 	const network = {
 		chainId: chain.id,
@@ -30,7 +30,7 @@ export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
 	return React.useMemo(() => publicClientToProvider(publicClient), [publicClient]);
 }
 
-export function walletClientToSigner(walletClient: WalletClient) {
+export function walletClientToSigner(walletClient: any) {
 	const { account, chain, transport } = walletClient;
 	const network = {
 		chainId: chain.id,

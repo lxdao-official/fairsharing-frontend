@@ -17,7 +17,7 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import useSWR from 'swr';
 
@@ -110,7 +110,7 @@ BigInt.prototype.toJSON = function () {
 
 const ContributionList = ({ projectId, showHeader = true, wallet }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
-	const network = useNetwork();
+	const { chainId } = useAccount()
 	const { address: myAddress } = useAccount();
 	const { eas } = useEas();
 
@@ -317,7 +317,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		try {
 			// uids存在才会进行计算
 			const ids = uIds.filter((id) => !!id);
-			const { attestations } = await getEASContributionList(ids, network.chain?.id);
+			const { attestations } = await getEASContributionList(ids, chainId);
 			const easList = attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
@@ -334,7 +334,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const fetchEasVoteList = async (uIds: string[]) => {
 		if (uIds.length === 0) return Promise.resolve([]);
 		try {
-			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
+			const { attestations } = await getEASVoteRecord(uIds as string[], chainId);
 			return attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
@@ -443,7 +443,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			const signatures = await prepareClaim({
 				wallet: myAddress as string,
 				toWallets,
-				chainId: network.chain?.id as number,
+				chainId: chainId as number,
 				contributionIds: contributionIds,
 			});
 

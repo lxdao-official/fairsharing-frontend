@@ -6,7 +6,7 @@ import {
 	Offchain,
 } from '@ethereum-attestation-service/eas-sdk';
 
-import { useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import axios from 'axios';
 
@@ -23,14 +23,14 @@ export type StoreIPFSActionReturn = {
 
 const useEas = () => {
 	const signer = useEthersSigner();
-	const network = useNetwork();
+	const { chainId } = useAccount()
 
 	const easConfig = useMemo(() => {
 		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
-			(config) => config.chainId === network.chain?.id,
+			(config) => config.chainId === chainId,
 		);
 		return activeChainConfig || DefaultEasChainConfig;
-	}, [network]);
+	}, [chainId]);
 
 	const eas = useMemo(() => {
 		const EASContractAddress = easConfig?.contractAddress;

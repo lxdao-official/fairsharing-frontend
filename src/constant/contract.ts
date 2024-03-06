@@ -78,7 +78,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			version: '1.0.2',
 			contractAddress: '0x4200000000000000000000000000000000000021',
 			schemaRegistryAddress: '0x4200000000000000000000000000000000000020',
-			etherscanURL: 'https://sepolia-optimistic.etherscan.io',
+			etherscanURL: 'https://optimism-sepolia.easscan.org',
 			rpcProvider: `https://sepolia.optimism.io`,
 			graphQLEndpoint: 'https://optimism-sepolia.easscan.org/graphql',
 		}
