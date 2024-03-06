@@ -1,8 +1,8 @@
 import * as React from 'react';
-import {  usePublicClient } from 'wagmi';
+import { usePublicClient } from 'wagmi';
 import { FallbackProvider, JsonRpcProvider } from 'ethers';
 import { type HttpTransport } from 'viem';
-import {  useWalletClient } from 'wagmi';
+import { useWalletClient } from 'wagmi';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 
 import { DefaultEasChainConfig } from '@/constant/contract';
@@ -44,7 +44,9 @@ export function walletClientToSigner(walletClient: any) {
 
 /** Hook to convert a viem Wallet Client to an ethers.js Signer. */
 export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
-	const { data: walletClient } = useWalletClient({ chainId: chainId || DefaultEasChainConfig.chainId });
+	const { data: walletClient } = useWalletClient({
+		chainId: chainId || DefaultEasChainConfig.chainId,
+	});
 	return React.useMemo(
 		() => (walletClient ? walletClientToSigner(walletClient) : undefined),
 		[walletClient],

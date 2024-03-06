@@ -10,15 +10,19 @@ import { Img3, Img3Provider } from '@lxdao/img3';
 
 import Link from 'next/link';
 
+import { endOfYear, startOfYear } from 'date-fns';
+
+import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IMintRecord, getMintRecord, getContributorList, getAllocationDetails } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
-import { endOfDay, endOfYear, startOfDay, startOfYear } from 'date-fns';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [safeUrl, setSafeUrl] = useState('');
@@ -193,7 +197,9 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	return (
 		<div style={{ width: '100%' }}>
-			<Typography variant="h3" sx={{ marginBottom: '30px' }}>Dashboard</Typography>
+			<Typography variant="h3" sx={{ marginBottom: '30px' }}>
+				Dashboard
+			</Typography>
 
 			<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
 				<StyledFlexBox>
@@ -240,7 +246,12 @@ export default function Page({ params }: { params: { id: string } }) {
 							/>
 						</LocalizationProvider>
 					</DateContainer>
-					<TextField label="Search" size="small" onChange={handleSearch} sx={{ marginLeft: '20px' }} />
+					<TextField
+						label="Search"
+						size="small"
+						onChange={handleSearch}
+						sx={{ marginLeft: '20px' }}
+					/>
 				</StyledFlexBox>
 				<Link href={safeUrl}>
 					<Button variant={'contained'} sx={{ marginLeft: '16px' }}>

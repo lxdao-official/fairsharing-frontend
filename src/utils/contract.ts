@@ -17,7 +17,8 @@ export function getVoteStrategyABI(voteApproveType: VoteApproveEnum) {
 }
 
 export function getVoteStrategyContract(voteApproveType: VoteApproveEnum): string {
-	const { RelativeV1, RelativeV2, AbsoluteV2, AbsoluteV1 } = DefaultContractConfig.voteStrategyMap;
+	const { RelativeV1, RelativeV2, AbsoluteV2, AbsoluteV1 } =
+		DefaultContractConfig.voteStrategyMap;
 	switch (voteApproveType) {
 		case VoteApproveEnum.ABSOLUTE1:
 			return AbsoluteV1;

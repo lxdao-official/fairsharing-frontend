@@ -27,6 +27,8 @@ import Image from 'next/image';
 
 import { ethers } from 'ethers';
 
+import { endOfYear, startOfYear } from 'date-fns';
+
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
@@ -67,7 +69,6 @@ import useContributionListFilter from '@/components/project/contribution/useCont
 import useEas from '@/hooks/useEas';
 
 import ContributionItem, { IVoteData } from './contributionItem';
-import { endOfYear, startOfYear } from 'date-fns';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -110,7 +111,7 @@ BigInt.prototype.toJSON = function () {
 
 const ContributionList = ({ projectId, showHeader = true, wallet }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
-	const { chainId } = useAccount()
+	const { chainId } = useAccount();
 	const { address: myAddress } = useAccount();
 	const { eas } = useEas();
 
@@ -158,16 +159,23 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		() =>
 			wallet
-				? 'contribution/list/wallet' + projectId + wallet + curPage + pageSize + dateFrom + dateTo
+				? 'contribution/list/wallet' +
+				  projectId +
+				  wallet +
+				  curPage +
+				  pageSize +
+				  dateFrom +
+				  dateTo
 				: 'contribution/list/wallet' + projectId + curPage + pageSize + dateFrom + dateTo,
-		() => fetchContributionList({
-			projectId,
-			curPage,
-			pageSize,
-			wallet,
-			endDateFrom: dateFrom.getTime(),
-			endDateTo: dateTo.getTime(),
-		}),
+		() =>
+			fetchContributionList({
+				projectId,
+				curPage,
+				pageSize,
+				wallet,
+				endDateFrom: dateFrom.getTime(),
+				endDateTo: dateTo.getTime(),
+			}),
 		{
 			fallbackData: [],
 			onSuccess: (data) => {
@@ -238,14 +246,19 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const [canClaimedMap, setCanClaimedMap] = useState<Record<string, IContribution>>({});
 
-	const { renderFilter, filterContributionList, canClaimedContributionList, endDateFrom, endDateTo } =
-		useContributionListFilter({
-			contributionList,
-			contributorList,
-			projectDetail,
-			easVoteNumberBySigner,
-			canClaimedMap,
-		});
+	const {
+		renderFilter,
+		filterContributionList,
+		canClaimedContributionList,
+		endDateFrom,
+		endDateTo,
+	} = useContributionListFilter({
+		contributionList,
+		contributorList,
+		projectDetail,
+		easVoteNumberBySigner,
+		canClaimedMap,
+	});
 
 	const canClaimTotalCredit = useMemo(() => {
 		return canClaimedContributionList.reduce((pre, cur) => pre + cur.credit, 0);
@@ -289,8 +302,8 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		curPage: number;
 		pageSize: number;
 		wallet?: string;
-		endDateFrom?: number
-		endDateTo?: number
+		endDateFrom?: number;
+		endDateTo?: number;
 	}) => {
 		try {
 			// openGlobalLoading();
@@ -303,7 +316,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				endDateFrom,
 				endDateTo,
 			});
-			const filterList = list.filter(item => item.status !== Status.UNREADY);
+			const filterList = list.filter((item) => item.status !== Status.UNREADY);
 			setTotal(filterList.length);
 			return filterList;
 		} catch (err) {
@@ -635,9 +648,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						width={96}
 						height={96}
 					/>
-					{ isInit ? <Typography color={'#0F172A'} variant={'subtitle1'}>
-						No contributions found. Refine the contribution end date filter.
-					</Typography> : null}
+					{isInit ? (
+						<Typography color={'#0F172A'} variant={'subtitle1'}>
+							No contributions found. Refine the contribution end date filter.
+						</Typography>
+					) : null}
 				</Stack>
 			)}
 

@@ -49,9 +49,9 @@ export const updateContributionStatus = (cid: string, params: IUpdateContributio
 
 export interface IContributionListParams extends PageListParams {
 	projectId: string;
-	wallet?: string
-	endDateFrom?: number
-	endDateTo?: number
+	wallet?: string;
+	endDateFrom?: number;
+	endDateTo?: number;
 }
 export const getContributionList = (params: IContributionListParams) => {
 	return request<PageListData<IContribution>>('contribution/list', 1, params);

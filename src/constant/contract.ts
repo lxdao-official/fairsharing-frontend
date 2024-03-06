@@ -15,21 +15,21 @@ export interface EASChainConfig {
 
 export interface IContractConfig {
 	schema: {
-		contribution: string,
-		vote: string,
-		claim: string,
-	},
-	projectRegisterUpgradeableProxy: string,
+		contribution: string;
+		vote: string;
+		claim: string;
+	};
+	projectRegisterUpgradeableProxy: string;
 	voteStrategyMap: {
-		RelativeV1: string,
-		RelativeV2: string,
-		AbsoluteV1: string,
-		AbsoluteV2: string
-	},
-	easChainConfig: EASChainConfig
+		RelativeV1: string;
+		RelativeV2: string;
+		AbsoluteV1: string;
+		AbsoluteV2: string;
+	};
+	easChainConfig: EASChainConfig;
 }
 
-export type IChainType = 'Optimism' | 'OptimismSepolia' | 'OptimismGoerli'
+export type IChainType = 'Optimism' | 'OptimismSepolia' | 'OptimismGoerli';
 
 export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 	Optimism: {
@@ -38,7 +38,8 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
 			claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
 		},
-		projectRegisterUpgradeableProxy: process.env.NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER as string,
+		projectRegisterUpgradeableProxy: process.env
+			.NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER as string,
 		voteStrategyMap: {
 			RelativeV1: process.env.NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V1 as string,
 			RelativeV2: process.env.NEXT_PUBLIC_CONTRACT_VOTE_STRATEGY_RELATIVE_V2 as string,
@@ -55,7 +56,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			etherscanURL: 'https://optimism.easscan.org',
 			rpcProvider: 'https://opt-mainnet.g.alchemy.com/v2',
 			graphQLEndpoint: 'https://optimism.easscan.org/graphql',
-		}
+		},
 	},
 	OptimismSepolia: {
 		schema: {
@@ -68,7 +69,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			RelativeV1: '0x7c0a966f373a3935D51fa29a239FC54e1d981aA6',
 			RelativeV2: '0x4911fC85BfED269f7A37214028CF428C637Bc196',
 			AbsoluteV1: '0x9843cdD2F79723596df556068759cDA510602b92',
-			AbsoluteV2: '0xe5ffAF764995fD864651bb71f4bb1d6ffe17665F'
+			AbsoluteV2: '0xe5ffAF764995fD864651bb71f4bb1d6ffe17665F',
 		},
 		// https://docs.optimism.io/chain/networks
 		easChainConfig: {
@@ -81,7 +82,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			etherscanURL: 'https://optimism-sepolia.easscan.org',
 			rpcProvider: `https://sepolia.optimism.io`,
 			graphQLEndpoint: 'https://optimism-sepolia.easscan.org/graphql',
-		}
+		},
 	},
 	OptimismGoerli: {
 		schema: {
@@ -94,7 +95,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			RelativeV1: '0xCdff95c4a99c1A645D6Be65c01be027cFE8cDC26',
 			RelativeV2: '0xD52A7eF9E7736506988c3B9b1a7Ffde451a236f7',
 			AbsoluteV1: '0xE0289920f9aB0d1303e6c53CE3A124509fbe55e1',
-			AbsoluteV2: '0xF919c9C0345f381de69EAA89ED20791Aca00CFcE'
+			AbsoluteV2: '0xF919c9C0345f381de69EAA89ED20791Aca00CFcE',
 		},
 		easChainConfig: {
 			chainId: 420,
@@ -106,17 +107,19 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			etherscanURL: 'https://optimism-goerli-bedrock.easscan.org',
 			rpcProvider: `https://opt-goerli.g.alchemy.com/v2`,
 			graphQLEndpoint: 'https://optimism-goerli-bedrock.easscan.org/graphql',
-		}
-	}
-}
+		},
+	},
+};
 export const EAS_CHAIN_CONFIGS: EASChainConfig[] = [
 	ContractConfigMap.Optimism.easChainConfig,
 	ContractConfigMap.OptimismGoerli.easChainConfig,
-	ContractConfigMap.OptimismSepolia.easChainConfig
+	ContractConfigMap.OptimismSepolia.easChainConfig,
 ];
 
-export const DefaultContractConfig = isProd ? ContractConfigMap.Optimism : ContractConfigMap.OptimismSepolia
-export const DefaultEasChainConfig = DefaultContractConfig.easChainConfig
+export const DefaultContractConfig = isProd
+	? ContractConfigMap.Optimism
+	: ContractConfigMap.OptimismSepolia;
+export const DefaultEasChainConfig = DefaultContractConfig.easChainConfig;
 
 /**
  * 本地开发使用.env.local里的变量, 线上从 vercel 获取环境变量

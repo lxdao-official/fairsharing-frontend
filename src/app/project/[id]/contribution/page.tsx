@@ -6,6 +6,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { Img3Provider } from '@lxdao/img3';
 
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+import Link from 'next/link';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import ContributionList from '@/components/project/contribution/contributionList';
@@ -15,17 +19,17 @@ import PostContribution from '@/components/project/contribution/postContribution
 import { defaultGateways } from '@/constant/img3';
 import usePrivilege from '@/components/project/contribution/usePrivilege';
 import { InfoIcon } from '@/icons';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { isProd } from '@/constant/env';
-import Link from 'next/link';
+
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [showFullPost, setShowFullPost] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
 
 	const { openConnectModal } = useConnectModal();
-	const { isWalletConnected, isChainCorrect, isProjectContributor } = usePrivilege({ projectId: params.id });
-
+	const { isWalletConnected, isChainCorrect, isProjectContributor } = usePrivilege({
+		projectId: params.id,
+	});
 
 	const showPost = useMemo(() => {
 		return isWalletConnected && isChainCorrect && isProjectContributor;
@@ -97,41 +101,54 @@ export default function Page({ params }: { params: { id: string } }) {
 							<InfoIcon width={22} height={22} />
 						</InfoIconContainer>
 						<PrivilegeContent>
-							{!isWalletConnected ?
+							{!isWalletConnected ? (
 								<>
-									<TypographyButton onClick={onConnectWallet}>Connect your wallet</TypographyButton>
+									<TypographyButton onClick={onConnectWallet}>
+										Connect your wallet
+									</TypographyButton>
 									<Typography>to post a contribution.</Typography>
 								</>
-								: !isChainCorrect ?
-									<>
-										<Typography>
-											Switch the network to {isProd ? <strong>Optimism</strong> :
-											<strong>Optimism Sepolia</strong>} in your wallet.
-										</Typography>
-									</>
-									: !isProjectContributor ?
-										<div>
-											<Typography>Your wallet is not linked to this project. Select an option to
-												proceed:</Typography>
-											<ul style={{ listStyle: 'initial', paddingLeft: '20px' }}>
-												<li><Typography>Reach out to the admin to be added.</Typography></li>
-												<li><Typography>Switch to the correct wallet.</Typography></li>
-												<li>
-													<StyledFlexBox>
-														<Link href={'/project/create'}>
-															<TypographyButton>Create</TypographyButton>
-														</Link>
-														<Typography>
-															a new project.
-														</Typography>
-													</StyledFlexBox>
-												</li>
-											</ul>
-										</div> : null}
+							) : !isChainCorrect ? (
+								<>
+									<Typography>
+										Switch the network to{' '}
+										{isProd ? (
+											<strong>Optimism</strong>
+										) : (
+											<strong>Optimism Sepolia</strong>
+										)}{' '}
+										in your wallet.
+									</Typography>
+								</>
+							) : !isProjectContributor ? (
+								<div>
+									<Typography>
+										Your wallet is not linked to this project. Select an option
+										to proceed:
+									</Typography>
+									<ul style={{ listStyle: 'initial', paddingLeft: '20px' }}>
+										<li>
+											<Typography>
+												Reach out to the admin to be added.
+											</Typography>
+										</li>
+										<li>
+											<Typography>Switch to the correct wallet.</Typography>
+										</li>
+										<li>
+											<StyledFlexBox>
+												<Link href={'/project/create'}>
+													<TypographyButton>Create</TypographyButton>
+												</Link>
+												<Typography>a new project.</Typography>
+											</StyledFlexBox>
+										</li>
+									</ul>
+								</div>
+							) : null}
 						</PrivilegeContent>
 					</PrivilegeContainer>
 				)}
-
 
 				<ContributionList projectId={params.id} />
 			</div>
@@ -149,7 +166,7 @@ const PrivilegeContainer = styled(StyledFlexBox)({
 });
 const PrivilegeContent = styled(StyledFlexBox)({
 	// marginLeft: '12px',
-	minHeight: '38px'
+	minHeight: '38px',
 });
 const InfoIconContainer = styled('div')({
 	display: 'flex',

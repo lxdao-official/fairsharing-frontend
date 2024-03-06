@@ -23,12 +23,10 @@ export type StoreIPFSActionReturn = {
 
 const useEas = () => {
 	const signer = useEthersSigner();
-	const { chainId } = useAccount()
+	const { chainId } = useAccount();
 
 	const easConfig = useMemo(() => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
-			(config) => config.chainId === chainId,
-		);
+		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === chainId);
 		return activeChainConfig || DefaultEasChainConfig;
 	}, [chainId]);
 
@@ -41,7 +39,7 @@ const useEas = () => {
 	}, [signer, easConfig]);
 
 	const getEasScanURL = () => {
-		return easConfig.etherscanURL
+		return easConfig.etherscanURL;
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {

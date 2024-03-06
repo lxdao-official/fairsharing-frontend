@@ -24,7 +24,7 @@ import {
 
 import AddIcon from '@mui/icons-material/Add';
 
-import { isAddress as checksumIsAddress } from 'web3-validator'
+import { isAddress as checksumIsAddress } from 'web3-validator';
 
 import { useAccount } from 'wagmi';
 

@@ -117,5 +117,5 @@ export {
 	LinkIcon,
 	DeleteIcon,
 	CloseIcon,
-	InfoIcon
+	InfoIcon,
 };

@@ -189,7 +189,7 @@ export default function Allocation(props: IAllocationProps) {
 				minWidth: 200,
 				valueGetter: (params) => {
 					const credit = allocationDetails[params.row.contributorId] || 0;
-					const percentage = (credit / claimedAmount);
+					const percentage = credit / claimedAmount;
 					const value = props.totalAmount * percentage;
 					return value.toFixed(8);
 				},

@@ -738,7 +738,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*date*/}
-					<StyledFlexBox sx={{ margin: '-4px 0 -16px', }}>
+					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
 						<TagLabel>#date</TagLabel>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
@@ -749,7 +749,6 @@ const PostContribution = ({
 								onOpen={() => setOpenStartDatePicker(true)}
 								onClose={() => setOpenStartDatePicker(false)}
 								sx={{
-
 									width: '120px',
 									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
 										border: 'none',

@@ -1,11 +1,13 @@
 import { MenuItem, Select, SelectChangeEvent, styled, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-	addYears, endOfDay,
+	addYears,
+	endOfDay,
 	endOfMonth,
 	endOfQuarter,
 	endOfWeek,
-	endOfYear, startOfDay,
+	endOfYear,
+	startOfDay,
 	startOfQuarter,
 	startOfWeek,
 	startOfYear,
@@ -15,12 +17,15 @@ import { startOfMonth } from 'date-fns/fp';
 
 import { useAccount } from 'wagmi';
 
+import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject, Status } from '@/services';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -162,8 +167,8 @@ const useContributionListFilter = ({
 		setFilterPeriod(PeriodEnum.All);
 		setFilterVoteStatus(VoteStatusEnum.All);
 		setFilterContributor('All');
-		setEndDateFrom(startOfYear(new Date()))
-		setEndDateTo(endOfYear(new Date()))
+		setEndDateFrom(startOfYear(new Date()));
+		setEndDateTo(endOfYear(new Date()));
 	};
 	const renderFilter = (
 		<StyledFlexBox>
@@ -258,7 +263,13 @@ const useContributionListFilter = ({
 		</StyledFlexBox>
 	);
 
-	return { filterContributionList, renderFilter, canClaimedContributionList, endDateFrom, endDateTo };
+	return {
+		filterContributionList,
+		renderFilter,
+		canClaimedContributionList,
+		endDateFrom,
+		endDateTo,
+	};
 };
 
 export default useContributionListFilter;
