@@ -1,11 +1,11 @@
-import { MenuItem, Select, SelectChangeEvent, styled } from '@mui/material';
+import { MenuItem, Select, SelectChangeEvent, styled, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-	addYears,
+	addYears, endOfDay,
 	endOfMonth,
 	endOfQuarter,
 	endOfWeek,
-	endOfYear,
+	endOfYear, startOfDay,
 	startOfQuarter,
 	startOfWeek,
 	startOfYear,
@@ -18,6 +18,9 @@ import { useAccount } from 'wagmi';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor, IProject, Status } from '@/services';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 export enum PeriodEnum {
 	All = 'All',
@@ -53,6 +56,11 @@ const useContributionListFilter = ({
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
 	const [filterVoteStatus, setFilterVoteStatus] = useState(VoteStatusEnum.All);
 	const [filterContributor, setFilterContributor] = useState('All');
+
+	const [endDateFrom, setEndDateFrom] = useState<Date>(() => startOfYear(new Date()));
+	const [endDateTo, setEndDateTo] = useState<Date>(() => endOfYear(new Date()));
+	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
+	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 
 	const timestamp = useMemo(() => {
 		if (filterPeriod === PeriodEnum.All) {
@@ -114,8 +122,7 @@ const useContributionListFilter = ({
 		const list = contributionList.filter(
 			(contributor) => contributor.status !== Status.UNREADY,
 		);
-		const filterTimeList = filterByPeriod(list);
-		const filterVoteList = filterByVoteStatus(filterTimeList);
+		const filterVoteList = filterByVoteStatus(list);
 		if (filterContributor === 'All') {
 			return filterVoteList;
 		}
@@ -155,23 +162,68 @@ const useContributionListFilter = ({
 		setFilterPeriod(PeriodEnum.All);
 		setFilterVoteStatus(VoteStatusEnum.All);
 		setFilterContributor('All');
+		setEndDateFrom(startOfYear(new Date()))
+		setEndDateTo(endOfYear(new Date()))
 	};
 	const renderFilter = (
 		<StyledFlexBox>
-			<Select
-				id="period-select"
-				value={filterPeriod}
-				onChange={handlePeriodChange}
-				placeholder={'Period'}
-				sx={{ width: '160px' }}
-				size={'small'}
-			>
-				<MenuItem value={PeriodEnum.All}>All time</MenuItem>
-				<MenuItem value={PeriodEnum.Week}>This week</MenuItem>
-				<MenuItem value={PeriodEnum.Month}>This month</MenuItem>
-				<MenuItem value={PeriodEnum.Season}>This season</MenuItem>
-				<MenuItem value={PeriodEnum.Year}>This year</MenuItem>
-			</Select>
+			<DateContainer>
+				<LocalizationProvider dateAdapter={AdapterDateFns}>
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						value={endDateFrom}
+						onChange={(date) => setEndDateFrom(date!)}
+						open={openStartDatePicker}
+						onOpen={() => setOpenStartDatePicker(true)}
+						onClose={() => setOpenStartDatePicker(false)}
+						sx={{
+							width: '120px',
+							'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+								border: 'none',
+							},
+						}}
+						slotProps={{
+							openPickerButton: { sx: { display: 'none' } },
+							textField: { onClick: () => setOpenStartDatePicker(true) },
+						}}
+					/>
+					<Typography variant={'body2'} sx={{ margin: '0 4px 0 0' }}>
+						to
+					</Typography>
+					<DatePicker
+						format={'MM/dd/yyyy'}
+						value={endDateTo}
+						onChange={(date) => setEndDateTo(date!)}
+						open={openEndDatePicker}
+						onOpen={() => setOpenEndDatePicker(true)}
+						onClose={() => setOpenEndDatePicker(false)}
+						sx={{
+							width: '160px',
+							'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+								border: 'none',
+							},
+						}}
+						slotProps={{
+							openPickerIcon: { sx: { opacity: 0.2 } },
+							textField: { onClick: () => setOpenEndDatePicker(true) },
+						}}
+					/>
+				</LocalizationProvider>
+			</DateContainer>
+			{/*<Select*/}
+			{/*	id="period-select"*/}
+			{/*	value={filterPeriod}*/}
+			{/*	onChange={handlePeriodChange}*/}
+			{/*	placeholder={'Period'}*/}
+			{/*	sx={{ width: '160px' }}*/}
+			{/*	size={'small'}*/}
+			{/*>*/}
+			{/*	<MenuItem value={PeriodEnum.All}>All time</MenuItem>*/}
+			{/*	<MenuItem value={PeriodEnum.Week}>This week</MenuItem>*/}
+			{/*	<MenuItem value={PeriodEnum.Month}>This month</MenuItem>*/}
+			{/*	<MenuItem value={PeriodEnum.Season}>This season</MenuItem>*/}
+			{/*	<MenuItem value={PeriodEnum.Year}>This year</MenuItem>*/}
+			{/*</Select>*/}
 			<Select
 				id="vote-status"
 				value={filterVoteStatus}
@@ -206,7 +258,7 @@ const useContributionListFilter = ({
 		</StyledFlexBox>
 	);
 
-	return { filterContributionList, renderFilter, canClaimedContributionList };
+	return { filterContributionList, renderFilter, canClaimedContributionList, endDateFrom, endDateTo };
 };
 
 export default useContributionListFilter;
@@ -218,3 +270,13 @@ const TextButton = styled('span')({
 		opacity: '0.5',
 	},
 });
+
+const DateContainer = styled(StyledFlexBox)(({ theme }) => ({
+	width: '300px',
+	border: '1px solid rgba(15, 23, 42, 0.2)',
+	borderRadius: '4px',
+	height: '40px',
+	'&:hover': {
+		borderColor: 'rgba(15, 23, 42, 0.5)',
+	},
+}));

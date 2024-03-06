@@ -67,6 +67,7 @@ import useContributionListFilter from '@/components/project/contribution/useCont
 import useEas from '@/hooks/useEas';
 
 import ContributionItem, { IVoteData } from './contributionItem';
+import { endOfYear, startOfYear } from 'date-fns';
 
 export enum IVoteValueEnum {
 	FOR = 1,
@@ -124,6 +125,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const [curPage, setCurPage] = useState(0);
 	const [pageSize, setPageSize] = useState(25);
 	const [total, setTotal] = useState(0);
+	const [isInit, setIsInit] = useState(false);
+
+	const [dateFrom, setDateFrom] = useState<Date>(() => startOfYear(new Date()));
+	const [dateTo, setDateTo] = useState<Date>(() => endOfYear(new Date()));
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -150,23 +155,26 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		{ fallbackData: [] },
 	);
 
-	// useEffect(() => {
-	// 	if (isLoading) {
-	// 		openGlobalLoading();
-	// 	} else {
-	// 		closeGlobalLoading();
-	// 	}
-	// }, [isLoading]);
-
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
 		() =>
 			wallet
-				? 'contribution/list/wallet' + projectId + wallet + curPage + pageSize
-				: 'contribution/list/wallet' + projectId + curPage + pageSize,
-		() => fetchContributionList({ projectId, curPage, pageSize, wallet }),
+				? 'contribution/list/wallet' + projectId + wallet + curPage + pageSize + dateFrom + dateTo
+				: 'contribution/list/wallet' + projectId + curPage + pageSize + dateFrom + dateTo,
+		() => fetchContributionList({
+			projectId,
+			curPage,
+			pageSize,
+			wallet,
+			endDateFrom: dateFrom.getTime(),
+			endDateTo: dateTo.getTime(),
+		}),
 		{
 			fallbackData: [],
-			// onSuccess: (data) => console.log('[contributionList]', data),
+			onSuccess: (data) => {
+				if (!isInit) {
+					setIsInit(true);
+				}
+			},
 			keepPreviousData: true,
 		},
 	);
@@ -230,7 +238,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const [canClaimedMap, setCanClaimedMap] = useState<Record<string, IContribution>>({});
 
-	const { renderFilter, filterContributionList, canClaimedContributionList } =
+	const { renderFilter, filterContributionList, canClaimedContributionList, endDateFrom, endDateTo } =
 		useContributionListFilter({
 			contributionList,
 			contributorList,
@@ -248,6 +256,14 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
+
+	useEffect(() => {
+		setDateFrom(endDateFrom);
+	}, [endDateFrom]);
+
+	useEffect(() => {
+		setDateTo(endDateTo);
+	}, [endDateTo]);
 
 	const setCanClaimedContribution = (contribution: IContribution) => {
 		setCanClaimedMap((pre) => {
@@ -273,22 +289,27 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		curPage: number;
 		pageSize: number;
 		wallet?: string;
+		endDateFrom?: number
+		endDateTo?: number
 	}) => {
 		try {
-			openGlobalLoading();
-			const { projectId, curPage, pageSize, wallet } = params;
+			// openGlobalLoading();
+			const { projectId, curPage, pageSize, wallet, endDateFrom, endDateTo } = params;
 			const { list, total } = await getContributionList({
 				pageSize: pageSize,
 				currentPage: curPage + 1,
 				projectId: projectId,
 				wallet,
+				endDateFrom,
+				endDateTo,
 			});
-			setTotal(total);
-			return list;
+			const filterList = list.filter(item => item.status !== Status.UNREADY);
+			setTotal(filterList.length);
+			return filterList;
 		} catch (err) {
 			return Promise.reject(err);
 		} finally {
-			closeGlobalLoading();
+			// closeGlobalLoading();
 		}
 	};
 
@@ -614,9 +635,9 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						width={96}
 						height={96}
 					/>
-					<Typography color={'#0F172A'} variant={'subtitle1'}>
+					{ isInit ? <Typography color={'#0F172A'} variant={'subtitle1'}>
 						No contributions found. Refine the contribution end date filter.
-					</Typography>
+					</Typography> : null}
 				</Stack>
 			)}
 
