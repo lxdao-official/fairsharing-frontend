@@ -51,7 +51,7 @@ import {
 	EasSchemaData,
 	EasSchemaMap,
 	EasSchemaTemplateMap,
-} from '@/constant/eas';
+} from '@/constant/contract';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 

@@ -43,7 +43,7 @@ import {
 	EasSchemaMap,
 	EasSchemaTemplateMap,
 	EasSchemaVoteKey,
-} from '@/constant/eas';
+} from '@/constant/contract';
 import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';

@@ -19,7 +19,7 @@ import { IStepBaseProps } from '@/components/createProject/step/start';
 import { showToast } from '@/store/utils';
 import { CreateProjectParams, VoteApproveEnum, VoteSystemEnum } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
-import { DefaultChainId } from '@/constant/eas';
+import { DefaultEasChainConfig } from '@/constant/contract';
 import { isProd } from '@/constant/env';
 import useProjectCache from '@/components/createProject/useProjectCache';
 import { ChainList } from '@/components/rainbow/provider';
@@ -52,7 +52,7 @@ const StepStrategy = forwardRef<StepStrategyRef, IStepStrategyProps>((props, ref
 	const { setCache, cache: createProjectCache } = useProjectCache();
 
 	const [symbol, setSymbol] = useState(data?.symbol ?? '');
-	const [network, setNetwork] = useState(data?.network ?? DefaultChainId);
+	const [network, setNetwork] = useState(data?.network ?? DefaultEasChainConfig.chainId);
 	const [period, setPeriod] = useState(data?.votePeriod ?? '');
 
 	const [voteSystem, setVoteSystem] = useState<VoteSystemEnum>(

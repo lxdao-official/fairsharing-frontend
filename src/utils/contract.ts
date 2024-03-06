@@ -1,5 +1,6 @@
 import { VoteApproveEnum, VoteSystemEnum } from '@/services';
-import { VoteStrategyABIMap, VoteStrategyMap } from '@/constant/contract';
+import { VoteStrategyABIMap } from '@/constant/abi';
+import { DefaultContractConfig } from '@/constant/contract';
 
 export function getVoteStrategyABI(voteApproveType: VoteApproveEnum) {
 	const { RelativeV1, RelativeV2, AbsoluteV2, AbsoluteV1 } = VoteStrategyABIMap;
@@ -16,7 +17,7 @@ export function getVoteStrategyABI(voteApproveType: VoteApproveEnum) {
 }
 
 export function getVoteStrategyContract(voteApproveType: VoteApproveEnum): string {
-	const { RelativeV1, RelativeV2, AbsoluteV2, AbsoluteV1 } = VoteStrategyMap;
+	const { RelativeV1, RelativeV2, AbsoluteV2, AbsoluteV1 } = DefaultContractConfig.voteStrategyMap;
 	switch (voteApproveType) {
 		case VoteApproveEnum.ABSOLUTE1:
 			return AbsoluteV1;

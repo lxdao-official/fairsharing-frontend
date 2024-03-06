@@ -29,7 +29,7 @@ import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
-import { ProjectABI } from '@/constant/contract';
+import { ProjectABI } from '@/constant/abi';
 import { useEthersSigner } from '@/common/ether';
 import { compareMemberArrays, isAdmin } from '@/utils/member';
 import { useUserStore } from '@/store/user';

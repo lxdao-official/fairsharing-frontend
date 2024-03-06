@@ -53,7 +53,7 @@ import {
 	EasSchemaMap,
 	EasSchemaTemplateMap,
 	EasSchemaVoteKey,
-} from '@/constant/eas';
+} from '@/constant/contract';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
