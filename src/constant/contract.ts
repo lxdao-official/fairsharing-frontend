@@ -122,12 +122,12 @@ export const DefaultContractConfig = isProd
 export const DefaultEasChainConfig = DefaultContractConfig.easChainConfig;
 
 /**
- * 本地开发使用.env.local里的变量, 线上从 vercel 获取环境变量
+ * 线上从 vercel 获取环境变量，本地和测试环境hard code
  */
 export const EasSchemaMap = {
-	contribution: process.env.NEXT_PUBLIC_EAS_SCHEMA_CONTRIBUTION as string,
-	vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
-	claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
+	contribution: DefaultContractConfig.schema.contribution,
+	vote: DefaultContractConfig.schema.vote,
+	claim: DefaultContractConfig.schema.claim,
 };
 
 export const EasSchemaTemplateMap = {
