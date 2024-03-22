@@ -538,9 +538,19 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						marginBottom: '16px',
 					}}
 				>
-					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
-						Contributions
-					</Typography>
+					<StyledFlexBox>
+						<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
+							Contributions
+						</Typography>
+						{isLoading ? (
+							<UpdatingBlock>
+								<Typography sx={{ color: '#0F172A' }} variant={'body2'}>
+									Updating...
+								</Typography>
+							</UpdatingBlock>
+						) : null}
+					</StyledFlexBox>
+
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						<Button
@@ -719,6 +729,14 @@ export const DialogConfirmButton = styled(DialogButton)({
 	'&:hover': {
 		background: 'rgba(15, 23, 42, .8)',
 	},
+});
+
+const UpdatingBlock = styled('div')({
+	border: '0.5px solid #BDBDBD',
+	height: '24px',
+	borderRadius: '4px',
+	padding: '3px 8px',
+	marginLeft: '8px',
 });
 
 const TextButton = styled('span')({
