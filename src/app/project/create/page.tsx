@@ -31,12 +31,13 @@ import { getUserInfo } from '@/services/user';
 import { setUserProjectList, useProjectStore } from '@/store/project';
 
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
-import { ContractAddressMap, ProjectRegisterABI } from '@/constant/contract';
+import { ProjectRegisterABI } from '@/constant/abi';
 import { isAdmin } from '@/utils/member';
 import { VoteSystemEnum } from '@/services';
 import { getVoteStrategyContract, getVoteThreshold, getVoteWeights } from '@/utils/contract';
 import { DefaultTypeKudos } from '@/components/project/contribution/postContribution';
 import useProjectCache from '@/components/createProject/useProjectCache';
+import { DefaultContractConfig } from '@/constant/contract';
 
 const steps = [
 	{
@@ -178,7 +179,7 @@ export default function Page() {
 			localStorage.setItem(ProjectParamStorageKey, JSON.stringify(baseParams));
 
 			const projectRegistryContract = new ethers.Contract(
-				ContractAddressMap.ProjectRegistry,
+				DefaultContractConfig.projectRegisterUpgradeableProxy,
 				ProjectRegisterABI,
 				signer,
 			);
@@ -254,7 +255,7 @@ export default function Page() {
 	const getOwnerLatestProject = async () => {
 		try {
 			const contract = new ethers.Contract(
-				ContractAddressMap.ProjectRegistry,
+				DefaultContractConfig.projectRegisterUpgradeableProxy,
 				ProjectRegisterABI,
 				signer,
 			);

@@ -24,7 +24,7 @@ import {
 
 import AddIcon from '@mui/icons-material/Add';
 
-import { ethers } from 'ethers';
+import { isAddress as checksumIsAddress } from 'web3-validator';
 
 import { useAccount } from 'wagmi';
 
@@ -154,7 +154,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 				showToast('Wallet address is required', 'error');
 				return false;
 			}
-			if (!ethers.isAddress(wallet)) {
+			if (!checksumIsAddress(wallet, true)) {
 				valid = false;
 				showToast(`"${wallet}" isn’t a valid wallet address`, 'error');
 				return false;

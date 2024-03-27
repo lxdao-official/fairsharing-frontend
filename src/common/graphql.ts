@@ -2,7 +2,7 @@ import https from 'https';
 
 import axios from 'axios';
 
-import { EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { EAS_CHAIN_CONFIGS } from '@/constant/contract';
 
 const client = axios.create({
 	timeout: 15000,

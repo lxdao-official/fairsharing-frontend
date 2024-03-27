@@ -51,7 +51,8 @@ import {
 	EasSchemaData,
 	EasSchemaMap,
 	EasSchemaTemplateMap,
-} from '@/constant/eas';
+	EasSchemaVoteKey,
+} from '@/constant/contract';
 
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
@@ -63,6 +64,10 @@ import usePostContributionCache, {
 } from '@/components/project/contribution/usePostContributionCache';
 import { TagBgColors, TagColorMap, TagTextColors } from '@/components/project/contribution/tag';
 import { DeleteIcon } from '@/icons';
+import CustomDialog from '@/components/dialog/customDialog';
+import LineStatus from '@/components/dialog/lineStatus';
+import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
+import { useProjectStore } from '@/store/project';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -145,6 +150,23 @@ const PostContribution = ({
 
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
+
+	const [openDialog, setOpenDialog] = useState(false);
+	const [isPosting, setIsPosting] = useState(false);
+	const [isPostSuccess, setIsPostSuccess] = useState(false);
+	const [isVoting, setIsVoting] = useState(false);
+	const [isVoteSuccess, setIsVoteSuccess] = useState(false);
+	const [curContribution, setCurContribution] = useState<IContribution>();
+	const { contributionUids, contributionListParam } = useProjectStore();
+
+	const handleCloseDialog = () => {
+		setOpenDialog(false);
+		setIsPosting(false);
+		setIsPostSuccess(false);
+		setIsVoting(false);
+		setIsVoteSuccess(false);
+		setCurContribution(undefined);
+	};
 
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
@@ -415,7 +437,11 @@ const PostContribution = ({
 			return false;
 		}
 		try {
-			openGlobalLoading();
+			setIsPosting(true);
+			setIsPostSuccess(false);
+			setCurContribution(undefined);
+			setOpenDialog(true);
+
 			const cacheData: IPostContributionCacheItem = {
 				detail,
 				typeValue,
@@ -506,12 +532,18 @@ const PostContribution = ({
 				operatorId: operatorId,
 			});
 			clearCache();
+			setCurContribution({
+				...contribution,
+				uId: res.data.offchainAttestationId as string,
+			});
+			setIsPostSuccess(true);
 			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
-			await mutate(() => 'contribution/list/wallet' + projectId);
+			await mutate(contributionListParam);
 		} catch (err: any) {
 			console.error(err);
+			setIsPostSuccess(false);
 			if (err.code && err.code === 'ACTION_REJECTED') {
 				showToast('Unsuccessful: Signing request rejected by you', 'error');
 				return;
@@ -519,6 +551,72 @@ const PostContribution = ({
 			showToast('post contribution failed', 'error');
 		} finally {
 			closeGlobalLoading();
+			setIsPosting(false);
+		}
+	};
+
+	const onVoteFor = async () => {
+		console.log('onVoteFor');
+		if (!curContribution) return;
+		try {
+			setIsVoting(true);
+			setIsVoteSuccess(false);
+
+			const offchain = getOffchain();
+			const voteSchemaUid = EasSchemaMap.vote;
+
+			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.vote);
+			const data: EasSchemaData<EasSchemaVoteKey>[] = [
+				{ name: 'ProjectAddress', value: projectId, type: 'address' },
+				{
+					name: 'ContributionID',
+					value: curContribution.id,
+					type: 'bytes32',
+				},
+				{ name: 'VoteChoice', value: IVoteValueEnum.FOR, type: 'uint8' },
+				{ name: 'Comment', value: 'Good contribution', type: 'string' },
+			];
+			const encodedData = schemaEncoder.encodeData(data);
+			const block = await provider.getBlock('latest');
+			if (!signer) {
+				return;
+			}
+			const defaultRecipient = '0x0000000000000000000000000000000000000000';
+			const toWallet = toValue?.wallet;
+			const offchainAttestation = await offchain.signOffchainAttestation(
+				{
+					recipient: toWallet || defaultRecipient,
+					expirationTime: BigInt(0),
+					time: BigInt(block ? block.timestamp : 0),
+					revocable: true,
+					version: 1,
+					nonce: BigInt(0),
+					schema: voteSchemaUid,
+					refUID: curContribution.uId as string, // 可用来查询vote信息
+					data: encodedData,
+				},
+				signer,
+			);
+			const res = await submitSignedAttestation({
+				signer: myAddress as string,
+				sig: offchainAttestation,
+			});
+			if (res.data.error) {
+				console.error('vote submitSignedAttestation fail', res.data);
+				throw new Error(res.data.error);
+			}
+			showToast('Voted', 'success');
+			const baseURL = getEasScanURL();
+			// Update ENS names
+			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
+			await mutate(['eas/vote/list', [...contributionUids, curContribution.uId]]);
+
+			setIsVoting(false);
+			setIsVoteSuccess(true);
+		} catch (err) {
+			console.error('vote for', err);
+			setIsVoting(false);
+			setIsVoteSuccess(false);
 		}
 	};
 
@@ -738,7 +836,7 @@ const PostContribution = ({
 					</StyledFlexBox>
 
 					{/*date*/}
-					<StyledFlexBox sx={{ margin: '-4px 0 -16px', }}>
+					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
 						<TagLabel>#date</TagLabel>
 						<LocalizationProvider dateAdapter={AdapterDateFns}>
 							<DatePicker
@@ -749,7 +847,6 @@ const PostContribution = ({
 								onOpen={() => setOpenStartDatePicker(true)}
 								onClose={() => setOpenStartDatePicker(false)}
 								sx={{
-
 									width: '120px',
 									'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
 										border: 'none',
@@ -886,6 +983,46 @@ const PostContribution = ({
 					{confirmText || 'Re-Post'}
 				</BaseButton>
 			</PostButton>
+
+			<CustomDialog title={'Post and vote'} open={openDialog} onClose={handleCloseDialog}>
+				<>
+					<LineStatus
+						isLoading={isPosting}
+						isDone={isPostSuccess}
+						text={`Posting contribution on chain ${isPosting ? '...' : '.'}`}
+					/>
+
+					<div
+						style={{
+							backgroundColor: isPostSuccess ? '#0F172A' : '#94A3B8',
+							width: '2px',
+							height: '20px',
+							marginLeft: '28px',
+						}}
+					/>
+
+					<LineStatus
+						isLoading={isVoting}
+						isDone={isVoteSuccess}
+						text={`Vote for the contribution you've just made ${
+							isVoting ? '...' : '.'
+						}`}
+					/>
+					<Button
+						variant={'contained'}
+						size={'small'}
+						sx={{
+							marginLeft: '50px',
+							width: '80px',
+							minWidth: '80px',
+						}}
+						onClick={onVoteFor}
+						disabled={isVoteSuccess}
+					>
+						For
+					</Button>
+				</>
+			</CustomDialog>
 		</PostContainer>
 	);
 };

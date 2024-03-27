@@ -17,7 +17,7 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import useSWR from 'swr';
 
@@ -26,6 +26,8 @@ import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 import Image from 'next/image';
 
 import { ethers } from 'ethers';
+
+import { endOfYear, startOfYear } from 'date-fns';
 
 import CustomCheckbox, { CheckboxTypeEnum } from '@/components/checkbox';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -43,7 +45,7 @@ import {
 	EasSchemaMap,
 	EasSchemaTemplateMap,
 	EasSchemaVoteKey,
-} from '@/constant/eas';
+} from '@/constant/contract';
 import { useUserStore } from '@/store/user';
 
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
@@ -65,6 +67,8 @@ import { FilterIcon } from '@/icons';
 import useContributionListFilter from '@/components/project/contribution/useContributionListFilter';
 
 import useEas from '@/hooks/useEas';
+
+import { setContributionListParam, setContributionUids } from '@/store/project';
 
 import ContributionItem, { IVoteData } from './contributionItem';
 
@@ -109,7 +113,7 @@ BigInt.prototype.toJSON = function () {
 
 const ContributionList = ({ projectId, showHeader = true, wallet }: IContributionListProps) => {
 	const { myInfo } = useUserStore();
-	const network = useNetwork();
+	const { chainId } = useAccount();
 	const { address: myAddress } = useAccount();
 	const { eas } = useEas();
 
@@ -124,6 +128,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const [curPage, setCurPage] = useState(0);
 	const [pageSize, setPageSize] = useState(25);
 	const [total, setTotal] = useState(0);
+	const [isInit, setIsInit] = useState(false);
+
+	const [dateFrom, setDateFrom] = useState<Date>(() => startOfYear(new Date()));
+	const [dateTo, setDateTo] = useState<Date>(() => endOfYear(new Date()));
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -150,23 +158,28 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		{ fallbackData: [] },
 	);
 
-	// useEffect(() => {
-	// 	if (isLoading) {
-	// 		openGlobalLoading();
-	// 	} else {
-	// 		closeGlobalLoading();
-	// 	}
-	// }, [isLoading]);
+	const contributionListParam = useMemo(() => {
+		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${dateFrom.getTime()}${dateTo.getTime()}`;
+	}, [wallet, projectId, curPage, pageSize, dateFrom, dateTo]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
+		contributionListParam,
 		() =>
-			wallet
-				? 'contribution/list/wallet' + projectId + wallet + curPage + pageSize
-				: 'contribution/list/wallet' + projectId + curPage + pageSize,
-		() => fetchContributionList({ projectId, curPage, pageSize, wallet }),
+			fetchContributionList({
+				projectId,
+				curPage,
+				pageSize,
+				wallet,
+				endDateFrom: dateFrom.getTime(),
+				endDateTo: dateTo.getTime(),
+			}),
 		{
 			fallbackData: [],
-			// onSuccess: (data) => console.log('[contributionList]', data),
+			onSuccess: (data) => {
+				if (!isInit) {
+					setIsInit(true);
+				}
+			},
 			keepPreviousData: true,
 		},
 	);
@@ -230,14 +243,19 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const [canClaimedMap, setCanClaimedMap] = useState<Record<string, IContribution>>({});
 
-	const { renderFilter, filterContributionList, canClaimedContributionList } =
-		useContributionListFilter({
-			contributionList,
-			contributorList,
-			projectDetail,
-			easVoteNumberBySigner,
-			canClaimedMap,
-		});
+	const {
+		renderFilter,
+		filterContributionList,
+		canClaimedContributionList,
+		endDateFrom,
+		endDateTo,
+	} = useContributionListFilter({
+		contributionList,
+		contributorList,
+		projectDetail,
+		easVoteNumberBySigner,
+		canClaimedMap,
+	});
 
 	const canClaimTotalCredit = useMemo(() => {
 		return canClaimedContributionList.reduce((pre, cur) => pre + cur.credit, 0);
@@ -248,6 +266,22 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
+
+	useEffect(() => {
+		setContributionUids(contributionUIds);
+	}, [contributionUIds]);
+
+	useEffect(() => {
+		setContributionListParam(contributionListParam);
+	}, [contributionListParam]);
+
+	useEffect(() => {
+		setDateFrom(endDateFrom);
+	}, [endDateFrom]);
+
+	useEffect(() => {
+		setDateTo(endDateTo);
+	}, [endDateTo]);
 
 	const setCanClaimedContribution = (contribution: IContribution) => {
 		setCanClaimedMap((pre) => {
@@ -273,22 +307,27 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		curPage: number;
 		pageSize: number;
 		wallet?: string;
+		endDateFrom?: number;
+		endDateTo?: number;
 	}) => {
 		try {
-			openGlobalLoading();
-			const { projectId, curPage, pageSize, wallet } = params;
+			// openGlobalLoading();
+			const { projectId, curPage, pageSize, wallet, endDateFrom, endDateTo } = params;
 			const { list, total } = await getContributionList({
 				pageSize: pageSize,
 				currentPage: curPage + 1,
 				projectId: projectId,
 				wallet,
+				endDateFrom,
+				endDateTo,
 			});
-			setTotal(total);
-			return list;
+			const filterList = list.filter((item) => item.status !== Status.UNREADY);
+			setTotal(filterList.length);
+			return filterList;
 		} catch (err) {
 			return Promise.reject(err);
 		} finally {
-			closeGlobalLoading();
+			// closeGlobalLoading();
 		}
 	};
 
@@ -296,7 +335,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		try {
 			// uids存在才会进行计算
 			const ids = uIds.filter((id) => !!id);
-			const { attestations } = await getEASContributionList(ids, network.chain?.id);
+			const { attestations } = await getEASContributionList(ids, chainId);
 			const easList = attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
@@ -313,7 +352,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const fetchEasVoteList = async (uIds: string[]) => {
 		if (uIds.length === 0) return Promise.resolve([]);
 		try {
-			const { attestations } = await getEASVoteRecord(uIds as string[], network.chain?.id);
+			const { attestations } = await getEASVoteRecord(uIds as string[], chainId);
 			return attestations.map((item) => ({
 				...item,
 				decodedDataJson: JSON.parse(
@@ -396,6 +435,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		if (!canClaimedContributionList || canClaimedContributionList.length === 0) {
 			return;
 		}
+		const own = contributorList.find((contributor) => contributor.wallet === myAddress);
+		if (!own) {
+			showToast(`You can't claim as you're not in the project.`);
+			return false;
+		}
 		try {
 			openGlobalLoading();
 			const claimSchemaUid = EasSchemaMap.claim;
@@ -422,7 +466,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			const signatures = await prepareClaim({
 				wallet: myAddress as string,
 				toWallets,
-				chainId: network.chain?.id as number,
+				chainId: chainId as number,
 				contributionIds: contributionIds,
 			});
 
@@ -499,9 +543,19 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						marginBottom: '16px',
 					}}
 				>
-					<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
-						Contributions
-					</Typography>
+					<StyledFlexBox>
+						<Typography variant={'subtitle1'} sx={{ fontWeight: 500 }}>
+							Contributions
+						</Typography>
+						{isLoading ? (
+							<UpdatingBlock>
+								<Typography sx={{ color: '#0F172A' }} variant={'body2'}>
+									Updating...
+								</Typography>
+							</UpdatingBlock>
+						) : null}
+					</StyledFlexBox>
+
 					<StyledFlexBox sx={{ cursor: 'pointer' }}>
 						<FilterIcon width={24} height={24} onClick={onClickFilterBtn} />
 						<Button
@@ -614,9 +668,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 						width={96}
 						height={96}
 					/>
-					<Typography color={'#0F172A'} variant={'subtitle1'}>
-						No contributions yet. Be the trailblazer and drop the first one!
-					</Typography>
+					{isInit ? (
+						<Typography color={'#0F172A'} variant={'subtitle1'}>
+							No contributions found. Refine the contribution end date filter.
+						</Typography>
+					) : null}
 				</Stack>
 			)}
 
@@ -678,6 +734,14 @@ export const DialogConfirmButton = styled(DialogButton)({
 	'&:hover': {
 		background: 'rgba(15, 23, 42, .8)',
 	},
+});
+
+const UpdatingBlock = styled('div')({
+	border: '0.5px solid #BDBDBD',
+	height: '24px',
+	borderRadius: '4px',
+	padding: '3px 8px',
+	marginLeft: '8px',
 });
 
 const TextButton = styled('span')({

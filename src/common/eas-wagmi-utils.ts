@@ -1,4 +1,3 @@
-import { type PublicClient, type WalletClient } from '@wagmi/core';
 // @ts-ignore
 import { providers } from 'ethers';
 import { type HttpTransport } from 'viem';
@@ -6,7 +5,7 @@ import { useEffect, useState } from 'react';
 import type { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers';
 import { usePublicClient, useWalletClient } from 'wagmi';
 
-export function publicClientToProvider(publicClient: PublicClient) {
+export function publicClientToProvider(publicClient: any) {
 	const { chain, transport } = publicClient;
 	const network = {
 		chainId: chain.id,
@@ -22,7 +21,7 @@ export function publicClientToProvider(publicClient: PublicClient) {
 	return new providers.JsonRpcProvider(transport.url, network);
 }
 
-export function walletClientToSigner(walletClient: WalletClient) {
+export function walletClientToSigner(walletClient: any) {
 	const { account, chain, transport } = walletClient;
 	const network = {
 		chainId: chain.id,

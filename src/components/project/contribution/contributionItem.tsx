@@ -17,7 +17,7 @@ import { format, formatDistance, isSameDay } from 'date-fns';
 
 import Link from 'next/link';
 
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
@@ -53,7 +53,7 @@ import {
 	EasSchemaMap,
 	EasSchemaTemplateMap,
 	EasSchemaVoteKey,
-} from '@/constant/eas';
+} from '@/constant/contract';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
 import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
@@ -67,6 +67,7 @@ import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
 import useProof from '@/components/project/contribution/useProof';
+import { useProjectStore } from '@/store/project';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -103,7 +104,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	} = props;
 
 	const { myInfo } = useUserStore();
-	const { chain } = useNetwork();
+	const { chain } = useAccount();
 	const { eas, getEasScanURL, submitSignedAttestation, getOffchain, easConfig } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
@@ -119,6 +120,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
 	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
+
+	const { contributionListParam } = useProjectStore();
 
 	const [showEdit, setShowEdit] = useState(false);
 	const { targetTime, isEnd, timeLeft } = useCountDownTime(
@@ -390,6 +393,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 			openConnectModal?.();
 			return false;
 		}
+		const own = contributorList.find((contributor) => contributor.wallet === myAddress);
+		if (!own) {
+			showToast(`You can't claim as you're not in the project.`);
+			return false;
+		}
 		// 非本人的不允许claim
 		if (contribution.toIds[0] !== operatorId) {
 			showToast(`This contribution isn't yours to claim.`, 'error');
@@ -459,7 +467,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				operatorId: operatorId,
 			});
 			showToast('Tokens claimed', 'success');
-			await mutate(['contribution/list', projectDetail.id]);
+			await mutate(contributionListParam);
 		} catch (err: any) {
 			console.error('onClaim error', err);
 			if (err.code && err.code === 'ACTION_REJECTED') {

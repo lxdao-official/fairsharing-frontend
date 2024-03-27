@@ -29,7 +29,7 @@ import StepStrategy from '@/components/createProject/step/strategy';
 import useProjectInfoRef from '@/hooks/useProjectInfoRef';
 import StepContributor from '@/components/createProject/step/contributor';
 import { scanUrl } from '@/constant/url';
-import { ProjectABI } from '@/constant/contract';
+import { ProjectABI } from '@/constant/abi';
 import { useEthersSigner } from '@/common/ether';
 import { compareMemberArrays, isAdmin } from '@/utils/member';
 import { useUserStore } from '@/store/user';
@@ -161,7 +161,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		} catch (err) {
 			saveContractFail = true;
 			console.error('【projectContract】 setMembers error', err);
-			showToast('Failed to save onchain, please try again.', 'error');
+			showToast('Unsuccessful: transaction rejected by you or insufficient gas fee', 'error');
 		}
 
 		if (saveContractFail) return;

@@ -6,11 +6,11 @@ import {
 	Offchain,
 } from '@ethereum-attestation-service/eas-sdk';
 
-import { useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import axios from 'axios';
 
-import { DefaultChainConfig, EAS_CHAIN_CONFIGS } from '@/constant/eas';
+import { DefaultEasChainConfig, EAS_CHAIN_CONFIGS } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
 
 export type StoreAttestationRequest = { filename: string; textJson: string };
@@ -23,14 +23,12 @@ export type StoreIPFSActionReturn = {
 
 const useEas = () => {
 	const signer = useEthersSigner();
-	const network = useNetwork();
+	const { chainId } = useAccount();
 
 	const easConfig = useMemo(() => {
-		const activeChainConfig = EAS_CHAIN_CONFIGS.find(
-			(config) => config.chainId === network.chain?.id,
-		);
-		return activeChainConfig || DefaultChainConfig;
-	}, [network]);
+		const activeChainConfig = EAS_CHAIN_CONFIGS.find((config) => config.chainId === chainId);
+		return activeChainConfig || DefaultEasChainConfig;
+	}, [chainId]);
 
 	const eas = useMemo(() => {
 		const EASContractAddress = easConfig?.contractAddress;
@@ -41,7 +39,7 @@ const useEas = () => {
 	}, [signer, easConfig]);
 
 	const getEasScanURL = () => {
-		return `https://${easConfig!.subdomain}easscan.org`;
+		return easConfig.etherscanURL;
 	};
 
 	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {

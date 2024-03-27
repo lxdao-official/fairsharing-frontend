@@ -2,101 +2,61 @@
 
 import * as React from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
-import {
-	RainbowKitProvider,
-	getDefaultWallets,
-	connectorsForWallets,
-} from '@rainbow-me/rainbowkit';
-import { argentWallet, trustWallet, ledgerWallet } from '@rainbow-me/rainbowkit/wallets';
+import { RainbowKitProvider, getDefaultConfig, Theme, darkTheme } from '@rainbow-me/rainbowkit';
 
-import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import {
-	mainnet,
-	polygon,
-	optimism,
-	arbitrum,
-	zora,
-	goerli,
-	optimismGoerli,
-	sepolia,
-} from 'wagmi/chains';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { publicProvider } from 'wagmi/providers/public';
+// @ts-ignore
+import merge from 'lodash.merge';
+import { WagmiProvider } from 'wagmi';
+import { optimism, optimismSepolia } from 'wagmi/chains';
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { isProd } from '@/constant/env';
+import { ContractConfigMap } from '@/constant/contract';
 
 // TODO Determine the configuration in different environments
-const Chains = isProd ? [optimism, optimismGoerli] : [optimism, optimismGoerli, goerli, sepolia];
-const AlchemyApiKey = isProd
-	? process.env.NEXT_PUBLIC_ALCHEMY_ID_PROD
-	: process.env.NEXT_PUBLIC_ALCHEMY_ID_TEST;
-const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string;
+
+// prod ? bruce : lgc
+const ProjectId = isProd ? '6756806cba2601750f89e7fd325c28f1' : '7188673890c272bd9021dd19e64c9b7e';
 
 export const ChainList = isProd
 	? [
 			{
 				name: 'Optimism',
-				chainId: '10',
+				chainId: ContractConfigMap.Optimism.easChainConfig.chainId,
 			},
 	  ]
 	: [
 			{
-				name: 'Optimism Goerli',
-				chainId: '420',
-			},
-			{
-				name: 'Goerli',
-				chainId: '5',
-			},
-			{
-				name: 'Sepolia',
-				chainId: '11155111',
+				name: 'Optimism Sepolia',
+				chainId: ContractConfigMap.OptimismSepolia.easChainConfig.chainId,
 			},
 	  ];
 
-// @ts-ignore
-const { chains, publicClient, webSocketPublicClient } = configureChains(Chains, [
-	alchemyProvider({ apiKey: AlchemyApiKey as string }),
-	publicProvider(),
-]);
-
-const { wallets } = getDefaultWallets({
+const wagmiConfig = getDefaultConfig({
 	appName: process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string,
 	projectId: ProjectId,
-	chains,
+	chains: isProd ? [optimism] : [optimismSepolia],
+	ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
-const demoAppInfo = {
-	appName: process.env.NEXT_PUBLIC_WALLET_CONNECT_NAME as string,
-};
+const queryClient = new QueryClient();
 
-const connectors = connectorsForWallets([
-	...wallets,
-	{
-		groupName: 'Other',
-		wallets: [
-			argentWallet({ projectId: ProjectId, chains }),
-			trustWallet({ projectId: ProjectId, chains }),
-			ledgerWallet({ projectId: ProjectId, chains }),
-		],
+const myTheme = merge(darkTheme(), {
+	colors: {
+		accentColor: '#0F172A',
+		connectButtonBackground: '#0F172A',
 	},
-]);
-
-const wagmiConfig = createConfig({
-	autoConnect: true,
-	connectors,
-	publicClient,
-	webSocketPublicClient,
-});
+} as Theme);
 
 export function RainbowProvider({ children }: { children: React.ReactNode }) {
 	const [mounted, setMounted] = React.useState(false);
 	React.useEffect(() => setMounted(true), []);
 	return (
-		<WagmiConfig config={wagmiConfig}>
-			<RainbowKitProvider chains={chains} appInfo={demoAppInfo}>
-				{mounted && children}
-			</RainbowKitProvider>
-		</WagmiConfig>
+		<WagmiProvider config={wagmiConfig}>
+			<QueryClientProvider client={queryClient}>
+				<RainbowKitProvider theme={myTheme}>{mounted && children}</RainbowKitProvider>
+			</QueryClientProvider>
+		</WagmiProvider>
 	);
 }
