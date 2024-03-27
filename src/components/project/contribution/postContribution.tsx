@@ -157,7 +157,7 @@ const PostContribution = ({
 	const [isVoting, setIsVoting] = useState(false);
 	const [isVoteSuccess, setIsVoteSuccess] = useState(false);
 	const [curContribution, setCurContribution] = useState<IContribution>();
-	const { contributionUids } = useProjectStore();
+	const { contributionUids, contributionListParam } = useProjectStore();
 
 	const handleCloseDialog = () => {
 		setOpenDialog(false);
@@ -540,7 +540,7 @@ const PostContribution = ({
 			showToast('Contribution posted', 'success');
 			setShowFullPost?.(false);
 			onClear();
-			await mutate(() => 'contribution/list/wallet' + projectId);
+			await mutate(contributionListParam);
 		} catch (err: any) {
 			console.error(err);
 			setIsPostSuccess(false);

@@ -68,7 +68,7 @@ import useContributionListFilter from '@/components/project/contribution/useCont
 
 import useEas from '@/hooks/useEas';
 
-import { setContributionUids } from '@/store/project';
+import { setContributionListParam, setContributionUids } from '@/store/project';
 
 import ContributionItem, { IVoteData } from './contributionItem';
 
@@ -158,17 +158,12 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		{ fallbackData: [] },
 	);
 
+	const contributionListParam = useMemo(() => {
+		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${dateFrom.getTime()}${dateTo.getTime()}`;
+	}, [wallet, projectId, curPage, pageSize, dateFrom, dateTo]);
+
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
-		() =>
-			wallet
-				? 'contribution/list/wallet' +
-				  projectId +
-				  wallet +
-				  curPage +
-				  pageSize +
-				  dateFrom +
-				  dateTo
-				: 'contribution/list/wallet' + projectId + curPage + pageSize + dateFrom + dateTo,
+		contributionListParam,
 		() =>
 			fetchContributionList({
 				projectId,
@@ -275,6 +270,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	useEffect(() => {
 		setContributionUids(contributionUIds);
 	}, [contributionUIds]);
+
+	useEffect(() => {
+		setContributionListParam(contributionListParam);
+	}, [contributionListParam]);
 
 	useEffect(() => {
 		setDateFrom(endDateFrom);

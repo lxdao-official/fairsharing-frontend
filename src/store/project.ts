@@ -6,12 +6,14 @@ export interface StoreTypes {
 	userProjectList: IProject[];
 	currentProjectId: string;
 	contributionUids: string[];
+	contributionListParam: string;
 }
 
 export const ProjectStore = proxy<StoreTypes>({
 	userProjectList: [],
 	currentProjectId: '',
 	contributionUids: [],
+	contributionListParam: '',
 });
 
 export const useProjectStore = () => useSnapshot(ProjectStore);
@@ -25,4 +27,8 @@ export const setCurrentProjectId = (projectId: string) => {
 
 export const setContributionUids = (uIds: string[]) => {
 	ProjectStore.contributionUids = uIds;
+};
+
+export const setContributionListParam = (param: string) => {
+	ProjectStore.contributionListParam = param;
 };

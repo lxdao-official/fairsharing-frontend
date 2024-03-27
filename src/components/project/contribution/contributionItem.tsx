@@ -67,6 +67,7 @@ import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
 import useProof from '@/components/project/contribution/useProof';
+import { useProjectStore } from '@/store/project';
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -119,6 +120,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
 	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
+
+	const { contributionListParam } = useProjectStore();
 
 	const [showEdit, setShowEdit] = useState(false);
 	const { targetTime, isEnd, timeLeft } = useCountDownTime(
@@ -464,7 +467,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 				operatorId: operatorId,
 			});
 			showToast('Tokens claimed', 'success');
-			await mutate(['contribution/list', projectDetail.id]);
+			await mutate(contributionListParam);
 		} catch (err: any) {
 			console.error('onClaim error', err);
 			if (err.code && err.code === 'ACTION_REJECTED') {
