@@ -68,6 +68,8 @@ import useContributionListFilter from '@/components/project/contribution/useCont
 
 import useEas from '@/hooks/useEas';
 
+import { setContributionUids } from '@/store/project';
+
 import ContributionItem, { IVoteData } from './contributionItem';
 
 export enum IVoteValueEnum {
@@ -269,6 +271,10 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		mutateContributorList();
 		mutateContributionList();
 	}, [projectId]);
+
+	useEffect(() => {
+		setContributionUids(contributionUIds);
+	}, [contributionUIds]);
 
 	useEffect(() => {
 		setDateFrom(endDateFrom);

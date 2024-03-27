@@ -16,7 +16,8 @@ import { ContractConfigMap } from '@/constant/contract';
 
 // TODO Determine the configuration in different environments
 
-const ProjectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string;
+// prod ? bruce : lgc
+const ProjectId = isProd ? '6756806cba2601750f89e7fd325c28f1' : '7188673890c272bd9021dd19e64c9b7e';
 
 export const ChainList = isProd
 	? [

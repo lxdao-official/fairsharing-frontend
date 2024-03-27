@@ -25,6 +25,7 @@ import FilterSvg from './svg/filter.svg';
 import LinkSvg from './svg/link.svg';
 import DeleteSvg from './svg/delete.svg';
 import CloseSvg from './svg/close.svg';
+import CloseGraySvg from './svg/close_gray.svg';
 import InfoSvg from './svg/info.svg';
 
 const LogoIcon = (props: SvgIconProps) => <LogoSvg {...props} />;
@@ -54,6 +55,7 @@ const FilterIcon = (props: SvgIconProps) => <FilterSvg {...props} />;
 const LinkIcon = (props: SvgIconProps) => <LinkSvg {...props} />;
 const DeleteIcon = (props: SvgIconProps) => <DeleteSvg {...props} />;
 const CloseIcon = (props: SvgIconProps) => <CloseSvg {...props} />;
+const CloseGrayIcon = (props: SvgIconProps) => <CloseGraySvg {...props} />;
 const InfoIcon = (props: SvgIconProps) => <InfoSvg {...props} />;
 
 const ContributionIcon = (props: SvgIconProps) => (
@@ -117,5 +119,6 @@ export {
 	LinkIcon,
 	DeleteIcon,
 	CloseIcon,
+	CloseGrayIcon,
 	InfoIcon,
 };
