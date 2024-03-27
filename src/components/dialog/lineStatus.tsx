@@ -18,7 +18,9 @@ const LineStatus = ({ isLoading, isDone, text }: IProps) => {
 			) : isDone ? (
 				<ForIcon />
 			) : (
-				<DefaultDot />
+				<StyledFlexBox sx={{ width: '20px', justifyContent: 'center' }}>
+					<DefaultDot />
+				</StyledFlexBox>
 			)}
 			<Typography variant={isLoading ? 'subtitle1' : 'body1'} sx={{ marginLeft: '16px' }}>
 				{text}
@@ -30,8 +32,8 @@ const LineStatus = ({ isLoading, isDone, text }: IProps) => {
 export default LineStatus;
 
 const DefaultDot = styled('div')({
-	width: '20px',
-	height: '20px',
+	width: '12px',
+	height: '12px',
 	borderRadius: '20px',
 	border: '2px solid #94A3B8',
 });

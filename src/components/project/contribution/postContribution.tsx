@@ -989,12 +989,24 @@ const PostContribution = ({
 					<LineStatus
 						isLoading={isPosting}
 						isDone={isPostSuccess}
-						text={'Posting contribution on chain...'}
+						text={`Posting contribution on chain ${isPosting ? '...' : '.'}`}
 					/>
+
+					<div
+						style={{
+							backgroundColor: isPostSuccess ? '#0F172A' : '#94A3B8',
+							width: '2px',
+							height: '20px',
+							marginLeft: '28px',
+						}}
+					/>
+
 					<LineStatus
 						isLoading={isVoting}
 						isDone={isVoteSuccess}
-						text={`Vote for the contribution you've just made.`}
+						text={`Vote for the contribution you've just made ${
+							isVoting ? '...' : '.'
+						}`}
 					/>
 					<Button
 						variant={'contained'}
