@@ -560,6 +560,8 @@ const PostContribution = ({
 	const onVoteFor = async () => {
 		console.log('onVoteFor');
 		if (!curContribution) return;
+		if (!isPostSuccess) return;
+		if (isVoting) return;
 		try {
 			setIsVoting(true);
 			setIsVoteSuccess(false);
@@ -609,12 +611,15 @@ const PostContribution = ({
 			}
 			showToast('Voted', 'success');
 			const baseURL = getEasScanURL();
+			setIsVoting(false);
+			setIsVoteSuccess(true);
+			setTimeout(() => {
+				setOpenDialog(false);
+				handleCloseDialog();
+			}, 1500);
 			// Update ENS names
 			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 			await mutate(['eas/vote/list', [...contributionUids, curContribution.uId]]);
-
-			setIsVoting(false);
-			setIsVoteSuccess(true);
 		} catch (err) {
 			console.error('vote for', err);
 			setIsVoting(false);
@@ -1043,7 +1048,7 @@ const PostContribution = ({
 							minWidth: '80px',
 						}}
 						onClick={onVoteFor}
-						disabled={isVoteSuccess}
+						disabled={!isPostSuccess || isVoting || isVoteSuccess}
 					>
 						For
 					</Button>
