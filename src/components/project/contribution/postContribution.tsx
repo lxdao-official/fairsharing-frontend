@@ -34,6 +34,8 @@ import Image from 'next/image';
 
 import { MoreHoriz } from '@mui/icons-material';
 
+import ReactQuill from 'react-quill';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
@@ -68,6 +70,7 @@ import CustomDialog from '@/components/dialog/customDialog';
 import LineStatus from '@/components/dialog/lineStatus';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 import { useProjectStore } from '@/store/project';
+import 'react-quill/dist/quill.snow.css';
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -538,7 +541,6 @@ const PostContribution = ({
 			});
 			setIsPostSuccess(true);
 			showToast('Contribution posted', 'success');
-			setShowFullPost?.(false);
 			onClear();
 			await mutate(contributionListParam);
 		} catch (err: any) {
@@ -708,16 +710,39 @@ const PostContribution = ({
 			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#details</TagLabel>
-				<StyledInput
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
+				{/*<StyledInput*/}
+				{/*	variant={'standard'}*/}
+				{/*	InputProps={{ disableUnderline: true }}*/}
+				{/*	required*/}
+				{/*	value={detail}*/}
+				{/*	size={'small'}*/}
+				{/*	onChange={handleDetailInputChange}*/}
+				{/*	placeholder={'I developed sign in with [wallet] feature'}*/}
+				{/*	autoComplete={'off'}*/}
+				{/*/>*/}
+				<ReactQuill
+					theme="snow"
 					value={detail}
-					size={'small'}
-					onChange={handleDetailInputChange}
-					placeholder={'I developed sign in with [wallet] feature'}
-					onFocus={() => setShowFullPost?.(true)}
-					autoComplete={'off'}
+					onChange={setDetail}
+					formats={[
+						'header',
+						'bold',
+						'italic',
+						'underline',
+						'strike',
+						'blockquote',
+						'list',
+						'bullet',
+						'indent',
+						'link',
+					]}
+					placeholder={'Markdown format supported'}
+					style={{
+						flex: '1',
+						border: 'none',
+						paddingLeft: '14px',
+					}}
+					modules={{ toolbar: false }}
 				/>
 			</StyledFlexBox>
 

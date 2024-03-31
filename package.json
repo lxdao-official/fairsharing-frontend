@@ -51,6 +51,7 @@
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.47.0",
+    "react-quill": "^2.0.0",
     "swr": "^2.2.2",
     "typescript": "5.1.6",
     "valtio": "^1.11.1",

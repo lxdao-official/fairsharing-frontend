@@ -29,6 +29,8 @@ import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
 
+import ReactQuill from 'react-quill';
+
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -631,7 +633,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 							</div>
 						</StyledFlexBox>
 					</StyledFlexBox>
-					<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>
+					{/*<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>*/}
+					<ReactQuill
+						style={{ margin: '2px 0 12px' }}
+						value={contribution.detail}
+						readOnly={true}
+						modules={{ toolbar: false }}
+					/>
 					<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
 						<StyledFlexBox>
 							{/*pizza status*/}
