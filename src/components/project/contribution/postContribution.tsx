@@ -857,6 +857,7 @@ const PostContribution = ({
 							onChange={handleProofInputChange}
 							placeholder="It can be links or texts."
 							autoComplete={'off'}
+							multiline
 						/>
 					</StyledFlexBox>
 
