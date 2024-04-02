@@ -29,7 +29,7 @@ import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
 
-import ReactQuill from 'react-quill';
+import dynamic from 'next/dynamic';
 
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
@@ -70,6 +70,8 @@ import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
 import useProof from '@/components/project/contribution/useProof';
 import { useProjectStore } from '@/store/project';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 /**
  * Record<signer, IVoteValueEnum>

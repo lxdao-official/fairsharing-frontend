@@ -34,8 +34,6 @@ import Image from 'next/image';
 
 import { MoreHoriz } from '@mui/icons-material';
 
-import ReactQuill from 'react-quill';
-
 import { StyledFlexBox } from '@/components/styledComponents';
 import { IContribution, IContributor } from '@/services/types';
 import { closeGlobalLoading, openGlobalLoading, showToast, useUtilsStore } from '@/store/utils';
@@ -70,7 +68,11 @@ import CustomDialog from '@/components/dialog/customDialog';
 import LineStatus from '@/components/dialog/lineStatus';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 import { useProjectStore } from '@/store/project';
+
 import 'react-quill/dist/quill.snow.css';
+import dynamic from 'next/dynamic';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export interface IPostContributionProps {
 	projectId: string;
