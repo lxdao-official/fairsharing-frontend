@@ -130,8 +130,8 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const [total, setTotal] = useState(0);
 	const [isInit, setIsInit] = useState(false);
 
-	const [dateFrom, setDateFrom] = useState<Date>(() => startOfYear(new Date()));
-	const [dateTo, setDateTo] = useState<Date>(() => endOfYear(new Date()));
+	const [dateFrom, setDateFrom] = useState<Date>();
+	const [dateTo, setDateTo] = useState<Date>();
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
@@ -159,7 +159,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	);
 
 	const contributionListParam = useMemo(() => {
-		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${dateFrom.getTime()}${dateTo.getTime()}`;
+		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${dateFrom ? dateFrom.getTime() : ''}${dateTo ? dateTo.getTime() : ''}`;
 	}, [wallet, projectId, curPage, pageSize, dateFrom, dateTo]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(
@@ -170,8 +170,8 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				curPage,
 				pageSize,
 				wallet,
-				endDateFrom: dateFrom.getTime(),
-				endDateTo: dateTo.getTime(),
+				endDateFrom: dateFrom ? dateFrom.getTime() : undefined,
+				endDateTo: dateTo ? dateTo.getTime() : undefined,
 			}),
 		{
 			fallbackData: [],
@@ -276,11 +276,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	}, [contributionListParam]);
 
 	useEffect(() => {
-		setDateFrom(endDateFrom);
+		setDateFrom(endDateFrom || undefined);
 	}, [endDateFrom]);
 
 	useEffect(() => {
-		setDateTo(endDateTo);
+		setDateTo(endDateTo || undefined);
 	}, [endDateTo]);
 
 	const setCanClaimedContribution = (contribution: IContribution) => {
@@ -322,7 +322,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				endDateTo,
 			});
 			const filterList = list.filter((item) => item.status !== Status.UNREADY);
-			setTotal(filterList.length);
+			setTotal(total);
 			return filterList;
 		} catch (err) {
 			return Promise.reject(err);

@@ -29,6 +29,8 @@ import { useSWRConfig } from 'swr';
 
 import { ethers } from 'ethers';
 
+import dynamic from 'next/dynamic';
+
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -68,6 +70,8 @@ import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
 import useProof from '@/components/project/contribution/useProof';
 import { useProjectStore } from '@/store/project';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 /**
  * Record<signer, IVoteValueEnum>
@@ -631,7 +635,13 @@ const ContributionItem = (props: IContributionItemProps) => {
 							</div>
 						</StyledFlexBox>
 					</StyledFlexBox>
-					<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>
+					{/*<Typography sx={{ margin: '2px 0 12px' }}>{contribution.detail}</Typography>*/}
+					<ReactQuill
+						style={{ margin: '2px 0 12px' }}
+						value={contribution.detail}
+						readOnly={true}
+						modules={{ toolbar: false }}
+					/>
 					<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
 						<StyledFlexBox>
 							{/*pizza status*/}

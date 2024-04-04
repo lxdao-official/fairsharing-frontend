@@ -62,8 +62,8 @@ const useContributionListFilter = ({
 	const [filterVoteStatus, setFilterVoteStatus] = useState(VoteStatusEnum.All);
 	const [filterContributor, setFilterContributor] = useState('All');
 
-	const [endDateFrom, setEndDateFrom] = useState<Date>(() => startOfYear(new Date()));
-	const [endDateTo, setEndDateTo] = useState<Date>(() => endOfYear(new Date()));
+	const [endDateFrom, setEndDateFrom] = useState<Date | null | undefined>();
+	const [endDateTo, setEndDateTo] = useState<Date | null | undefined>();
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 
@@ -167,8 +167,8 @@ const useContributionListFilter = ({
 		setFilterPeriod(PeriodEnum.All);
 		setFilterVoteStatus(VoteStatusEnum.All);
 		setFilterContributor('All');
-		setEndDateFrom(startOfYear(new Date()));
-		setEndDateTo(endOfYear(new Date()));
+		setEndDateFrom(null);
+		setEndDateTo(null);
 	};
 	const renderFilter = (
 		<StyledFlexBox>
@@ -177,7 +177,7 @@ const useContributionListFilter = ({
 					<DatePicker
 						format={'MM/dd/yyyy'}
 						value={endDateFrom}
-						onChange={(date) => setEndDateFrom(date!)}
+						onChange={(date) => setEndDateFrom(date)}
 						open={openStartDatePicker}
 						onOpen={() => setOpenStartDatePicker(true)}
 						onClose={() => setOpenStartDatePicker(false)}
@@ -198,7 +198,7 @@ const useContributionListFilter = ({
 					<DatePicker
 						format={'MM/dd/yyyy'}
 						value={endDateTo}
-						onChange={(date) => setEndDateTo(date!)}
+						onChange={(date) => setEndDateTo(date)}
 						open={openEndDatePicker}
 						onOpen={() => setOpenEndDatePicker(true)}
 						onClose={() => setOpenEndDatePicker(false)}

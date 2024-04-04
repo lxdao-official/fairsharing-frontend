@@ -69,6 +69,11 @@ import LineStatus from '@/components/dialog/lineStatus';
 import { IVoteValueEnum } from '@/components/project/contribution/contributionList';
 import { useProjectStore } from '@/store/project';
 
+import 'react-quill/dist/quill.snow.css';
+import dynamic from 'next/dynamic';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
 export interface IPostContributionProps {
 	projectId: string;
 	contribution?: IContribution;
@@ -538,7 +543,6 @@ const PostContribution = ({
 			});
 			setIsPostSuccess(true);
 			showToast('Contribution posted', 'success');
-			setShowFullPost?.(false);
 			onClear();
 			await mutate(contributionListParam);
 		} catch (err: any) {
@@ -558,6 +562,8 @@ const PostContribution = ({
 	const onVoteFor = async () => {
 		console.log('onVoteFor');
 		if (!curContribution) return;
+		if (!isPostSuccess) return;
+		if (isVoting) return;
 		try {
 			setIsVoting(true);
 			setIsVoteSuccess(false);
@@ -607,12 +613,15 @@ const PostContribution = ({
 			}
 			showToast('Voted', 'success');
 			const baseURL = getEasScanURL();
+			setIsVoting(false);
+			setIsVoteSuccess(true);
+			setTimeout(() => {
+				setOpenDialog(false);
+				handleCloseDialog();
+			}, 1500);
 			// Update ENS names
 			await axios.get(`${baseURL}/api/getENS/${myAddress}`);
 			await mutate(['eas/vote/list', [...contributionUids, curContribution.uId]]);
-
-			setIsVoting(false);
-			setIsVoteSuccess(true);
 		} catch (err) {
 			console.error('vote for', err);
 			setIsVoting(false);
@@ -708,16 +717,39 @@ const PostContribution = ({
 			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#details</TagLabel>
-				<StyledInput
-					variant={'standard'}
-					InputProps={{ disableUnderline: true }}
-					required
+				{/*<StyledInput*/}
+				{/*	variant={'standard'}*/}
+				{/*	InputProps={{ disableUnderline: true }}*/}
+				{/*	required*/}
+				{/*	value={detail}*/}
+				{/*	size={'small'}*/}
+				{/*	onChange={handleDetailInputChange}*/}
+				{/*	placeholder={'I developed sign in with [wallet] feature'}*/}
+				{/*	autoComplete={'off'}*/}
+				{/*/>*/}
+				<ReactQuill
+					theme="snow"
 					value={detail}
-					size={'small'}
-					onChange={handleDetailInputChange}
-					placeholder={'I developed sign in with [wallet] feature'}
-					onFocus={() => setShowFullPost?.(true)}
-					autoComplete={'off'}
+					onChange={setDetail}
+					formats={[
+						'header',
+						'bold',
+						'italic',
+						'underline',
+						'strike',
+						'blockquote',
+						'list',
+						'bullet',
+						'indent',
+						'link',
+					]}
+					placeholder={'Markdown format supported'}
+					style={{
+						flex: '1',
+						border: 'none',
+						paddingLeft: '14px',
+					}}
+					modules={{ toolbar: false }}
 				/>
 			</StyledFlexBox>
 
@@ -832,6 +864,7 @@ const PostContribution = ({
 							onChange={handleProofInputChange}
 							placeholder="It can be links or texts."
 							autoComplete={'off'}
+							multiline
 						/>
 					</StyledFlexBox>
 
@@ -1017,7 +1050,7 @@ const PostContribution = ({
 							minWidth: '80px',
 						}}
 						onClick={onVoteFor}
-						disabled={isVoteSuccess}
+						disabled={!isPostSuccess || isVoting || isVoteSuccess}
 					>
 						For
 					</Button>
