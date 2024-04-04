@@ -322,7 +322,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				endDateTo,
 			});
 			const filterList = list.filter((item) => item.status !== Status.UNREADY);
-			setTotal(filterList.length);
+			setTotal(total);
 			return filterList;
 		} catch (err) {
 			return Promise.reject(err);
