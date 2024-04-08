@@ -128,7 +128,11 @@ const PostContribution = ({
 					id: selectedContributors[0].id,
 					wallet: selectedContributors[0].wallet,
 			  }
-			: undefined,
+			: {
+				label: '',
+				id: '',
+				wallet: ''
+			},
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
@@ -310,8 +314,16 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
-		setToValue(undefined);
+		setToValue({
+			label: '',
+			id: '',
+			wallet: ''
+		});
 		setContributors([]);
+		const inputEle = document.getElementById('contributor-select') as HTMLInputElement
+		if (inputEle) {
+			inputEle.value = '';
+		}
 		setCredit('');
 		setTypeValue([]);
 		setStartDate(new Date());
@@ -934,7 +946,10 @@ const PostContribution = ({
 							}}
 							size={'small'}
 							options={contributorOptions}
-							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
+							getOptionLabel={(option) => option.label ? `@${option.label}` : ''} // 设置显示格式
+							isOptionEqualToValue={(option, value) =>
+								option.label === value.label && option.id === value.id
+							}
 							value={toValue}
 							onChange={(event, newValue: AutoCompleteValue | undefined) => {
 								setToValue(newValue);
