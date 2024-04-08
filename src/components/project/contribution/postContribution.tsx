@@ -289,6 +289,19 @@ const PostContribution = ({
 		mutateContributorList();
 	}, [projectId]);
 
+	useEffect(() => {
+		const cacheData: IPostContributionCacheItem = {
+			detail,
+			typeValue,
+			proof,
+			startDate,
+			endDate,
+			toValue: toValue!,
+			credit,
+		};
+		setCache(cacheData);
+	}, [detail, typeValue, proof, startDate, endDate, toValue, credit]);
+
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
 			return '';
@@ -459,16 +472,6 @@ const PostContribution = ({
 			setCurContribution(undefined);
 			setOpenDialog(true);
 
-			const cacheData: IPostContributionCacheItem = {
-				detail,
-				typeValue,
-				proof,
-				startDate,
-				endDate,
-				toValue: toValue!,
-				credit,
-			};
-			setCache(cacheData);
 			const contribution = await createContribution({
 				projectId: projectId,
 				operatorId: operatorId as string,
