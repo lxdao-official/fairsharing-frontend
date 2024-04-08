@@ -112,3 +112,9 @@ ol, ul {
 .ql-container.ql-snow {
     border: none !important;
 }
+.ql-editor ol, .ql-editor ul {
+    padding-left: 0.5em !important;
+}
+.ql-editor li:not(.ql-direction-rtl)::before {
+    text-align: center !important;
+}

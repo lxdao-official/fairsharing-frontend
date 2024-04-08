@@ -870,17 +870,41 @@ const PostContribution = ({
 					{/*proof*/}
 					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#proof</TagLabel>
-						<StyledInput
-							variant={'standard'}
-							InputProps={{ disableUnderline: true }}
-							required
+						<ReactQuill
+							theme="snow"
 							value={proof}
-							size={'small'}
-							onChange={handleProofInputChange}
-							placeholder="It can be links or texts."
-							autoComplete={'off'}
-							multiline
+							onChange={setProof}
+							formats={[
+								'header',
+								'bold',
+								'italic',
+								'underline',
+								'strike',
+								'blockquote',
+								'list',
+								'bullet',
+								'indent',
+								'link',
+							]}
+							placeholder={'Markdown format supported'}
+							style={{
+								flex: '1',
+								border: 'none',
+								paddingLeft: '14px',
+							}}
+							modules={{ toolbar: false }}
 						/>
+						{/*<StyledInput*/}
+						{/*	variant={'standard'}*/}
+						{/*	InputProps={{ disableUnderline: true }}*/}
+						{/*	required*/}
+						{/*	value={proof}*/}
+						{/*	size={'small'}*/}
+						{/*	onChange={handleProofInputChange}*/}
+						{/*	placeholder="It can be links or texts."*/}
+						{/*	autoComplete={'off'}*/}
+						{/*	multiline*/}
+						{/*/>*/}
 					</StyledFlexBox>
 
 					{/*date*/}
