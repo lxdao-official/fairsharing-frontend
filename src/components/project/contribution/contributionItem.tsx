@@ -696,26 +696,32 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										<Typography variant={'body1'}>
-											{proofList.map((item, idx) => (
-												<span key={idx}>
-													{item.type === 'href' ? (
-														<Link
-															href={item.value}
-															target={'_blank'}
-															style={{
-																color: '#437EF7',
-																textDecoration: 'underline',
-															}}
-														>
-															{item.value}
-														</Link>
-													) : (
-														item.value
-													)}
-												</span>
-											))}
-										</Typography>
+										{/*<Typography variant={'body1'}>*/}
+										{/*	{proofList.map((item, idx) => (*/}
+										{/*		<span key={idx}>*/}
+										{/*			{item.type === 'href' ? (*/}
+										{/*				<Link*/}
+										{/*					href={item.value}*/}
+										{/*					target={'_blank'}*/}
+										{/*					style={{*/}
+										{/*						color: '#437EF7',*/}
+										{/*						textDecoration: 'underline',*/}
+										{/*					}}*/}
+										{/*				>*/}
+										{/*					{item.value}*/}
+										{/*				</Link>*/}
+										{/*			) : (*/}
+										{/*				item.value*/}
+										{/*			)}*/}
+										{/*		</span>*/}
+										{/*	))}*/}
+										{/*</Typography>*/}
+										<ReactQuill
+											style={{ margin: '2px 0 12px' }}
+											value={contribution.proof}
+											readOnly={true}
+											modules={{ toolbar: false }}
+										/>
 									</Paper>
 								</Popover>
 							</>

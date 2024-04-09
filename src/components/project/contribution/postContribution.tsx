@@ -128,7 +128,11 @@ const PostContribution = ({
 					id: selectedContributors[0].id,
 					wallet: selectedContributors[0].wallet,
 			  }
-			: undefined,
+			: {
+				label: '',
+				id: '',
+				wallet: ''
+			},
 	);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		if (!isEdit) return new Date();
@@ -285,6 +289,19 @@ const PostContribution = ({
 		mutateContributorList();
 	}, [projectId]);
 
+	useEffect(() => {
+		const cacheData: IPostContributionCacheItem = {
+			detail,
+			typeValue,
+			proof,
+			startDate,
+			endDate,
+			toValue: toValue!,
+			credit,
+		};
+		setCache(cacheData);
+	}, [detail, typeValue, proof, startDate, endDate, toValue, credit]);
+
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
 			return '';
@@ -310,8 +327,16 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
-		setToValue(undefined);
+		setToValue({
+			label: '',
+			id: '',
+			wallet: ''
+		});
 		setContributors([]);
+		const inputEle = document.getElementById('contributor-select') as HTMLInputElement
+		if (inputEle) {
+			inputEle.value = '';
+		}
 		setCredit('');
 		setTypeValue([]);
 		setStartDate(new Date());
@@ -447,16 +472,6 @@ const PostContribution = ({
 			setCurContribution(undefined);
 			setOpenDialog(true);
 
-			const cacheData: IPostContributionCacheItem = {
-				detail,
-				typeValue,
-				proof,
-				startDate,
-				endDate,
-				toValue: toValue!,
-				credit,
-			};
-			setCache(cacheData);
 			const contribution = await createContribution({
 				projectId: projectId,
 				operatorId: operatorId as string,
@@ -855,17 +870,41 @@ const PostContribution = ({
 					{/*proof*/}
 					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#proof</TagLabel>
-						<StyledInput
-							variant={'standard'}
-							InputProps={{ disableUnderline: true }}
-							required
+						<ReactQuill
+							theme="snow"
 							value={proof}
-							size={'small'}
-							onChange={handleProofInputChange}
-							placeholder="It can be links or texts."
-							autoComplete={'off'}
-							multiline
+							onChange={setProof}
+							formats={[
+								'header',
+								'bold',
+								'italic',
+								'underline',
+								'strike',
+								'blockquote',
+								'list',
+								'bullet',
+								'indent',
+								'link',
+							]}
+							placeholder={'Markdown format supported'}
+							style={{
+								flex: '1',
+								border: 'none',
+								paddingLeft: '14px',
+							}}
+							modules={{ toolbar: false }}
 						/>
+						{/*<StyledInput*/}
+						{/*	variant={'standard'}*/}
+						{/*	InputProps={{ disableUnderline: true }}*/}
+						{/*	required*/}
+						{/*	value={proof}*/}
+						{/*	size={'small'}*/}
+						{/*	onChange={handleProofInputChange}*/}
+						{/*	placeholder="It can be links or texts."*/}
+						{/*	autoComplete={'off'}*/}
+						{/*	multiline*/}
+						{/*/>*/}
 					</StyledFlexBox>
 
 					{/*date*/}
@@ -934,7 +973,10 @@ const PostContribution = ({
 							}}
 							size={'small'}
 							options={contributorOptions}
-							getOptionLabel={(option) => `@${option.label}`} // 设置显示格式
+							getOptionLabel={(option) => option.label ? `@${option.label}` : ''} // 设置显示格式
+							isOptionEqualToValue={(option, value) =>
+								option.label === value.label && option.id === value.id
+							}
 							value={toValue}
 							onChange={(event, newValue: AutoCompleteValue | undefined) => {
 								setToValue(newValue);
