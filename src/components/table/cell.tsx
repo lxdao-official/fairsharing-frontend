@@ -5,6 +5,8 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import Image from 'next/image';
 
+import Link from 'next/link';
+
 import { formatWalletAddress } from '@/utils/wallet';
 import { showToast } from '@/store/utils';
 
@@ -18,12 +20,14 @@ export const nickNameCell: GridColDef = {
 	minWidth: 150,
 	renderCell: (item) => {
 		return (
-			<StyledFlexBox sx={{ gap: '8px' }}>
-				<Avatar alt={item.value} src={item.row.user?.avatar || ''} />
-				<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
-					{item.value}
-				</Typography>
-			</StyledFlexBox>
+			<Link href={`/profile/${item.row.wallet}`}>
+				<StyledFlexBox sx={{ gap: '8px' }}>
+					<Avatar alt={item.value} src={item.row.user?.avatar || ''} />
+					<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
+						{item.value}
+					</Typography>
+				</StyledFlexBox>
+			</Link>
 		);
 	},
 };
