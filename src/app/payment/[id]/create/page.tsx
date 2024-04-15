@@ -4,20 +4,11 @@
 // https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-	Button,
-	InputLabel,
-	MenuItem,
-	Select,
-	SelectChangeEvent,
-	styled,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { Button, MenuItem, Select, SelectChangeEvent, styled, TextField, Typography } from '@mui/material';
 
 import { useRouter } from 'next/navigation';
 
-import { SafeProvider, useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
+import { useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { BackIcon } from '@/icons';
@@ -26,6 +17,9 @@ import { useSafeBalances } from '@/hooks/useSafeBalances';
 
 import Allocation from '@/components/payment/allocation';
 import { IMintRecord } from '@/services';
+import { TokenType } from '@safe-global/safe-gateway-typescript-sdk';
+import { encodeFunctionData } from 'viem';
+import { ERC_20_ABI } from '@/abis/erc20';
 
 export default function PaymentPage({ params }: { params: { id: string } }) {
 	const router = useRouter();
@@ -84,6 +78,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		}
 	}, [balances]);
 
+	const currentBalance = useMemo(() => {
+		return balances.find(balance => balance.tokenInfo.symbol === currency);
+	}, [balances, currency]);
+
 	useEffect(() => {
 		console.log('safe', safe);
 		if (safe && safe.safeAddress) {
@@ -131,20 +129,35 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	}, []);
 
 	const handleCreatePayment = async () => {
+		if (!currentBalance) return;
 		try {
 			const { list, claimedAmount } = allocationInfo;
-			// TODO confirm unit
-			// 手动将ETH转换为wei
-			const totalAmountWei = Math.round(totalAmount * 1e18);
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 			const txs = list.map((item) => {
 				const percent = item.credit / claimedAmount;
-				// TODO confirm ETH or other token types
-				return {
-					to: item.contributor.wallet,
-					value: String(Math.round(totalAmountWei * percent)),
-					data: '0x',
-				};
+				// Send ETH directly to the recipient address
+				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
+					const totalAmountWei = Math.round(totalAmount * 1e18);
+					return {
+						to: item.contributor.wallet,
+						// 手动将ETH转换为wei
+						value: String(Math.round(totalAmountWei * percent)),
+						data: '0x',
+					};
+				} else {
+					// For other token types, generate a contract tx
+					return {
+						to: currentBalance.tokenInfo.address,
+						value: '0',
+						data: encodeFunctionData({
+							abi: ERC_20_ABI,
+							functionName: 'transfer',
+							// 其他token，数字单位不做转换
+							args: [item.contributor.wallet, String(Math.round(totalAmount * percent))],
+						}),
+					};
+				}
+
 			});
 			const { safeTxHash } = await sdk.txs.send({ txs });
 			console.log({ safeTxHash });
@@ -228,7 +241,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						label={'currency*'}
 						value={currency}
 						onChange={handleCurrencyChange}
-						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
+						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
 					>
 						{currencyOptions.map((item) => (
 							<MenuItem key={item.value} value={item.value}>
