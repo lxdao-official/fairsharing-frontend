@@ -132,16 +132,18 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		if (!currentBalance) return;
 		try {
 			const { list, claimedAmount } = allocationInfo;
+			const decimals = currentBalance.tokenInfo.decimals
+			const pow = Math.pow(10, decimals)
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 			const txs = list.map((item) => {
 				const percent = item.credit / claimedAmount;
+				const value = String(totalAmount * pow * percent)
+				const recipient = item.contributor.wallet
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
-					const totalAmountWei = Math.round(totalAmount * 1e18);
 					return {
-						to: item.contributor.wallet,
-						// 手动将ETH转换为wei
-						value: String(Math.round(totalAmountWei * percent)),
+						to: recipient,
+						value: value,
 						data: '0x',
 					};
 				} else {
@@ -152,8 +154,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						data: encodeFunctionData({
 							abi: ERC_20_ABI,
 							functionName: 'transfer',
-							// 其他token，数字单位不做转换
-							args: [item.contributor.wallet, String(Math.round(totalAmount * percent))],
+							args: [recipient, value],
 						}),
 					};
 				}
