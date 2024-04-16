@@ -8,8 +8,8 @@ function useSafeBalances(sdk: SafeAppsSDK): [TokenBalance[], boolean] {
 	useEffect(() => {
 		async function loadBalances() {
 			const balances = await sdk.safe.experimental_getBalances();
-
-			setAssets(balances.items.filter((item) => parseInt(item.fiatBalance) > 0));
+			console.log('loadBalances', balances);
+			setAssets(balances.items.filter((item) => Number(item.fiatBalance) > 0));
 			setLoaded(true);
 		}
 

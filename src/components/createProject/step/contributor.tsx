@@ -19,6 +19,7 @@ import {
 	TableHead,
 	TableRow,
 	TextField,
+	Tooltip,
 	Typography,
 } from '@mui/material';
 
@@ -83,6 +84,22 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 					},
 			  ],
 	);
+
+	const oldContributorIdMap = useMemo(() => {
+		if (!contributors || contributors.length === 0) return {};
+		return contributors.reduce(
+			(pre, currentValue) => {
+				if (currentValue.id) {
+					return {
+						...pre,
+						[currentValue.id]: true,
+					};
+				}
+				return pre;
+			},
+			{} as Record<string, boolean>,
+		);
+	}, [contributors]);
 
 	const [isEdited, setIsEdited] = useState(false);
 	const [showRevokeOwnerDialog, setShowRevokeOwnerDialog] = useState(false);
@@ -298,15 +315,25 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 									/>
 								</StyledTableCell>
 								<StyledTableCell>
-									<TextField
-										size="small"
-										value={row.wallet}
-										disabled={!canEdit}
-										onChange={(e) =>
-											handleWalletAddressChange(index, e.target.value)
-										}
-										sx={{ maxWidth: 300, minWidth: 120 }}
-									/>
+									{!canEdit || !!(row.id && oldContributorIdMap[row.id]) ? (
+										<Tooltip title={row.wallet} placement={'top'}>
+											<TextField
+												size="small"
+												value={row.wallet}
+												disabled={true}
+												sx={{ maxWidth: 300, minWidth: 120 }}
+											/>
+										</Tooltip>
+									) : (
+										<TextField
+											size="small"
+											value={row.wallet}
+											onChange={(e) =>
+												handleWalletAddressChange(index, e.target.value)
+											}
+											sx={{ maxWidth: 300, minWidth: 120 }}
+										/>
+									)}
 								</StyledTableCell>
 								<StyledTableCell>
 									<FormControl>
