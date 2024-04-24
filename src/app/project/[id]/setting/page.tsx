@@ -22,6 +22,7 @@ import {
 	getProjectDetail,
 	IContributor,
 	VoteApproveEnum,
+	VoteSystemEnum,
 } from '@/services';
 
 import { showToast } from '@/store/utils';
@@ -44,7 +45,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 
 	const {
 		isLoading: detailLoading,
-		data,
+		data: projectDetail,
 		mutate,
 	} = useSWR(['getProjectDetail', params.id], () => getProjectDetail(params.id));
 	const {
@@ -80,7 +81,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 		async (type: 'profile' | 'strategy') => {
 			const formData = stepProfileRef.current?.getFormData();
 			const strategyData = stepStrategyRef.current?.getFormData();
-			const { voteSystem, voteApprove, voteThreshold } = data!;
+			const { voteSystem, voteApprove, voteThreshold } = projectDetail!;
 			if (type === 'profile' && formData) {
 				const { name, intro, avatar } = formData;
 				await editProject({
@@ -89,7 +90,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 					name,
 					intro,
 					logo: avatar,
-					votePeriod: data!.votePeriod,
+					votePeriod: projectDetail!.votePeriod,
 					voteSystem,
 					voteApprove,
 					voteThreshold,
@@ -103,7 +104,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 					forWeightOfTotal,
 					differWeightOfTotal,
 				} = strategyData;
-				const { name, intro, logo } = data!;
+				const { name, intro, logo } = projectDetail!;
 				await editProject({
 					operatorId,
 					id: params.id,
@@ -122,7 +123,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 			showToast(`Project settings updated`);
 			await mutate();
 		},
-		[data, operatorId],
+		[projectDetail, operatorId],
 	);
 
 	const handleContributorSubmit = useCallback(async () => {
@@ -133,6 +134,15 @@ export default function Setting({ params }: { params: { id: string } }) {
 
 		let saveContractFail = false;
 		const formData = stepContributorRef.current?.getFormData();
+
+		if (projectDetail?.voteSystem === VoteSystemEnum.WEIGHT) {
+			const sum = formData?.contributors.reduce((prev, cur) => prev + cur.voteWeight, 0);
+			if (sum !== 100) {
+				showToast('Weights must add up to 100%.', 'error');
+				return;
+			}
+		}
+
 		try {
 			const diffRes = compareMemberArrays(
 				contributorList,
@@ -167,14 +177,28 @@ export default function Setting({ params }: { params: { id: string } }) {
 		if (saveContractFail) return;
 		// DB可能会更改nickname、权限等
 		if (formData?.contributors) {
-			await editContributorList({
-				projectId: params.id,
-				contributors: formData.contributors as IContributor[],
-			});
-			showToast(`Contributors updated`);
-			await contributorMutate();
+			try {
+				await editContributorList({
+					projectId: params.id,
+					// 后端的voteWeight以1为单位
+					contributors: (formData.contributors as IContributor[]).map((item) => {
+						return { ...item, voteWeight: item.voteWeight / 100 };
+					}),
+				});
+				showToast(`Contributors updated`);
+				await contributorMutate();
+			} catch (err: any) {
+				err.message && showToast(err.message, 'error');
+			}
 		}
-	}, [contributorList, stepContributorRef.current, myAddress, signer, params.id]);
+	}, [
+		projectDetail?.voteSystem,
+		contributorList,
+		stepContributorRef.current,
+		myAddress,
+		signer,
+		params.id,
+	]);
 
 	const handleToScan = useCallback(() => {
 		window.open(`${scanUrl}/address/${params.id}`, '_blank');
@@ -186,7 +210,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 				return (
 					<StepProfile
 						ref={stepProfileRef}
-						data={data}
+						data={projectDetail}
 						canEdit={isProjectAdmin}
 						onSave={() => handleProjectInfoSubmit('profile')}
 					/>
@@ -195,7 +219,7 @@ export default function Setting({ params }: { params: { id: string } }) {
 				return (
 					<StepStrategy
 						ref={stepStrategyRef}
-						data={data}
+						data={projectDetail}
 						canEdit={isProjectAdmin}
 						onSave={() => handleProjectInfoSubmit('strategy')}
 					/>
@@ -208,13 +232,13 @@ export default function Setting({ params }: { params: { id: string } }) {
 						canEdit={isProjectAdmin}
 						onSave={handleContributorSubmit}
 						isActive={true}
-						voteSystem={data?.voteSystem}
+						voteSystem={projectDetail?.voteSystem}
 					/>
 				);
 			default:
 				return null;
 		}
-	}, [data, activeTab, isProjectAdmin, handleProjectInfoSubmit, contributorsData]);
+	}, [projectDetail, activeTab, isProjectAdmin, handleProjectInfoSubmit, contributorsData]);
 
 	return (
 		<div>

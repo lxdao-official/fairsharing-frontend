@@ -66,6 +66,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 	const { address: myAddress } = useAccount();
 	const { setCache, cache: createProjectCache } = useProjectCache();
 
+	// 后端的voteWeight以1为单位
 	const [contributors, setContributors] = useState<Contributor[]>(
 		data
 			? data.map((item) => {
@@ -80,7 +81,7 @@ const StepContributor = forwardRef<StepContributorRef, IStepContributorProps>((p
 						wallet: myAddress || '',
 						role: '',
 						permission: PermissionEnum.Admin,
-						voteWeight: 1,
+						voteWeight: 100,
 					},
 			  ],
 	);
