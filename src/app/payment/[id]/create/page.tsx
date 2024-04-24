@@ -148,13 +148,13 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 			const txs = list.map((item) => {
 				const percent = item.credit / claimedAmount;
-				const value = String(totalAmount * pow * percent);
+				const value = totalAmount * pow * percent;
 				const recipient = item.contributor.wallet;
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
 					return {
 						to: recipient,
-						value: value,
+						value: Math.round(value).toString(),
 						data: '0x',
 					};
 				} else {
@@ -165,7 +165,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						data: encodeFunctionData({
 							abi: ERC_20_ABI,
 							functionName: 'transfer',
-							args: [recipient, value],
+							args: [recipient, String(value)],
 						}),
 					};
 				}
@@ -307,6 +307,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					totalAmount={totalAmount}
 					currencyName={currencyName}
 					onChange={onAllocationChange}
+					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
 				/>
 			) : null}
 

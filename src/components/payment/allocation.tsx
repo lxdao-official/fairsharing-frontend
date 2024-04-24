@@ -31,6 +31,7 @@ export interface IAllocationProps {
 	totalAmount: number;
 	currencyName: string;
 	onChange: (list: IMintRecord[], claimedAmount: number) => void;
+	isETH: boolean
 }
 
 export default function Allocation(props: IAllocationProps) {
@@ -191,7 +192,7 @@ export default function Allocation(props: IAllocationProps) {
 					const credit = allocationDetails[params.row.contributorId] || 0;
 					const percentage = credit / claimedAmount;
 					const value = props.totalAmount * percentage;
-					return value.toFixed(8);
+					return props.isETH ? Math.round(value) : value.toFixed(8);
 				},
 				renderCell: (item) => {
 					return (
@@ -209,6 +210,7 @@ export default function Allocation(props: IAllocationProps) {
 		filterRecordList.length,
 		props.currencyName,
 		props.totalAmount,
+		props.isETH,
 		allocationDetails,
 	]);
 

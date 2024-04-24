@@ -10,7 +10,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
 		<SafeProvider
 			loader={
 				<>
-					<Typography variant="h1">Waiting for Safe...</Typography>
+					<Typography variant="h6">Waiting for Safe...</Typography>
 					<CircularProgress color="primary" />
 				</>
 			}
