@@ -10,7 +10,7 @@ import { Img3, Img3Provider } from '@lxdao/img3';
 
 import Link from 'next/link';
 
-import { endOfYear, startOfYear } from 'date-fns';
+import { endOfYear, format, startOfYear } from 'date-fns';
 
 import { LocalizationProvider } from '@mui/x-date-pickers';
 
@@ -23,6 +23,7 @@ import { IMintRecord, getMintRecord, getContributorList, getAllocationDetails } 
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
+import { mkConfig, generateCsv, download } from "export-to-csv";
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [safeUrl, setSafeUrl] = useState('');
@@ -195,6 +196,28 @@ export default function Page({ params }: { params: { id: string } }) {
 		}
 	}, []);
 
+	const onExportSheet = () => {
+		const csvConfig = mkConfig({
+			useKeysAsHeaders: true,
+			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`
+		});
+		const data = recordList.map(item => {
+			const percentage = claimedAmount === 0 || item.credit === 0 ? '0' : ((item.credit / claimedAmount) * 100).toFixed(2);
+			return {
+				name: item.contributor.nickName,
+				wallet: item.contributor.wallet,
+				percentage: `${percentage}%`,
+				token: item.credit,
+			};
+		});
+		const csv = generateCsv(csvConfig)(data);
+		try {
+			download(csvConfig)(csv);
+		} catch (err) {
+			console.error('download error', err);
+		}
+	};
+
 	return (
 		<div style={{ width: '100%' }}>
 			<Typography variant="h3" sx={{ marginBottom: '30px' }}>
@@ -253,11 +276,17 @@ export default function Page({ params }: { params: { id: string } }) {
 						sx={{ marginLeft: '20px' }}
 					/>
 				</StyledFlexBox>
-				<Link href={safeUrl}>
-					<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
-						Create payment
+				<StyledFlexBox>
+					<Button variant={'outlined'} onClick={onExportSheet}>
+						Export CSV
 					</Button>
-				</Link>
+					<Link href={safeUrl}>
+						<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
+							Create payment
+						</Button>
+					</Link>
+				</StyledFlexBox>
+
 			</StyledFlexBox>
 
 			<div style={{ width: '100%' }}>

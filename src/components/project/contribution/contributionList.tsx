@@ -159,7 +159,9 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	);
 
 	const contributionListParam = useMemo(() => {
-		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${dateFrom ? dateFrom.getTime() : ''}${dateTo ? dateTo.getTime() : ''}`;
+		return `contribution/list/wallet${projectId}${wallet}${curPage}${pageSize}${
+			dateFrom ? dateFrom.getTime() : ''
+		}${dateTo ? dateTo.getTime() : ''}`;
 	}, [wallet, projectId, curPage, pageSize, dateFrom, dateTo]);
 
 	const { data: contributionList, mutate: mutateContributionList } = useSWR(

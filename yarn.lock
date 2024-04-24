@@ -6279,6 +6279,11 @@ execa@^8.0.1:
     signal-exit "^4.1.0"
     strip-final-newline "^3.0.0"
 
+export-to-csv@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.npmjs.org/export-to-csv/-/export-to-csv-1.2.4.tgz#3e1bd326993657f04b5e870c24de79421e700f16"
+  integrity sha512-mniFCil3DPLb4esJX00Nm6R77WbTMAqlzgYBlqN++QXZ2juNu19RMnRgmjuPH2pyRbrQvOieKg8zTp5lCwUFyQ==
+
 extend@^3.0.2:
   version "3.0.2"
   resolved "https://registry.npmjs.org/extend/-/extend-3.0.2.tgz#f8b1136b4071fbd8eb140aff858b1019ec2915fa"

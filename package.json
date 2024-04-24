@@ -43,6 +43,7 @@
     "eslint": "8.46.0",
     "eslint-config-next": "13.4.12",
     "ethers": "^6.7.1",
+    "export-to-csv": "^1.2.4",
     "graphql": "^16.8.0",
     "lodash.merge": "^4.6.2",
     "next": "13.4.12",
