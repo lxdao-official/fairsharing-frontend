@@ -165,7 +165,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						data: encodeFunctionData({
 							abi: ERC_20_ABI,
 							functionName: 'transfer',
-							args: [recipient, String(value)],
+							args: [recipient, Math.round(value).toString()],
 						}),
 					};
 				}
