@@ -192,7 +192,8 @@ export default function Allocation(props: IAllocationProps) {
 					const credit = allocationDetails[params.row.contributorId] || 0;
 					const percentage = credit / claimedAmount;
 					const value = props.totalAmount * percentage;
-					return props.isETH ? Math.round(value) : value.toFixed(8);
+					// return props.isETH ? Math.round(value) : value.toFixed(8);
+					return Math.round(value);
 				},
 				renderCell: (item) => {
 					return (
