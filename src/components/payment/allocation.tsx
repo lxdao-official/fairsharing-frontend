@@ -84,6 +84,9 @@ export default function Allocation(props: IAllocationProps) {
 		{
 			fallbackData: {},
 			onSuccess: (data) => console.log('allocationDetails', data),
+			retry: false,
+			errorRetryCount: 2,
+			keepPreviousData: true
 		},
 	);
 
@@ -238,7 +241,7 @@ export default function Allocation(props: IAllocationProps) {
 			return acc + cur.credit;
 		}, 0);
 		props.onChange(filterRecordList, totalClaimedAmount);
-	}, [filterRecordList, props.onChange]);
+	}, [filterRecordList]);
 
 	const handleContributorChange = (event: SelectChangeEvent) => {
 		setFilterContributor(event.target.value);
