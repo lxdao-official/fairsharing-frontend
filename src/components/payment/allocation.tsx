@@ -63,6 +63,7 @@ export default function Allocation(props: IAllocationProps) {
 				projectId: props.id,
 				endDateFrom: new Date(startDate).getTime(),
 				endDateTo: new Date(endDate).getTime(),
+				type: ''
 			}),
 		{
 			fallbackData: {},

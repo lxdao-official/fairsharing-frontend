@@ -74,6 +74,7 @@ export interface IAllocationQuery {
 	projectId: string;
 	endDateFrom: number;
 	endDateTo: number;
+	type: string;
 }
 
 /**

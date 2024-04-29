@@ -2,7 +2,18 @@
 
 import useSWR from 'swr';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Typography, TextField, Button, styled } from '@mui/material';
+import {
+	Typography,
+	TextField,
+	Button,
+	styled,
+	InputLabel,
+	Select,
+	MenuItem,
+	OutlinedInput,
+	Box,
+	Chip,
+} from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 
@@ -19,11 +30,19 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { StyledFlexBox } from '@/components/styledComponents';
-import { IMintRecord, getMintRecord, getContributorList, getAllocationDetails } from '@/services';
+import {
+	IMintRecord,
+	getMintRecord,
+	getContributorList,
+	getAllocationDetails,
+	getContributionTypeList,
+} from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
 import { mkConfig, generateCsv, download } from "export-to-csv";
+import FormControl from '@mui/material/FormControl';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [safeUrl, setSafeUrl] = useState('');
@@ -38,6 +57,12 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 	const [filterContributor, setFilterContributor] = useState('All');
+	const [selectedType, setSelectedType] = React.useState<string[]>([]);
+	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
+		const { target: { value } } = event;
+		console.log('handleChange value', value)
+		setSelectedType(value as string[]);
+	};
 
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 	const { isLoading, data } = useSWR(
@@ -49,13 +74,22 @@ export default function Page({ params }: { params: { id: string } }) {
 		},
 	);
 
+	const { data: contributionTypeList } = useSWR(
+		['project/contributionType', params.id],
+		() => getContributionTypeList(params.id),
+		{ fallbackData: [] },
+	);
+
 	const { data: allocationDetails } = useSWR(
-		['getAllocationDetails', params.id, startDate, endDate],
+		['getAllocationDetails', params.id, startDate, endDate, selectedType],
 		() =>
 			getAllocationDetails({
 				projectId: params.id,
 				endDateFrom: new Date(startDate).getTime(),
 				endDateTo: new Date(endDate).getTime(),
+				type: selectedType.reduce((pre, cur, idx) => {
+					return `${pre}${idx > 0 ? ',' : ''}${cur}`
+				}, ''),
 			}),
 		{
 			fallbackData: {},
@@ -199,7 +233,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const onExportSheet = () => {
 		const csvConfig = mkConfig({
 			useKeysAsHeaders: true,
-			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`
+			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`,
 		});
 		const data = recordList.map(item => {
 			const percentage = claimedAmount === 0 || item.credit === 0 ? '0' : ((item.credit / claimedAmount) * 100).toFixed(2);
@@ -269,6 +303,23 @@ export default function Page({ params }: { params: { id: string } }) {
 							/>
 						</LocalizationProvider>
 					</DateContainer>
+					{contributionTypeList.length > 0 ? (
+						<FormControl sx={{ m: 1, width: 200, marginLeft: '20px' }} size="small">
+							<InputLabel id="demo-multiple-chip-label">Type</InputLabel>
+							<Select
+								labelId="demo-multiple-chip-label"
+								id="demo-multiple-chip"
+								multiple
+								value={selectedType}
+								onChange={handleChange}
+								input={<OutlinedInput label="Name" />}
+							>
+								{contributionTypeList.map((item) => (
+									<MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					) : null}
 					<TextField
 						label="Search"
 						size="small"
@@ -276,17 +327,16 @@ export default function Page({ params }: { params: { id: string } }) {
 						sx={{ marginLeft: '20px' }}
 					/>
 				</StyledFlexBox>
-				<StyledFlexBox>
-					<Button variant={'outlined'} onClick={onExportSheet}>
-						Export CSV
+			</StyledFlexBox>
+			<StyledFlexBox sx={{ marginTop: '12px' }}>
+				<Button variant={'outlined'} onClick={onExportSheet}>
+					Export CSV
+				</Button>
+				<Link href={safeUrl}>
+					<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
+						Create payment
 					</Button>
-					<Link href={safeUrl}>
-						<Button variant={'contained'} sx={{ marginLeft: '16px' }}>
-							Create payment
-						</Button>
-					</Link>
-				</StyledFlexBox>
-
+				</Link>
 			</StyledFlexBox>
 
 			<div style={{ width: '100%' }}>
