@@ -235,10 +235,10 @@ export default function Page({ params }: { params: { id: string } }) {
 			useKeysAsHeaders: true,
 			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`,
 		});
-		const data = recordList.map(item => {
+		const data = recordList.filter(item => !!item.contributor).map(item => {
 			const percentage = claimedAmount === 0 || item.credit === 0 ? '0' : ((item.credit / claimedAmount) * 100).toFixed(2);
 			return {
-				name: item.contributor.nickName,
+				name: item.contributor?.nickName,
 				wallet: item.contributor.wallet,
 				percentage: `${percentage}%`,
 				token: item.credit,
@@ -342,7 +342,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			<div style={{ width: '100%' }}>
 				<DataGrid
 					loading={isLoading}
-					rows={recordList || []}
+					rows={recordList.filter(item => !!item.contributor) || []}
 					columns={columns}
 					rowHeight={72}
 					autoHeight
