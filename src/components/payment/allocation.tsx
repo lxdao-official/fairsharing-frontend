@@ -1,6 +1,6 @@
 import {
-	Button,
-	MenuItem,
+	Button, InputLabel,
+	MenuItem, OutlinedInput,
 	Select,
 	SelectChangeEvent,
 	styled,
@@ -24,7 +24,14 @@ import { endOfDay, startOfDay } from 'date-fns';
 import { walletCell } from '@/components/table/cell';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { defaultGateways, LogoImage } from '@/constant/img3';
-import { getAllocationDetails, getContributorList, getMintRecord, IMintRecord } from '@/services';
+import {
+	getAllocationDetails,
+	getContributionTypeList,
+	getContributorList,
+	getMintRecord,
+	IMintRecord,
+} from '@/services';
+import FormControl from '@mui/material/FormControl';
 
 export interface IAllocationProps {
 	id: string;
@@ -47,6 +54,7 @@ export default function Allocation(props: IAllocationProps) {
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 	const [filterContributor, setFilterContributor] = useState('All');
+	const [selectedType, setSelectedType] = React.useState<string[]>([]);
 
 	const { isLoading, data } = useSWR(['getMintRecord', props.id], () => getMintRecord(props.id), {
 		fallbackData: [],
@@ -56,17 +64,29 @@ export default function Allocation(props: IAllocationProps) {
 		},
 	});
 
+	const { data: contributionTypeList } = useSWR(
+		['project/contributionType', props.id],
+		() => getContributionTypeList(props.id),
+		{ fallbackData: [] },
+	);
+
 	const { data: allocationDetails } = useSWR(
-		['getAllocationDetails', props.id, startDate, endDate],
+		['getAllocationDetails', props.id, startDate, endDate, selectedType],
 		() =>
 			getAllocationDetails({
 				projectId: props.id,
 				endDateFrom: new Date(startDate).getTime(),
 				endDateTo: new Date(endDate).getTime(),
+				type: selectedType.reduce((pre, cur, idx) => {
+					return `${pre}${idx > 0 ? ',' : ''}${cur}`
+				}, ''),
 			}),
 		{
 			fallbackData: {},
 			onSuccess: (data) => console.log('allocationDetails', data),
+			retry: false,
+			errorRetryCount: 2,
+			keepPreviousData: true
 		},
 	);
 
@@ -85,6 +105,7 @@ export default function Allocation(props: IAllocationProps) {
 		console.log('filterRecordList', list);
 		return list;
 	}, [filterContributor, recordList, allocationDetails]);
+
 
 	const { data: contributorList } = useSWR(
 		['contributor/list', props.id],
@@ -220,7 +241,7 @@ export default function Allocation(props: IAllocationProps) {
 			return acc + cur.credit;
 		}, 0);
 		props.onChange(filterRecordList, totalClaimedAmount);
-	}, [filterRecordList, props.onChange]);
+	}, [filterRecordList]);
 
 	const handleContributorChange = (event: SelectChangeEvent) => {
 		setFilterContributor(event.target.value);
@@ -236,6 +257,12 @@ export default function Allocation(props: IAllocationProps) {
 		},
 		[filterRecordList],
 	);
+
+	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
+		const { target: { value } } = event;
+		setSelectedType(value as string[]);
+	};
+
 	const handleRest = () => {
 		setStartDate(startOfDay(new Date()));
 		setEndDate(endOfDay(new Date()));
@@ -306,6 +333,23 @@ export default function Allocation(props: IAllocationProps) {
 						</MenuItem>
 					))}
 				</Select>
+				{contributionTypeList.length > 0 ? (
+					<FormControl sx={{ m: 1, width: 200, marginLeft: '20px' }} size="small">
+						<InputLabel id="demo-multiple-chip-label">Type</InputLabel>
+						<Select
+							labelId="demo-multiple-chip-label"
+							id="demo-multiple-chip"
+							multiple
+							value={selectedType}
+							onChange={handleChange}
+							input={<OutlinedInput label="Name" />}
+						>
+							{contributionTypeList.map((item) => (
+								<MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+				) : null}
 				<TextField label="Search" size="small" onChange={handleSearch} />
 				<TextButton style={{ marginLeft: '16px' }} onClick={handleRest}>
 					Reset
