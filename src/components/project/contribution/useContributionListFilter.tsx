@@ -103,7 +103,7 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {
@@ -198,7 +198,12 @@ const useContributionListFilter = ({
 					<DatePicker
 						format={'MM/dd/yyyy'}
 						value={endDateTo}
-						onChange={(date) => setEndDateTo(date)}
+						onChange={(date) => {
+							if (date) {
+								date.setHours(23, 59, 59, 999);
+							}
+							setEndDateTo(date);
+						}}
 						open={openEndDatePicker}
 						onOpen={() => setOpenEndDatePicker(true)}
 						onClose={() => setOpenEndDatePicker(false)}
