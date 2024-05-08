@@ -286,7 +286,12 @@ export default function Page({ params }: { params: { id: string } }) {
 							<DatePicker
 								format={'MM/dd/yyyy'}
 								value={endDate}
-								onChange={(date) => setEndDate(date!)}
+								onChange={(date) => {
+									if (date) {
+										date.setHours(23, 59, 59, 999);
+									}
+									setEndDate(date!)
+								}}
 								open={openEndDatePicker}
 								onOpen={() => setOpenEndDatePicker(true)}
 								onClose={() => setOpenEndDatePicker(false)}
