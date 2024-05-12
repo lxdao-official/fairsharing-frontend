@@ -52,6 +52,8 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		claimedAmount: 0,
 	});
 
+	const [allocationDetails, setAllocationDetails] = useState<Record<string, number>>({});
+
 	const { sdk, safe } = useSafeAppsSDK();
 	const [balances] = useSafeBalances(sdk);
 
@@ -135,7 +137,6 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	};
 
 	const onAllocationChange = useCallback((list: IMintRecord[], claimedAmount: number) => {
-		console.log('onAllocationChange', { list, claimedAmount });
 		setAllocationInfo({ list, claimedAmount });
 	}, []);
 
@@ -143,18 +144,23 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		if (!currentBalance) return;
 		try {
 			const { list, claimedAmount } = allocationInfo;
+			console.log('currentBalance, list', currentBalance, list);
 			const decimals = currentBalance.tokenInfo.decimals;
-			const pow = Math.pow(10, decimals);
+			const calcPow = decimals > 6 ? 6 : decimals;
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
 			const txs = list.map((item) => {
-				const percent = item.credit / claimedAmount;
-				const value = totalAmount * pow * percent;
 				const recipient = item.contributor.wallet;
+				const curCredit = allocationDetails[item.contributor.id];
+				const value = (totalAmount * curCredit / claimedAmount).toFixed(calcPow);
+				const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
+				const bigIntValue = BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
+				console.log('claimedAmount credit', claimedAmount, curCredit);
+				console.log('calcPow value intValue bigIntValue', calcPow, value, intValue, bigIntValue);
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
 					return {
 						to: recipient,
-						value: Math.round(value).toString(),
+						value: bigIntValue.toString(),
 						data: '0x',
 					};
 				} else {
@@ -165,11 +171,12 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						data: encodeFunctionData({
 							abi: ERC_20_ABI,
 							functionName: 'transfer',
-							args: [recipient, Math.round(value).toString()],
+							args: [recipient, bigIntValue.toString()],
 						}),
 					};
 				}
 			});
+			console.log('txs', txs);
 			const { safeTxHash } = await sdk.txs.send({ txs });
 			console.log({ safeTxHash });
 			const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
@@ -177,6 +184,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		} catch (err: any) {
 			console.error('handleCreatePayment error', err);
 		}
+	};
+
+	const onChangeAllocationDetails = (detail: Record<string, number>) => {
+		setAllocationDetails(detail);
 	};
 
 	return (
@@ -307,6 +318,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					totalAmount={totalAmount}
 					currencyName={currencyName}
 					onChange={onAllocationChange}
+					onChangeAllocationDetails={onChangeAllocationDetails}
 					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
 				/>
 			) : null}
