@@ -38,6 +38,7 @@ export interface IAllocationProps {
 	totalAmount: number;
 	currencyName: string;
 	onChange: (list: IMintRecord[], claimedAmount: number) => void;
+	onChangeAllocationDetails: (detail: Record<string, number>) => void
 	isETH: boolean
 }
 
@@ -83,7 +84,9 @@ export default function Allocation(props: IAllocationProps) {
 			}),
 		{
 			fallbackData: {},
-			onSuccess: (data) => console.log('allocationDetails', data),
+			onSuccess: (data) => {
+				props.onChangeAllocationDetails(data);
+			},
 			retry: false,
 			errorRetryCount: 2,
 			keepPreviousData: true
@@ -214,7 +217,7 @@ export default function Allocation(props: IAllocationProps) {
 					const percentage = credit / claimedAmount;
 					const value = props.totalAmount * percentage;
 					// return props.isETH ? Math.round(value) : value.toFixed(8);
-					return Math.round(value);
+					return value.toFixed(6);
 				},
 				renderCell: (item) => {
 					return (
@@ -237,11 +240,11 @@ export default function Allocation(props: IAllocationProps) {
 	]);
 
 	useEffect(() => {
-		const totalClaimedAmount = filterRecordList.reduce((acc, cur) => {
-			return acc + cur.credit;
+		const totalClaimedAmount = filterRecordList.reduce((pre, cur) => {
+			return pre + allocationDetails[cur.contributor.id];
 		}, 0);
 		props.onChange(filterRecordList, totalClaimedAmount);
-	}, [filterRecordList]);
+	}, [filterRecordList, allocationDetails]);
 
 	const handleContributorChange = (event: SelectChangeEvent) => {
 		setFilterContributor(event.target.value);
