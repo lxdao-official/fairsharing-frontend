@@ -83,3 +83,7 @@ export interface IAllocationQuery {
 export const getAllocationDetails = (query: IAllocationQuery) => {
 	return request<Record<string, number>>('contribution/allocationDetails', 1, query);
 };
+
+export const syncUnClaimed = (chainId: number) => {
+	return request<IContribution[]>('contribution/syncUnClaimed', 1, { chainId });
+};

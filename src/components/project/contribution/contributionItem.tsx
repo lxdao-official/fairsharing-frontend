@@ -63,7 +63,7 @@ import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
-import { prepareClaim, updateContributionStatus } from '@/services';
+import { prepareClaim, syncUnClaimed, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
@@ -108,7 +108,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 	} = props;
 
 	const { myInfo } = useUserStore();
-	const { chain } = useAccount();
+	const { chain, chainId } = useAccount();
 	const { eas, getEasScanURL, submitSignedAttestation, getOffchain, easConfig } = useEas();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
@@ -453,7 +453,14 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
-
+			if (window.ethereum?.isMetaMask) {
+				console.error('isMetaMask', window.ethereum?.isMetaMask);
+				setTimeout(async () => {
+					closeGlobalLoading();
+					await syncUnClaimed(chainId as number);
+					await mutate(contributionListParam);
+				}, 3000)
+			}
 			const attestation = await eas.attest({
 				schema: claimSchemaUid,
 				data: {

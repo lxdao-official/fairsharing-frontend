@@ -59,6 +59,7 @@ import {
 	IContribution,
 	prepareClaim,
 	Status,
+	syncUnClaimed,
 	updateContributionStatus,
 } from '@/services';
 
@@ -507,6 +508,15 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 					data: encodedData,
 					value: BigInt(0),
 				});
+			}
+
+			if (window.ethereum?.isMetaMask) {
+				console.error('isMetaMask', window.ethereum?.isMetaMask);
+				setTimeout(async () => {
+					closeGlobalLoading();
+					await syncUnClaimed(chainId as number);
+					await mutateContributionList();
+				}, 3000)
 			}
 
 			const tx = await eas.multiAttest([{ schema: claimSchemaUid, data: dataList }]);
