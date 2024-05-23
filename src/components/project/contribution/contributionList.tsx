@@ -435,6 +435,11 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	};
 
 	const claimHandler = async () => {
+		if (window.ethereum?.isMetaMask) {
+			console.log('isMetaMask', window.ethereum?.isMetaMask);
+			showToast('Metamask wallet currently does not support the claim function. Please use OKX, Coinbase, Rabby, or other wallets instead. We will notify you when the Metamask wallet is restored.', 'error', 8000);
+			return false;
+		}
 		if (!canClaimedContributionList || canClaimedContributionList.length === 0) {
 			return;
 		}

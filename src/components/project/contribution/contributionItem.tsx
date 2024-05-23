@@ -420,6 +420,11 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const submitClaim = async (claimParams: IClaimParams) => {
+		if (window.ethereum?.isMetaMask) {
+			console.log('isMetaMask', window.ethereum?.isMetaMask);
+			showToast('Metamask wallet currently does not support the claim function. Please use OKX, Coinbase, Rabby, or other wallets instead. We will notify you when the Metamask wallet is restored.', 'error', 8000);
+			return false;
+		}
 		const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
 		try {
 			openGlobalLoading();
@@ -453,14 +458,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 				{ name: 'Signatures', value: signature[0], type: 'bytes' },
 			];
 			const encodedData = schemaEncoder.encodeData(data);
-			if (window.ethereum?.isMetaMask) {
-				console.error('isMetaMask', window.ethereum?.isMetaMask);
-				setTimeout(async () => {
-					closeGlobalLoading();
-					await syncUnClaimed(chainId as number);
-					await mutate(contributionListParam);
-				}, 3000)
-			}
 			const attestation = await eas.attest({
 				schema: claimSchemaUid,
 				data: {

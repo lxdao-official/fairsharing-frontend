@@ -17,7 +17,7 @@ const SimpleSnackbar = () => {
 				<Snackbar
 					anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 					open
-					autoHideDuration={3000}
+					autoHideDuration={alert.autoHideDuration}
 					onClose={handleClose}
 				>
 					<Alert onClose={handleClose} severity={alert.severity} sx={{ width: '100%' }}>
