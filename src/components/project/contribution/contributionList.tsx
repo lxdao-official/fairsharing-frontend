@@ -435,15 +435,6 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	};
 
 	const claimHandler = async () => {
-		if (window.ethereum?.isMetaMask) {
-			console.log('isMetaMask', window.ethereum?.isMetaMask);
-			showToast(
-				'Metamask wallet currently does not support the claim function. Please use OKX, Coinbase, Rabby, or other wallets instead. We will notify you when the Metamask wallet is restored.',
-				'error',
-				8000,
-			);
-			return false;
-		}
 		if (!canClaimedContributionList || canClaimedContributionList.length === 0) {
 			return;
 		}
@@ -517,15 +508,6 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 					data: encodedData,
 					value: BigInt(0),
 				});
-			}
-
-			if (window.ethereum?.isMetaMask) {
-				console.error('isMetaMask', window.ethereum?.isMetaMask);
-				setTimeout(async () => {
-					closeGlobalLoading();
-					await syncUnClaimed(chainId as number);
-					await mutateContributionList();
-				}, 3000);
 			}
 
 			const tx = await eas.multiAttest([{ schema: claimSchemaUid, data: dataList }]);

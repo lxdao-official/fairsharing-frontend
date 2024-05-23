@@ -420,15 +420,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 	};
 
 	const submitClaim = async (claimParams: IClaimParams) => {
-		if (window.ethereum?.isMetaMask) {
-			console.log('isMetaMask', window.ethereum?.isMetaMask);
-			showToast(
-				'Metamask wallet currently does not support the claim function. Please use OKX, Coinbase, Rabby, or other wallets instead. We will notify you when the Metamask wallet is restored.',
-				'error',
-				8000,
-			);
-			return false;
-		}
 		const { contributionId, uId, token, voters, voteValues, toIds } = claimParams;
 		try {
 			openGlobalLoading();
