@@ -151,11 +151,17 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 			const txs = list.map((item) => {
 				const recipient = item.contributor.wallet;
 				const curCredit = allocationDetails[item.contributor.id];
-				const value = (totalAmount * curCredit / claimedAmount).toFixed(calcPow);
+				const value = ((totalAmount * curCredit) / claimedAmount).toFixed(calcPow);
 				const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
 				const bigIntValue = BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
 				console.log('claimedAmount credit', claimedAmount, curCredit);
-				console.log('calcPow value intValue bigIntValue', calcPow, value, intValue, bigIntValue);
+				console.log(
+					'calcPow value intValue bigIntValue',
+					calcPow,
+					value,
+					intValue,
+					bigIntValue,
+				);
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
 					return {

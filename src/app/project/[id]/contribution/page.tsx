@@ -10,6 +10,8 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 import Link from 'next/link';
 
+import { useAccount } from 'wagmi';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 
 import ContributionList from '@/components/project/contribution/contributionList';
@@ -21,12 +23,11 @@ import usePrivilege from '@/components/project/contribution/usePrivilege';
 import { InfoIcon } from '@/icons';
 import { isProd } from '@/constant/env';
 import { syncUnClaimed } from '@/services';
-import { useAccount } from 'wagmi';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [showFullPost, setShowFullPost] = useState(true);
 	const [isEditing, setIsEditing] = useState(false);
-	const {  chainId } = useAccount();
+	const { chainId } = useAccount();
 
 	const { openConnectModal } = useConnectModal();
 	const { isWalletConnected, isChainCorrect, isProjectContributor } = usePrivilege({

@@ -103,7 +103,7 @@ const useContributionListFilter = ({
 				return (
 					Date.now() >
 					new Date(createAt).getTime() +
-					Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
+						Number(projectDetail.votePeriod) * 24 * 60 * 60 * 1000
 				);
 			});
 		} else {

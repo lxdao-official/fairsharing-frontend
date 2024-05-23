@@ -939,7 +939,7 @@ const PostContribution = ({
 									if (date) {
 										date.setHours(23, 59, 59, 999);
 									}
-									setEndDate(date!)
+									setEndDate(date!);
 								}}
 								open={openEndDatePicker}
 								onOpen={() => setOpenEndDatePicker(true)}
