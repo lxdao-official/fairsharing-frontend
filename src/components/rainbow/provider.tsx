@@ -3,6 +3,15 @@
 import * as React from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 import { RainbowKitProvider, getDefaultConfig, Theme, darkTheme } from '@rainbow-me/rainbowkit';
+import {
+	okxWallet,
+	walletConnectWallet,
+	coinbaseWallet,
+	rabbyWallet,
+	bitgetWallet,
+	phantomWallet,
+	rainbowWallet,
+} from '@rainbow-me/rainbowkit/wallets';
 
 // @ts-ignore
 import merge from 'lodash.merge';
@@ -38,6 +47,20 @@ const wagmiConfig = getDefaultConfig({
 	projectId: ProjectId,
 	chains: isProd ? [optimism] : [optimismSepolia],
 	ssr: true, // If your dApp uses server side rendering (SSR)
+	wallets: [
+		{
+			groupName: 'Recommended',
+			wallets: [
+				okxWallet,
+				coinbaseWallet,
+				rabbyWallet,
+				bitgetWallet,
+				phantomWallet,
+				rainbowWallet,
+				walletConnectWallet,
+			],
+		},
+	],
 });
 
 const queryClient = new QueryClient();
