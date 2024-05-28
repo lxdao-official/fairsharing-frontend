@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	Button,
+	InputLabel,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
@@ -21,6 +22,8 @@ import { useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
 import { TokenType } from '@safe-global/safe-gateway-typescript-sdk';
 
 import { encodeFunctionData } from 'viem';
+
+import FormControl from '@mui/material/FormControl';
 
 import { StyledFlexBox } from '@/components/styledComponents';
 import { BackIcon } from '@/icons';
@@ -249,17 +252,20 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						sx={{ width: '440px', marginRight: '16px' }}
 						disabled={true}
 					/>
-					<Select
-						id="wallet-type-select"
-						labelId="wallet-type-select-label"
-						label={'Wallet Type*'}
-						value={walletType}
-						onChange={handleWalletTypeChange}
-						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
-					>
-						<MenuItem value={'Multi'}>Multi-sig</MenuItem>
-						<MenuItem value={'Eoa'}>EOA</MenuItem>
-					</Select>
+					<FormControl sx={{ marginRight: '16px', width: '160px' }}>
+						<InputLabel id="wallet-type-select-label">Wallet Type*</InputLabel>
+						<Select
+							id="wallet-type-select"
+							labelId="wallet-type-select-label"
+							label={'Wallet Type*'}
+							value={walletType}
+							onChange={handleWalletTypeChange}
+							sx={{ minWidth: '' }}
+						>
+							<MenuItem value={'Multi'}>Multi-sig</MenuItem>
+							<MenuItem value={'Eoa'}>EOA</MenuItem>
+						</Select>
+					</FormControl>
 					<TextField
 						value={category}
 						onChange={handleCategoryInputChange}
@@ -288,48 +294,60 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						label={'Amount*'}
 						sx={{ width: '180px', marginRight: '16px' }}
 					/>
-					<Select
-						id="currency-select"
-						labelId="currency-select-label"
-						label={'currency*'}
-						value={currency}
-						onChange={handleCurrencyChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-					>
-						{currencyOptions.map((item) => (
-							<MenuItem key={item.value} value={item.value}>
-								{item.label}
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="currency-select-label" sx={{ backgroundColor: '#fff' }}>
+							currency*
+						</InputLabel>
+						<Select
+							id="currency-select"
+							labelId="currency-select-label"
+							value={currency}
+							onChange={handleCurrencyChange}
+							sx={{ minWidth: '' }}
+						>
+							{currencyOptions.map((item) => (
+								<MenuItem key={item.value} value={item.value}>
+									{item.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="network-select-label" sx={{ backgroundColor: '#fff' }}>
+							Network*
+						</InputLabel>
+						<Select
+							id="network-select"
+							labelId="network-select-label"
+							value={network}
+							onChange={handleNetworkChange}
+							sx={{ minWidth: '' }}
+							disabled={true}
+						>
+							{networkOptions.map((item) => (
+								<MenuItem key={item.value} value={item.value}>
+									{item.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="allocator-select-label" sx={{ backgroundColor: '#fff' }}>
+							Allocator by*
+						</InputLabel>
+						<Select
+							id="allocator-select"
+							labelId="allocator-select-label"
+							value={allocatorType}
+							onChange={handleAllocatorChange}
+							sx={{ minWidth: '' }}
+						>
+							<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
+								Proportion-based
 							</MenuItem>
-						))}
-					</Select>
-					<Select
-						id="network-select"
-						labelId="network-select-label"
-						label={'Network*'}
-						value={network}
-						onChange={handleNetworkChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-						disabled={true}
-					>
-						{networkOptions.map((item) => (
-							<MenuItem key={item.value} value={item.value}>
-								{item.label}
-							</MenuItem>
-						))}
-					</Select>
-					<Select
-						id="allocator-select"
-						labelId="allocator-select-label"
-						label={'Allocator by*'}
-						value={allocatorType}
-						onChange={handleAllocatorChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-					>
-						<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
-							Proportion-based
-						</MenuItem>
-						<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
-					</Select>
+							<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
+						</Select>
+					</FormControl>
 				</StyledFlexBox>
 			</FormWrapper>
 
