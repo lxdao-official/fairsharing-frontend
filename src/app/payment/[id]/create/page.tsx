@@ -27,10 +27,15 @@ import { BackIcon } from '@/icons';
 
 import { useSafeBalances } from '@/hooks/useSafeBalances';
 
-import Allocation from '@/components/payment/allocation';
+import Allocation, { IMintRecordCopy } from '@/components/payment/allocation';
 import { IMintRecord } from '@/services';
 
 import { ERC_20_ABI } from '@/abis/erc20';
+
+export enum IAllocatorTypeEnum {
+	ProportionBased = 'ProportionBased',
+	Manual = 'Manual',
+}
 
 export default function PaymentPage({ params }: { params: { id: string } }) {
 	const router = useRouter();
@@ -42,7 +47,9 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	const [walletType, setWalletType] = useState('Multi');
 	const [currency, setCurrency] = useState<string>('');
 	const [network, setNetwork] = useState<string>('');
-	const [allocatorType, setAllocatorType] = useState('ProportionBased');
+	const [allocatorType, setAllocatorType] = useState<IAllocatorTypeEnum>(
+		IAllocatorTypeEnum.ProportionBased,
+	);
 
 	const [allocationInfo, setAllocationInfo] = useState<{
 		list: IMintRecord[];
@@ -51,6 +58,8 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		list: [],
 		claimedAmount: 0,
 	});
+
+	const [manualAllocationList, setManualAllocationList] = useState<IMintRecordCopy[]>([]);
 
 	const [allocationDetails, setAllocationDetails] = useState<Record<string, number>>({});
 
@@ -129,7 +138,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		setNetwork(event.target.value);
 	};
 	const handleAllocatorChange = (event: SelectChangeEvent) => {
-		setAllocatorType(event.target.value);
+		setAllocatorType(event.target.value as IAllocatorTypeEnum);
 	};
 
 	const handleAllocate = () => {
@@ -147,21 +156,33 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 			console.log('currentBalance, list', currentBalance, list);
 			const decimals = currentBalance.tokenInfo.decimals;
 			const calcPow = decimals > 6 ? 6 : decimals;
+			const isManual = allocatorType === IAllocatorTypeEnum.Manual;
+			const finalList = isManual
+				? manualAllocationList.map((item) => {
+						const intValue = Math.round(
+							Number(item.allocateValue) * Math.pow(10, calcPow),
+						);
+						const bigIntValue =
+							BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
+						return {
+							recipient: item.contributor.wallet,
+							bigIntValue: bigIntValue,
+						};
+				  })
+				: list.map((item) => {
+						const curCredit = allocationDetails[item.contributor.id];
+						const value = ((totalAmount * curCredit) / claimedAmount).toFixed(calcPow);
+						const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
+						const bigIntValue =
+							BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
+						return {
+							recipient: item.contributor.wallet,
+							bigIntValue: bigIntValue,
+						};
+				  });
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
-			const txs = list.map((item) => {
-				const recipient = item.contributor.wallet;
-				const curCredit = allocationDetails[item.contributor.id];
-				const value = ((totalAmount * curCredit) / claimedAmount).toFixed(calcPow);
-				const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
-				const bigIntValue = BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
-				console.log('claimedAmount credit', claimedAmount, curCredit);
-				console.log(
-					'calcPow value intValue bigIntValue',
-					calcPow,
-					value,
-					intValue,
-					bigIntValue,
-				);
+			const txs = finalList.map((item) => {
+				const { recipient, bigIntValue } = item;
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
 					return {
@@ -182,7 +203,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					};
 				}
 			});
-			console.log('txs', txs);
+			console.log('tsx', txs);
 			const { safeTxHash } = await sdk.txs.send({ txs });
 			console.log({ safeTxHash });
 			const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
@@ -194,6 +215,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
 	const onChangeAllocationDetails = (detail: Record<string, number>) => {
 		setAllocationDetails(detail);
+	};
+	const onChangeManualInfo = (list: IMintRecordCopy[]) => {
+		console.log('onChangeManualInfo', list);
+		setManualAllocationList(list);
 	};
 
 	return (
@@ -300,8 +325,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						onChange={handleAllocatorChange}
 						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
 					>
-						<MenuItem value={'ProportionBased'}>Proportion-based</MenuItem>
-						<MenuItem value={'manual'}>Manual</MenuItem>
+						<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
+							Proportion-based
+						</MenuItem>
+						<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
 					</Select>
 				</StyledFlexBox>
 			</FormWrapper>
@@ -323,8 +350,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					id={params.id}
 					totalAmount={totalAmount}
 					currencyName={currencyName}
+					allocatorType={allocatorType}
 					onChange={onAllocationChange}
 					onChangeAllocationDetails={onChangeAllocationDetails}
+					onChangeManualInfo={onChangeManualInfo}
 					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
 				/>
 			) : null}

@@ -72,8 +72,11 @@ export interface IUser {
 }
 
 export interface IMintRecord {
+	id: string;
 	credit: number;
 	contributor: IContributor;
+	contributorId: string;
+	projectId: string;
 }
 
 export enum VoteSystemEnum {
