@@ -29,6 +29,12 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { mkConfig, generateCsv, download } from 'export-to-csv';
+
+import FormControl from '@mui/material/FormControl';
+
+import { SelectChangeEvent } from '@mui/material/Select';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import {
 	IMintRecord,
@@ -40,9 +46,6 @@ import {
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
-import { mkConfig, generateCsv, download } from "export-to-csv";
-import FormControl from '@mui/material/FormControl';
-import { SelectChangeEvent } from '@mui/material/Select';
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [safeUrl, setSafeUrl] = useState('');
@@ -59,8 +62,10 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [filterContributor, setFilterContributor] = useState('All');
 	const [selectedType, setSelectedType] = React.useState<string[]>([]);
 	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
-		const { target: { value } } = event;
-		console.log('handleChange value', value)
+		const {
+			target: { value },
+		} = event;
+		console.log('handleChange value', value);
 		setSelectedType(value as string[]);
 	};
 
@@ -88,7 +93,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				endDateFrom: new Date(startDate).getTime(),
 				endDateTo: new Date(endDate).getTime(),
 				type: selectedType.reduce((pre, cur, idx) => {
-					return `${pre}${idx > 0 ? ',' : ''}${cur}`
+					return `${pre}${idx > 0 ? ',' : ''}${cur}`;
 				}, ''),
 			}),
 		{
@@ -235,15 +240,20 @@ export default function Page({ params }: { params: { id: string } }) {
 			useKeysAsHeaders: true,
 			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`,
 		});
-		const data = recordList.filter(item => !!item.contributor).map(item => {
-			const percentage = claimedAmount === 0 || item.credit === 0 ? '0' : ((item.credit / claimedAmount) * 100).toFixed(2);
-			return {
-				name: item.contributor?.nickName,
-				wallet: item.contributor.wallet,
-				percentage: `${percentage}%`,
-				token: item.credit,
-			};
-		});
+		const data = recordList
+			.filter((item) => !!item.contributor)
+			.map((item) => {
+				const percentage =
+					claimedAmount === 0 || item.credit === 0
+						? '0'
+						: ((item.credit / claimedAmount) * 100).toFixed(2);
+				return {
+					name: item.contributor?.nickName,
+					wallet: item.contributor.wallet,
+					percentage: `${percentage}%`,
+					token: item.credit,
+				};
+			});
 		const csv = generateCsv(csvConfig)(data);
 		try {
 			download(csvConfig)(csv);
@@ -290,7 +300,7 @@ export default function Page({ params }: { params: { id: string } }) {
 									if (date) {
 										date.setHours(23, 59, 59, 999);
 									}
-									setEndDate(date!)
+									setEndDate(date!);
 								}}
 								open={openEndDatePicker}
 								onOpen={() => setOpenEndDatePicker(true)}
@@ -320,7 +330,9 @@ export default function Page({ params }: { params: { id: string } }) {
 								input={<OutlinedInput label="Name" />}
 							>
 								{contributionTypeList.map((item) => (
-									<MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+									<MenuItem key={item.id} value={item.name}>
+										{item.name}
+									</MenuItem>
 								))}
 							</Select>
 						</FormControl>
@@ -347,7 +359,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			<div style={{ width: '100%' }}>
 				<DataGrid
 					loading={isLoading}
-					rows={recordList.filter(item => !!item.contributor) || []}
+					rows={recordList.filter((item) => !!item.contributor) || []}
 					columns={columns}
 					rowHeight={72}
 					autoHeight

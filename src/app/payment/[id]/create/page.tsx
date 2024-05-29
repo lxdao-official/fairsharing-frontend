@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	Button,
+	InputLabel,
 	MenuItem,
 	Select,
 	SelectChangeEvent,
@@ -22,15 +23,22 @@ import { TokenType } from '@safe-global/safe-gateway-typescript-sdk';
 
 import { encodeFunctionData } from 'viem';
 
+import FormControl from '@mui/material/FormControl';
+
 import { StyledFlexBox } from '@/components/styledComponents';
 import { BackIcon } from '@/icons';
 
 import { useSafeBalances } from '@/hooks/useSafeBalances';
 
-import Allocation from '@/components/payment/allocation';
+import Allocation, { IMintRecordCopy } from '@/components/payment/allocation';
 import { IMintRecord } from '@/services';
 
 import { ERC_20_ABI } from '@/abis/erc20';
+
+export enum IAllocatorTypeEnum {
+	ProportionBased = 'ProportionBased',
+	Manual = 'Manual',
+}
 
 export default function PaymentPage({ params }: { params: { id: string } }) {
 	const router = useRouter();
@@ -42,7 +50,9 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	const [walletType, setWalletType] = useState('Multi');
 	const [currency, setCurrency] = useState<string>('');
 	const [network, setNetwork] = useState<string>('');
-	const [allocatorType, setAllocatorType] = useState('ProportionBased');
+	const [allocatorType, setAllocatorType] = useState<IAllocatorTypeEnum>(
+		IAllocatorTypeEnum.ProportionBased,
+	);
 
 	const [allocationInfo, setAllocationInfo] = useState<{
 		list: IMintRecord[];
@@ -51,6 +61,8 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		list: [],
 		claimedAmount: 0,
 	});
+
+	const [manualAllocationList, setManualAllocationList] = useState<IMintRecordCopy[]>([]);
 
 	const [allocationDetails, setAllocationDetails] = useState<Record<string, number>>({});
 
@@ -129,7 +141,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		setNetwork(event.target.value);
 	};
 	const handleAllocatorChange = (event: SelectChangeEvent) => {
-		setAllocatorType(event.target.value);
+		setAllocatorType(event.target.value as IAllocatorTypeEnum);
 	};
 
 	const handleAllocate = () => {
@@ -147,15 +159,33 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 			console.log('currentBalance, list', currentBalance, list);
 			const decimals = currentBalance.tokenInfo.decimals;
 			const calcPow = decimals > 6 ? 6 : decimals;
+			const isManual = allocatorType === IAllocatorTypeEnum.Manual;
+			const finalList = isManual
+				? manualAllocationList.map((item) => {
+						const intValue = Math.round(
+							Number(item.allocateValue) * Math.pow(10, calcPow),
+						);
+						const bigIntValue =
+							BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
+						return {
+							recipient: item.contributor.wallet,
+							bigIntValue: bigIntValue,
+						};
+				  })
+				: list.map((item) => {
+						const curCredit = allocationDetails[item.contributor.id];
+						const value = ((totalAmount * curCredit) / claimedAmount).toFixed(calcPow);
+						const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
+						const bigIntValue =
+							BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
+						return {
+							recipient: item.contributor.wallet,
+							bigIntValue: bigIntValue,
+						};
+				  });
 			// https://github.com/safe-global/safe-apps-sdk/blob/main/guides/drain-safe-app/03-transfer-assets.md
-			const txs = list.map((item) => {
-				const recipient = item.contributor.wallet;
-				const curCredit = allocationDetails[item.contributor.id];
-				const value = (totalAmount * curCredit / claimedAmount).toFixed(calcPow);
-				const intValue = Math.round(Number(value) * Math.pow(10, calcPow));
-				const bigIntValue = BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
-				console.log('claimedAmount credit', claimedAmount, curCredit);
-				console.log('calcPow value intValue bigIntValue', calcPow, value, intValue, bigIntValue);
+			const txs = finalList.map((item) => {
+				const { recipient, bigIntValue } = item;
 				// Send ETH directly to the recipient address
 				if (currentBalance.tokenInfo.type === TokenType.NATIVE_TOKEN) {
 					return {
@@ -176,7 +206,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					};
 				}
 			});
-			console.log('txs', txs);
+			console.log('tsx', txs);
 			const { safeTxHash } = await sdk.txs.send({ txs });
 			console.log({ safeTxHash });
 			const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash);
@@ -188,6 +218,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
 	const onChangeAllocationDetails = (detail: Record<string, number>) => {
 		setAllocationDetails(detail);
+	};
+	const onChangeManualInfo = (list: IMintRecordCopy[]) => {
+		console.log('onChangeManualInfo', list);
+		setManualAllocationList(list);
 	};
 
 	return (
@@ -218,17 +252,20 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						sx={{ width: '440px', marginRight: '16px' }}
 						disabled={true}
 					/>
-					<Select
-						id="wallet-type-select"
-						labelId="wallet-type-select-label"
-						label={'Wallet Type*'}
-						value={walletType}
-						onChange={handleWalletTypeChange}
-						sx={{ minWidth: '', width: '160px', marginRight: '16px' }}
-					>
-						<MenuItem value={'Multi'}>Multi-sig</MenuItem>
-						<MenuItem value={'Eoa'}>EOA</MenuItem>
-					</Select>
+					<FormControl sx={{ marginRight: '16px', width: '160px' }}>
+						<InputLabel id="wallet-type-select-label">Wallet Type*</InputLabel>
+						<Select
+							id="wallet-type-select"
+							labelId="wallet-type-select-label"
+							label={'Wallet Type*'}
+							value={walletType}
+							onChange={handleWalletTypeChange}
+							sx={{ minWidth: '' }}
+						>
+							<MenuItem value={'Multi'}>Multi-sig</MenuItem>
+							<MenuItem value={'Eoa'}>EOA</MenuItem>
+						</Select>
+					</FormControl>
 					<TextField
 						value={category}
 						onChange={handleCategoryInputChange}
@@ -257,46 +294,60 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						label={'Amount*'}
 						sx={{ width: '180px', marginRight: '16px' }}
 					/>
-					<Select
-						id="currency-select"
-						labelId="currency-select-label"
-						label={'currency*'}
-						value={currency}
-						onChange={handleCurrencyChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-					>
-						{currencyOptions.map((item) => (
-							<MenuItem key={item.value} value={item.value}>
-								{item.label}
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="currency-select-label" sx={{ backgroundColor: '#fff' }}>
+							currency*
+						</InputLabel>
+						<Select
+							id="currency-select"
+							labelId="currency-select-label"
+							value={currency}
+							onChange={handleCurrencyChange}
+							sx={{ minWidth: '' }}
+						>
+							{currencyOptions.map((item) => (
+								<MenuItem key={item.value} value={item.value}>
+									{item.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="network-select-label" sx={{ backgroundColor: '#fff' }}>
+							Network*
+						</InputLabel>
+						<Select
+							id="network-select"
+							labelId="network-select-label"
+							value={network}
+							onChange={handleNetworkChange}
+							sx={{ minWidth: '' }}
+							disabled={true}
+						>
+							{networkOptions.map((item) => (
+								<MenuItem key={item.value} value={item.value}>
+									{item.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="allocator-select-label" sx={{ backgroundColor: '#fff' }}>
+							Allocator by*
+						</InputLabel>
+						<Select
+							id="allocator-select"
+							labelId="allocator-select-label"
+							value={allocatorType}
+							onChange={handleAllocatorChange}
+							sx={{ minWidth: '' }}
+						>
+							<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
+								Proportion-based
 							</MenuItem>
-						))}
-					</Select>
-					<Select
-						id="network-select"
-						labelId="network-select-label"
-						label={'Network*'}
-						value={network}
-						onChange={handleNetworkChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-						disabled={true}
-					>
-						{networkOptions.map((item) => (
-							<MenuItem key={item.value} value={item.value}>
-								{item.label}
-							</MenuItem>
-						))}
-					</Select>
-					<Select
-						id="allocator-select"
-						labelId="allocator-select-label"
-						label={'Allocator by*'}
-						value={allocatorType}
-						onChange={handleAllocatorChange}
-						sx={{ minWidth: '', width: '200px', marginRight: '16px' }}
-					>
-						<MenuItem value={'ProportionBased'}>Proportion-based</MenuItem>
-						<MenuItem value={'manual'}>Manual</MenuItem>
-					</Select>
+							<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
+						</Select>
+					</FormControl>
 				</StyledFlexBox>
 			</FormWrapper>
 
@@ -317,8 +368,10 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 					id={params.id}
 					totalAmount={totalAmount}
 					currencyName={currencyName}
+					allocatorType={allocatorType}
 					onChange={onAllocationChange}
 					onChangeAllocationDetails={onChangeAllocationDetails}
+					onChangeManualInfo={onChangeManualInfo}
 					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
 				/>
 			) : null}

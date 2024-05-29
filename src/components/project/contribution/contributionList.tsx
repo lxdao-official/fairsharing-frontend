@@ -59,6 +59,7 @@ import {
 	IContribution,
 	prepareClaim,
 	Status,
+	syncUnClaimed,
 	updateContributionStatus,
 } from '@/services';
 

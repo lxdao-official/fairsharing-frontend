@@ -1,16 +1,18 @@
 import {
-	Button, InputLabel,
-	MenuItem, OutlinedInput,
+	InputAdornment,
+	InputLabel,
+	MenuItem,
+	OutlinedInput,
 	Select,
 	SelectChangeEvent,
 	styled,
 	TextField,
 	Typography,
 } from '@mui/material';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
 import useSWR from 'swr';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridCallbackDetails, GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
 import Link from 'next/link';
 import { Img3, Img3Provider } from '@lxdao/img3';
 
@@ -19,7 +21,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-import { endOfDay, startOfDay } from 'date-fns';
+import { endOfDay, startOfYear } from 'date-fns';
+
+import FormControl from '@mui/material/FormControl';
 
 import { walletCell } from '@/components/table/cell';
 import { StyledFlexBox } from '@/components/styledComponents';
@@ -31,24 +35,26 @@ import {
 	getMintRecord,
 	IMintRecord,
 } from '@/services';
-import FormControl from '@mui/material/FormControl';
+import { IAllocatorTypeEnum } from '@/app/payment/[id]/create/page';
 
+export type IMintRecordCopy = IMintRecord & { allocateValue: string };
 export interface IAllocationProps {
 	id: string;
 	totalAmount: number;
 	currencyName: string;
+	allocatorType: IAllocatorTypeEnum;
 	onChange: (list: IMintRecord[], claimedAmount: number) => void;
-	onChangeAllocationDetails: (detail: Record<string, number>) => void
-	isETH: boolean
+	onChangeAllocationDetails: (detail: Record<string, number>) => void;
+	onChangeManualInfo: (list: IMintRecordCopy[]) => void;
+	isETH: boolean;
 }
 
 export default function Allocation(props: IAllocationProps) {
 	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
 
 	const [startDate, setStartDate] = useState<Date>(() => {
-		return startOfDay(new Date());
+		return startOfYear(new Date());
 	});
-
 	const [endDate, setEndDate] = useState<Date>(() => {
 		return endOfDay(new Date());
 	});
@@ -56,14 +62,25 @@ export default function Allocation(props: IAllocationProps) {
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
 	const [filterContributor, setFilterContributor] = useState('All');
 	const [selectedType, setSelectedType] = React.useState<string[]>([]);
+	const [searchText, setSearchText] = useState('');
 
-	const { isLoading, data } = useSWR(['getMintRecord', props.id], () => getMintRecord(props.id), {
-		fallbackData: [],
-		onSuccess: (data) => {
-			setRecordList(data);
-			console.log('setRecordList', data);
+	const [selectedRowIds, setSelectedRowIds] = React.useState<Array<string | number>>([]);
+	const [copyMapForManual, setCopyMapForManual] = useState<Record<string, IMintRecordCopy>>({});
+
+	const { isLoading, data: originalRecordList } = useSWR(
+		['getMintRecord', props.id],
+		() => getMintRecord(props.id),
+		{
+			fallbackData: [],
+			retry: false,
+			errorRetryCount: 2,
+			keepPreviousData: true,
+			onSuccess: (data) => {
+				console.log('getMintRecord', data);
+				setRecordList(data);
+			},
 		},
-	});
+	);
 
 	const { data: contributionTypeList } = useSWR(
 		['project/contributionType', props.id],
@@ -79,7 +96,7 @@ export default function Allocation(props: IAllocationProps) {
 				endDateFrom: new Date(startDate).getTime(),
 				endDateTo: new Date(endDate).getTime(),
 				type: selectedType.reduce((pre, cur, idx) => {
-					return `${pre}${idx > 0 ? ',' : ''}${cur}`
+					return `${pre}${idx > 0 ? ',' : ''}${cur}`;
 				}, ''),
 			}),
 		{
@@ -89,9 +106,21 @@ export default function Allocation(props: IAllocationProps) {
 			},
 			retry: false,
 			errorRetryCount: 2,
-			keepPreviousData: true
+			keepPreviousData: true,
 		},
 	);
+
+	const { data: contributorList } = useSWR(
+		['contributor/list', props.id],
+		() => getContributorList(props.id),
+		{
+			fallbackData: [],
+		},
+	);
+
+	const isManual = useMemo(() => {
+		return props.allocatorType === IAllocatorTypeEnum.Manual;
+	}, [props.allocatorType]);
 
 	const filterRecordList = useMemo(() => {
 		// allocationDetails里有key才会过滤出来
@@ -105,24 +134,29 @@ export default function Allocation(props: IAllocationProps) {
 				return item.contributor.id === filterContributor;
 			});
 		}
+		if (searchText) {
+			list = list.filter((item) => {
+				const regex = new RegExp(searchText, 'i');
+				return regex.test(item.contributor.nickName);
+			});
+		}
 		console.log('filterRecordList', list);
 		return list;
-	}, [filterContributor, recordList, allocationDetails]);
-
-
-	const { data: contributorList } = useSWR(
-		['contributor/list', props.id],
-		() => getContributorList(props.id),
-		{
-			fallbackData: [],
-		},
-	);
+	}, [filterContributor, recordList, allocationDetails, searchText]);
 
 	const claimedAmount = useMemo(() => {
 		return Object.keys(allocationDetails).reduce((acc, cur) => {
 			return acc + allocationDetails[cur];
 		}, 0);
 	}, [allocationDetails]);
+
+	const manualTotalAmount = useMemo(() => {
+		let amount = 0;
+		selectedRowIds.forEach((id) => {
+			amount += Number(copyMapForManual[id].allocateValue);
+		});
+		return amount.toFixed(6);
+	}, [copyMapForManual, selectedRowIds]);
 
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
@@ -209,18 +243,39 @@ export default function Allocation(props: IAllocationProps) {
 			},
 			{
 				field: 'amount',
-				headerName: `Total: ${props.totalAmount} ${props.currencyName}`,
+				headerName: `Total: ${isManual ? manualTotalAmount : props.totalAmount} ${
+					props.currencyName
+				}`,
 				sortable: true,
-				minWidth: 200,
+				minWidth: 250,
 				valueGetter: (params) => {
+					if (isManual) {
+						const id = params.row.id;
+						return copyMapForManual[id]?.allocateValue || '';
+					}
 					const credit = allocationDetails[params.row.contributorId] || 0;
 					const percentage = credit / claimedAmount;
-					const value = props.totalAmount * percentage;
-					// return props.isETH ? Math.round(value) : value.toFixed(8);
-					return value.toFixed(6);
+					return (props.totalAmount * percentage).toFixed(6);
 				},
 				renderCell: (item) => {
-					return (
+					return isManual ? (
+						<TextField
+							value={item.value}
+							size="small"
+							variant="outlined"
+							onChange={(event) => handleInputChange(item.row, event)}
+							InputProps={{
+								style: { minWidth: '150px' },
+								endAdornment: (
+									<InputAdornment position="end">
+										<Typography variant="body1">
+											{props.isETH ? 'ETH' : props.currencyName}
+										</Typography>
+									</InputAdornment>
+								),
+							}}
+						/>
+					) : (
 						<Typography variant="body1" fontSize={16}>
 							{item.value}
 						</Typography>
@@ -236,8 +291,28 @@ export default function Allocation(props: IAllocationProps) {
 		props.currencyName,
 		props.totalAmount,
 		props.isETH,
+		isManual,
 		allocationDetails,
+		copyMapForManual,
+		manualTotalAmount,
 	]);
+
+	useEffect(() => {
+		const map = recordList.reduce(
+			(pre, cur) => {
+				const credit = allocationDetails[cur.contributorId] || 0;
+				const value = props.totalAmount * (credit / claimedAmount);
+				return { ...pre, [cur.id]: { ...cur, allocateValue: value.toFixed(6) } };
+			},
+			{} as Record<string, IMintRecordCopy>,
+		);
+		setCopyMapForManual(map);
+	}, [claimedAmount, allocationDetails, recordList, props.totalAmount]);
+
+	useEffect(() => {
+		const list = selectedRowIds.map((id) => copyMapForManual[id]);
+		props.onChangeManualInfo(list);
+	}, [copyMapForManual, selectedRowIds]);
 
 	useEffect(() => {
 		const totalClaimedAmount = filterRecordList.reduce((pre, cur) => {
@@ -250,27 +325,45 @@ export default function Allocation(props: IAllocationProps) {
 		setFilterContributor(event.target.value);
 	};
 
-	const handleSearch = useCallback(
-		(e: any) => {
-			const list = filterRecordList.filter((item) => {
-				const regex = new RegExp(e.target.value, 'i');
-				return regex.test(item.contributor.nickName);
-			});
-			setRecordList(list);
-		},
-		[filterRecordList],
-	);
+	const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+		setSearchText(e.target.value);
+	};
+
+	const handleInputChange = (
+		item: IMintRecord,
+		event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+	) => {
+		console.log('handleInputChange', item, event.target.value);
+		const map = {
+			...copyMapForManual,
+			[item.id]: {
+				...copyMapForManual[item.id],
+				allocateValue: event.target.value,
+			},
+		};
+		setCopyMapForManual(map);
+	};
 
 	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
-		const { target: { value } } = event;
+		const {
+			target: { value },
+		} = event;
 		setSelectedType(value as string[]);
 	};
 
 	const handleRest = () => {
-		setStartDate(startOfDay(new Date()));
+		setStartDate(startOfYear(new Date()));
 		setEndDate(endOfDay(new Date()));
 		setFilterContributor('All');
-		setRecordList(filterRecordList);
+		setSelectedType([]);
+		setSearchText('');
+		setRecordList(originalRecordList);
+	};
+	const handleRowSelectionModelChange = (
+		rowSelectionModel: GridRowSelectionModel,
+		details: GridCallbackDetails,
+	) => {
+		setSelectedRowIds(rowSelectionModel);
 	};
 
 	return (
@@ -308,7 +401,7 @@ export default function Allocation(props: IAllocationProps) {
 								if (date) {
 									date.setHours(23, 59, 59, 999);
 								}
-								setEndDate(date!)
+								setEndDate(date!);
 							}}
 							open={openEndDatePicker}
 							onOpen={() => setOpenEndDatePicker(true)}
@@ -353,12 +446,14 @@ export default function Allocation(props: IAllocationProps) {
 							input={<OutlinedInput label="Name" />}
 						>
 							{contributionTypeList.map((item) => (
-								<MenuItem key={item.id} value={item.name}>{item.name}</MenuItem>
+								<MenuItem key={item.id} value={item.name}>
+									{item.name}
+								</MenuItem>
 							))}
 						</Select>
 					</FormControl>
 				) : null}
-				<TextField label="Search" size="small" onChange={handleSearch} />
+				<TextField value={searchText} label="Search" size="small" onChange={handleSearch} />
 				<TextButton style={{ marginLeft: '16px' }} onClick={handleRest}>
 					Reset
 				</TextButton>
@@ -383,7 +478,9 @@ export default function Allocation(props: IAllocationProps) {
 							visibility: 'hidden',
 						},
 					}}
-					isRowSelectable={() => false}
+					checkboxSelection={isManual}
+					disableRowSelectionOnClick={isManual}
+					onRowSelectionModelChange={handleRowSelectionModelChange}
 				/>
 			</div>
 		</Container>
