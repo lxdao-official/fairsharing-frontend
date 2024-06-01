@@ -34,6 +34,7 @@ import Allocation, { IMintRecordCopy } from '@/components/payment/allocation';
 import { IMintRecord } from '@/services';
 
 import { ERC_20_ABI } from '@/abis/erc20';
+import ManualAllocation, { IContributorCopy } from '@/components/payment/manualAllocation';
 
 export enum IAllocatorTypeEnum {
 	ProportionBased = 'ProportionBased',
@@ -62,12 +63,16 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 		claimedAmount: 0,
 	});
 
-	const [manualAllocationList, setManualAllocationList] = useState<IMintRecordCopy[]>([]);
+	const [manualAllocationList, setManualAllocationList] = useState<IContributorCopy[]>([]);
 
 	const [allocationDetails, setAllocationDetails] = useState<Record<string, number>>({});
 
 	const { sdk, safe } = useSafeAppsSDK();
 	const [balances] = useSafeBalances(sdk);
+
+	const isManualType = useMemo(() => {
+		return allocatorType === IAllocatorTypeEnum.Manual;
+	}, [allocatorType]);
 
 	const currencyOptions = useMemo(() => {
 		if (!balances || !balances.length) return [];
@@ -168,7 +173,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 						const bigIntValue =
 							BigInt(intValue) * BigInt(Math.pow(10, decimals - calcPow));
 						return {
-							recipient: item.contributor.wallet,
+							recipient: item.wallet,
 							bigIntValue: bigIntValue,
 						};
 				  })
@@ -219,7 +224,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 	const onChangeAllocationDetails = (detail: Record<string, number>) => {
 		setAllocationDetails(detail);
 	};
-	const onChangeManualInfo = (list: IMintRecordCopy[]) => {
+	const onChangeManualInfo = (list: Array<IContributorCopy>) => {
 		console.log('onChangeManualInfo', list);
 		setManualAllocationList(list);
 	};
@@ -281,19 +286,38 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 				</StyledFlexBox>
 			</FormWrapper>
 
-			<FormWrapper sx={{ marginTop: '12px' }}>
-				<TitleLine>
-					<Typography variant={'body1'} sx={{ fontWeight: '500' }}>
-						Total amount*
-					</Typography>
-				</TitleLine>
+			<FormWrapper sx={{ marginTop: '24px' }}>
+				{/*<TitleLine>*/}
+				{/*	<Typography variant={'body1'} sx={{ fontWeight: '500' }}>*/}
+				{/*		Total amount**/}
+				{/*	</Typography>*/}
+				{/*</TitleLine>*/}
 				<StyledFlexBox>
-					<TextField
-						value={amount}
-						onChange={handleAmountInputChange}
-						label={'Amount*'}
-						sx={{ width: '180px', marginRight: '16px' }}
-					/>
+					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
+						<InputLabel id="allocator-select-label" sx={{ backgroundColor: '#fff' }}>
+							Allocator by*
+						</InputLabel>
+						<Select
+							id="allocator-select"
+							labelId="allocator-select-label"
+							value={allocatorType}
+							onChange={handleAllocatorChange}
+							sx={{ minWidth: '' }}
+						>
+							<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
+								Proportion-based
+							</MenuItem>
+							<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
+						</Select>
+					</FormControl>
+					{isManualType ? null : (
+						<TextField
+							value={amount}
+							onChange={handleAmountInputChange}
+							label={'Total Amount*'}
+							sx={{ width: '180px', marginRight: '16px' }}
+						/>
+					)}
 					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
 						<InputLabel id="currency-select-label" sx={{ backgroundColor: '#fff' }}>
 							currency*
@@ -331,52 +355,49 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 							))}
 						</Select>
 					</FormControl>
-					<FormControl sx={{ marginRight: '16px', width: '200px' }}>
-						<InputLabel id="allocator-select-label" sx={{ backgroundColor: '#fff' }}>
-							Allocator by*
-						</InputLabel>
-						<Select
-							id="allocator-select"
-							labelId="allocator-select-label"
-							value={allocatorType}
-							onChange={handleAllocatorChange}
-							sx={{ minWidth: '' }}
-						>
-							<MenuItem value={IAllocatorTypeEnum.ProportionBased}>
-								Proportion-based
-							</MenuItem>
-							<MenuItem value={IAllocatorTypeEnum.Manual}>Manual</MenuItem>
-						</Select>
-					</FormControl>
 				</StyledFlexBox>
 			</FormWrapper>
 
-			<Button
-				variant={'contained'}
-				sx={{ marginTop: '40px' }}
-				onClick={handleAllocate}
-				disabled={!(Number(amount) > 0)}
-			>
-				Allocate
-			</Button>
-			<Typography variant={'body2'} sx={{ marginTop: '8px', color: '#64748B' }}>
-				The results will be displayed below.
-			</Typography>
+			{isManualType ? null : (
+				<>
+					<Button
+						variant={'contained'}
+						sx={{ marginTop: '40px' }}
+						onClick={handleAllocate}
+						disabled={!isManualType && !Number(amount)}
+					>
+						Allocate
+					</Button>
+					<Typography variant={'body2'} sx={{ marginTop: '8px', color: '#64748B' }}>
+						The results will be displayed below.
+					</Typography>
+				</>
+			)}
 
-			{totalAmount > 0 ? (
-				<Allocation
+			{isManualType ? (
+				<ManualAllocation
 					id={params.id}
 					totalAmount={totalAmount}
 					currencyName={currencyName}
-					allocatorType={allocatorType}
+					allocatorType={IAllocatorTypeEnum.Manual}
 					onChange={onAllocationChange}
 					onChangeAllocationDetails={onChangeAllocationDetails}
 					onChangeManualInfo={onChangeManualInfo}
 					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
 				/>
+			) : totalAmount > 0 ? (
+				<Allocation
+					id={params.id}
+					totalAmount={totalAmount}
+					currencyName={currencyName}
+					allocatorType={IAllocatorTypeEnum.ProportionBased}
+					onChange={onAllocationChange}
+					onChangeAllocationDetails={onChangeAllocationDetails}
+					isETH={currentBalance?.tokenInfo.type === TokenType.NATIVE_TOKEN}
+				/>
 			) : null}
 
-			{allocationInfo.list.length > 0 ? (
+			{allocationInfo.list.length > 0 || manualAllocationList.length > 0 ? (
 				<BottomLine>
 					<ContentWrapper>
 						<Button variant={'contained'} onClick={handleCreatePayment}>

@@ -45,7 +45,6 @@ export interface IAllocationProps {
 	allocatorType: IAllocatorTypeEnum;
 	onChange: (list: IMintRecord[], claimedAmount: number) => void;
 	onChangeAllocationDetails: (detail: Record<string, number>) => void;
-	onChangeManualInfo: (list: IMintRecordCopy[]) => void;
 	isETH: boolean;
 }
 
@@ -63,9 +62,6 @@ export default function Allocation(props: IAllocationProps) {
 	const [filterContributor, setFilterContributor] = useState('All');
 	const [selectedType, setSelectedType] = React.useState<string[]>([]);
 	const [searchText, setSearchText] = useState('');
-
-	const [selectedRowIds, setSelectedRowIds] = React.useState<Array<string | number>>([]);
-	const [copyMapForManual, setCopyMapForManual] = useState<Record<string, IMintRecordCopy>>({});
 
 	const { isLoading, data: originalRecordList } = useSWR(
 		['getMintRecord', props.id],
@@ -118,10 +114,6 @@ export default function Allocation(props: IAllocationProps) {
 		},
 	);
 
-	const isManual = useMemo(() => {
-		return props.allocatorType === IAllocatorTypeEnum.Manual;
-	}, [props.allocatorType]);
-
 	const filterRecordList = useMemo(() => {
 		// allocationDetails里有key才会过滤出来
 		let list = recordList.filter((item) => {
@@ -149,14 +141,6 @@ export default function Allocation(props: IAllocationProps) {
 			return acc + allocationDetails[cur];
 		}, 0);
 	}, [allocationDetails]);
-
-	const manualTotalAmount = useMemo(() => {
-		let amount = 0;
-		selectedRowIds.forEach((id) => {
-			amount += Number(copyMapForManual[id].allocateValue);
-		});
-		return amount.toFixed(6);
-	}, [copyMapForManual, selectedRowIds]);
 
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
@@ -190,7 +174,6 @@ export default function Allocation(props: IAllocationProps) {
 									<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
 										{item.value}
 									</Typography>
-									{item.row.user}
 								</StyledFlexBox>
 							</Img3Provider>
 						</Link>
@@ -243,39 +226,16 @@ export default function Allocation(props: IAllocationProps) {
 			},
 			{
 				field: 'amount',
-				headerName: `Total: ${isManual ? manualTotalAmount : props.totalAmount} ${
-					props.currencyName
-				}`,
+				headerName: `Total: ${props.totalAmount} ${props.currencyName}`,
 				sortable: true,
 				minWidth: 250,
 				valueGetter: (params) => {
-					if (isManual) {
-						const id = params.row.id;
-						return copyMapForManual[id]?.allocateValue || '';
-					}
 					const credit = allocationDetails[params.row.contributorId] || 0;
 					const percentage = credit / claimedAmount;
 					return (props.totalAmount * percentage).toFixed(6);
 				},
 				renderCell: (item) => {
-					return isManual ? (
-						<TextField
-							value={item.value}
-							size="small"
-							variant="outlined"
-							onChange={(event) => handleInputChange(item.row, event)}
-							InputProps={{
-								style: { minWidth: '150px' },
-								endAdornment: (
-									<InputAdornment position="end">
-										<Typography variant="body1">
-											{props.isETH ? 'ETH' : props.currencyName}
-										</Typography>
-									</InputAdornment>
-								),
-							}}
-						/>
-					) : (
+					return (
 						<Typography variant="body1" fontSize={16}>
 							{item.value}
 						</Typography>
@@ -291,28 +251,8 @@ export default function Allocation(props: IAllocationProps) {
 		props.currencyName,
 		props.totalAmount,
 		props.isETH,
-		isManual,
 		allocationDetails,
-		copyMapForManual,
-		manualTotalAmount,
 	]);
-
-	useEffect(() => {
-		const map = recordList.reduce(
-			(pre, cur) => {
-				const credit = allocationDetails[cur.contributorId] || 0;
-				const value = props.totalAmount * (credit / claimedAmount);
-				return { ...pre, [cur.id]: { ...cur, allocateValue: value.toFixed(6) } };
-			},
-			{} as Record<string, IMintRecordCopy>,
-		);
-		setCopyMapForManual(map);
-	}, [claimedAmount, allocationDetails, recordList, props.totalAmount]);
-
-	useEffect(() => {
-		const list = selectedRowIds.map((id) => copyMapForManual[id]);
-		props.onChangeManualInfo(list);
-	}, [copyMapForManual, selectedRowIds]);
 
 	useEffect(() => {
 		const totalClaimedAmount = filterRecordList.reduce((pre, cur) => {
@@ -329,21 +269,6 @@ export default function Allocation(props: IAllocationProps) {
 		setSearchText(e.target.value);
 	};
 
-	const handleInputChange = (
-		item: IMintRecord,
-		event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-	) => {
-		console.log('handleInputChange', item, event.target.value);
-		const map = {
-			...copyMapForManual,
-			[item.id]: {
-				...copyMapForManual[item.id],
-				allocateValue: event.target.value,
-			},
-		};
-		setCopyMapForManual(map);
-	};
-
 	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
 		const {
 			target: { value },
@@ -358,12 +283,6 @@ export default function Allocation(props: IAllocationProps) {
 		setSelectedType([]);
 		setSearchText('');
 		setRecordList(originalRecordList);
-	};
-	const handleRowSelectionModelChange = (
-		rowSelectionModel: GridRowSelectionModel,
-		details: GridCallbackDetails,
-	) => {
-		setSelectedRowIds(rowSelectionModel);
 	};
 
 	return (
@@ -478,9 +397,6 @@ export default function Allocation(props: IAllocationProps) {
 							visibility: 'hidden',
 						},
 					}}
-					checkboxSelection={isManual}
-					disableRowSelectionOnClick={isManual}
-					onRowSelectionModelChange={handleRowSelectionModelChange}
 				/>
 			</div>
 		</Container>
