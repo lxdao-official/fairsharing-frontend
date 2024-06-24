@@ -57,6 +57,11 @@ export default function ManualAllocation(props: IAllocationProps) {
 				setCopyMapForManual(map);
 			},
 			fallbackData: [],
+			revalidateOnFocus: false,
+			revalidateOnMount: false,
+			revalidateOnReconnect: false,
+			revalidateIfStale: false,
+			refreshInterval: 0
 		},
 	);
 
