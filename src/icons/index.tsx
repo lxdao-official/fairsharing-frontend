@@ -27,6 +27,7 @@ import DeleteSvg from './svg/delete.svg';
 import CloseSvg from './svg/close.svg';
 import CloseGraySvg from './svg/close_gray.svg';
 import InfoSvg from './svg/info.svg';
+import AddRoundSvg from './svg/add-round.svg'
 
 const LogoIcon = (props: SvgIconProps) => <LogoSvg {...props} />;
 const BackIcon = (props: SvgIconProps) => <BackSvg {...props} />;
@@ -57,6 +58,7 @@ const DeleteIcon = (props: SvgIconProps) => <DeleteSvg {...props} />;
 const CloseIcon = (props: SvgIconProps) => <CloseSvg {...props} />;
 const CloseGrayIcon = (props: SvgIconProps) => <CloseGraySvg {...props} />;
 const InfoIcon = (props: SvgIconProps) => <InfoSvg {...props} />;
+const AddRoundIcon = (props: SvgIconProps) => <AddRoundSvg {...props} />;
 
 const ContributionIcon = (props: SvgIconProps) => (
 	<SvgIcon {...props}>
@@ -121,4 +123,5 @@ export {
 	CloseIcon,
 	CloseGrayIcon,
 	InfoIcon,
+	AddRoundIcon,
 };

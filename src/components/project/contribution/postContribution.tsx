@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 
 import {
 	Autocomplete,
@@ -71,8 +71,10 @@ import { useProjectStore } from '@/store/project';
 
 import 'react-quill/dist/quill.snow.css';
 import dynamic from 'next/dynamic';
+import CustomUploadImage, { IUploadResponseItem } from '@/components/uploadImage';
+import ReactQuill from 'react-quill';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export interface IPostContributionProps {
 	projectId: string;
@@ -118,6 +120,7 @@ const PostContribution = ({
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
+	const proofQuillRef = useRef<ReactQuill | null>(null);
 	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || ''));
 	// 目前只允许选择一个to
@@ -458,6 +461,7 @@ const PostContribution = ({
 	};
 
 	const onPostContribution = async (postData: PostData) => {
+		console.log('onPostContribution', postData)
 		if (!myAddress) {
 			openConnectModal?.();
 			return false;
@@ -727,21 +731,26 @@ const PostContribution = ({
 		);
 	};
 
+	const onUploadSuccess = (list: IUploadResponseItem[]) => {
+		console.log('onUploadSuccess', list);
+		if(!proofQuillRef.current) return;
+		const quill = proofQuillRef.current.getEditor();
+		let cursorIndex = quill.getSelection()?.index ?? 0;
+		list.forEach((item, index) => {
+			// 将光标移动到编辑器的末尾，或者到数组中间
+			quill.insertEmbed(cursorIndex, 'image', item.url);
+			cursorIndex += 1;
+		})
+		quill.setSelection(quill.getLength(), 0);
+		console.log('quill.root.innerHTML', quill.root.innerHTML || quill.getText());
+		setProof(quill.root.innerHTML || quill.getText() || '');
+	};
+
 	return (
 		<PostContainer id="postContainer" showFullPost={showFullPost}>
 			{/*detail*/}
 			<StyledFlexBox>
 				<TagLabel>#details</TagLabel>
-				{/*<StyledInput*/}
-				{/*	variant={'standard'}*/}
-				{/*	InputProps={{ disableUnderline: true }}*/}
-				{/*	required*/}
-				{/*	value={detail}*/}
-				{/*	size={'small'}*/}
-				{/*	onChange={handleDetailInputChange}*/}
-				{/*	placeholder={'I developed sign in with [wallet] feature'}*/}
-				{/*	autoComplete={'off'}*/}
-				{/*/>*/}
 				<ReactQuill
 					theme="snow"
 					value={detail}
@@ -871,6 +880,7 @@ const PostContribution = ({
 					<StyledFlexBox sx={{ marginTop: '0' }}>
 						<TagLabel>#proof</TagLabel>
 						<ReactQuill
+							ref={proofQuillRef}
 							theme="snow"
 							value={proof}
 							onChange={setProof}
@@ -885,6 +895,7 @@ const PostContribution = ({
 								'bullet',
 								'indent',
 								'link',
+								'image'
 							]}
 							placeholder={'Markdown format supported'}
 							style={{
@@ -894,18 +905,10 @@ const PostContribution = ({
 							}}
 							modules={{ toolbar: false }}
 						/>
-						{/*<StyledInput*/}
-						{/*	variant={'standard'}*/}
-						{/*	InputProps={{ disableUnderline: true }}*/}
-						{/*	required*/}
-						{/*	value={proof}*/}
-						{/*	size={'small'}*/}
-						{/*	onChange={handleProofInputChange}*/}
-						{/*	placeholder="It can be links or texts."*/}
-						{/*	autoComplete={'off'}*/}
-						{/*	multiline*/}
-						{/*/>*/}
 					</StyledFlexBox>
+						<div style={{paddingLeft: '70px'}}>
+							<CustomUploadImage onUploadSuccess={onUploadSuccess} />
+						</div>
 
 					{/*date*/}
 					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
