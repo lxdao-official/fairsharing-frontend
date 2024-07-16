@@ -5,11 +5,11 @@ import { Img3 } from '@lxdao/img3';
 
 import { IStepBaseProps } from '@/components/createProject/step/start';
 
-import UploadImage from '@/components/uploadImage/uploadImage';
 import { CreateProjectParams } from '@/services';
 import ButtonGroup from '@/components/createProject/step/buttonGroup';
 import { LogoImage } from '@/constant/img3';
 import useProjectCache from '@/components/createProject/useProjectCache';
+import UploadAvatar from '@/components/uploadImage/uploadAvatar';
 
 export interface IStepProfileProps extends Partial<IStepBaseProps> {
 	data?: Pick<CreateProjectParams, 'intro' | 'logo' | 'name'>;
@@ -129,7 +129,7 @@ const StepProfile = forwardRef<StepProfileRef, IStepProfileProps>(
 						/>
 					</>
 				) : (
-					<UploadImage defaultAvatar={avatar} uploadSuccess={uploadSuccess} />
+					<UploadAvatar defaultAvatar={avatar ?? ''} uploadSuccess={uploadSuccess} />
 				)}
 
 				<TextField

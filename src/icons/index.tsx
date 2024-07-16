@@ -27,7 +27,7 @@ import DeleteSvg from './svg/delete.svg';
 import CloseSvg from './svg/close.svg';
 import CloseGraySvg from './svg/close_gray.svg';
 import InfoSvg from './svg/info.svg';
-import AddRoundSvg from './svg/add-round.svg'
+import AddRoundSvg from './svg/add-round.svg';
 
 const LogoIcon = (props: SvgIconProps) => <LogoSvg {...props} />;
 const BackIcon = (props: SvgIconProps) => <BackSvg {...props} />;

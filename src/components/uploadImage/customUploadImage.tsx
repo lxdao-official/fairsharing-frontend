@@ -1,7 +1,9 @@
 import { ChangeEvent, CSSProperties, FC } from 'react';
+
+import { styled } from '@mui/material';
+
 import { AddRoundIcon } from '@/icons';
 import { StyledFlexBox } from '@/components/styledComponents';
-import { styled } from '@mui/material';
 
 export interface IUploadResponseItem {
 	name: string;
@@ -32,10 +34,10 @@ const CustomUploadImage: FC<IProps> = (props) => {
 			});
 			console.log('uploadResult', uploadResult);
 			if (uploadResult.data && uploadResult.data.length > 0) {
-				props.onUploadSuccess(uploadResult.data as IUploadResponseItem[])
+				props.onUploadSuccess(uploadResult.data as IUploadResponseItem[]);
 			}
 		} catch (err) {
-			console.error('upload fail', err)
+			console.error('upload fail', err);
 		}
 	};
 
@@ -50,11 +52,12 @@ const CustomUploadImage: FC<IProps> = (props) => {
 	};
 
 	return (
-		<UploadArea onClick={e => e.stopPropagation()}>
+		<UploadArea onClick={(e) => e.stopPropagation()}>
 			<AddRoundIcon />
 			<UploadText>Attach</UploadText>
 			<input
-				type="file" accept="image/*"
+				type="file"
+				accept="image/*"
 				multiple={true}
 				style={uploadInputStyle}
 				onChange={handleFileChange}
@@ -62,7 +65,6 @@ const CustomUploadImage: FC<IProps> = (props) => {
 		</UploadArea>
 	);
 };
-
 
 export default CustomUploadImage;
 

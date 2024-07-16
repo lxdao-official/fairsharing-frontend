@@ -70,8 +70,9 @@ import { IVoteValueEnum } from '@/components/project/contribution/contributionLi
 import { useProjectStore } from '@/store/project';
 
 import 'react-quill/dist/quill.snow.css';
-import dynamic from 'next/dynamic';
-import CustomUploadImage, { IUploadResponseItem } from '@/components/uploadImage';
+
+import { IUploadResponseItem } from '@/components/uploadImage/customUploadImage';
+
 import ReactQuill from 'react-quill';
 
 // const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -461,7 +462,7 @@ const PostContribution = ({
 	};
 
 	const onPostContribution = async (postData: PostData) => {
-		console.log('onPostContribution', postData)
+		console.log('onPostContribution', postData);
 		if (!myAddress) {
 			openConnectModal?.();
 			return false;
@@ -733,14 +734,14 @@ const PostContribution = ({
 
 	const onUploadSuccess = (list: IUploadResponseItem[]) => {
 		console.log('onUploadSuccess', list);
-		if(!proofQuillRef.current) return;
+		if (!proofQuillRef.current) return;
 		const quill = proofQuillRef.current.getEditor();
 		let cursorIndex = quill.getSelection()?.index ?? 0;
 		list.forEach((item, index) => {
 			// 将光标移动到编辑器的末尾，或者到数组中间
 			quill.insertEmbed(cursorIndex, 'image', item.url);
 			cursorIndex += 1;
-		})
+		});
 		quill.setSelection(quill.getLength(), 0);
 		console.log('quill.root.innerHTML', quill.root.innerHTML || quill.getText());
 		setProof(quill.root.innerHTML || quill.getText() || '');
@@ -895,7 +896,7 @@ const PostContribution = ({
 								'bullet',
 								'indent',
 								'link',
-								'image'
+								'image',
 							]}
 							placeholder={'Markdown format supported'}
 							style={{
@@ -906,9 +907,9 @@ const PostContribution = ({
 							modules={{ toolbar: false }}
 						/>
 					</StyledFlexBox>
-						{/*<div style={{paddingLeft: '70px'}}>*/}
-						{/*	<CustomUploadImage onUploadSuccess={onUploadSuccess} />*/}
-						{/*</div>*/}
+					{/*<div style={{paddingLeft: '70px'}}>*/}
+					{/*	<CustomUploadImage onUploadSuccess={onUploadSuccess} />*/}
+					{/*</div>*/}
 
 					{/*date*/}
 					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
