@@ -906,9 +906,9 @@ const PostContribution = ({
 							modules={{ toolbar: false }}
 						/>
 					</StyledFlexBox>
-						<div style={{paddingLeft: '70px'}}>
-							<CustomUploadImage onUploadSuccess={onUploadSuccess} />
-						</div>
+						{/*<div style={{paddingLeft: '70px'}}>*/}
+						{/*	<CustomUploadImage onUploadSuccess={onUploadSuccess} />*/}
+						{/*</div>*/}
 
 					{/*date*/}
 					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
