@@ -440,7 +440,7 @@ const PostContribution = ({
 			showToast('Proof of contribution is required', 'error');
 			return;
 		}
-		if (contributors.length === 0) {
+		if (contributors.length === 0 || !contributors[0]?.trim()) {
 			showToast('The reward receiver is required', 'error');
 			return;
 		}
