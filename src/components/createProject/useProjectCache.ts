@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-import { ProjectFormStepEnum } from '@/app/project/create/page';
 import { StepProfileFormData } from '@/components/createProject/step/profile';
 import { StepStrategyFormData } from '@/components/createProject/step/strategy';
 import { StepContributorFormData } from '@/components/createProject/step/contributor';
+import { ProjectFormStepEnum } from '@/components/createProject/index';
 
 export interface IProjectFormMap {
 	profile?: StepProfileFormData;

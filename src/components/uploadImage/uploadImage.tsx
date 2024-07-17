@@ -53,7 +53,7 @@ export default function UploadImage(props: IUploadImageProps) {
 				<PreviewWrapper style={{ height: 80, width: 80, marginTop: 16 }}>
 					{file ? (
 						<PreviewFile file={file} />
-					) : (
+					) : props.defaultAvatar ? (
 						<Img3
 							style={{
 								maxHeight: '100%',
@@ -64,7 +64,7 @@ export default function UploadImage(props: IUploadImageProps) {
 							src={props.defaultAvatar}
 							alt={'FS'}
 						/>
-					)}
+					) : null}
 				</PreviewWrapper>
 			</Uploader3>
 		</div>

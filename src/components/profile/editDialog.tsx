@@ -14,8 +14,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { object, string, TypeOf } from 'zod';
 
 import { editUser, IUser } from '@/services';
-import UploadImage from '@/components/uploadImage/uploadImage';
 import { showToast } from '@/store/utils';
+import UploadAvatar from '@/components/uploadImage/uploadAvatar';
 
 const registerSchema = object({
 	avatar: string().optional(),
@@ -80,7 +80,7 @@ export default function EditDialog(props: EditDialogProps) {
 						control={control}
 						name="avatar"
 						render={({ field }) => (
-							<UploadImage
+							<UploadAvatar
 								defaultAvatar={field.value ?? ''}
 								uploadSuccess={(url) => {
 									setIsUploading(false);

@@ -1,9 +1,4 @@
-import {
-	InputAdornment,
-	styled,
-	TextField,
-	Typography,
-} from '@mui/material';
+import { InputAdornment, styled, TextField, Typography } from '@mui/material';
 import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
 import useSWR from 'swr';
@@ -14,11 +9,7 @@ import { Img3, Img3Provider } from '@lxdao/img3';
 import { walletCell } from '@/components/table/cell';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { defaultGateways, LogoImage } from '@/constant/img3';
-import {
-	getContributorList,
-	IContributor,
-	IMintRecord,
-} from '@/services';
+import { getContributorList, IContributor, IMintRecord } from '@/services';
 import { IAllocatorTypeEnum } from '@/app/payment/[id]/create/page';
 
 export type IContributorCopy = IContributor & { allocateValue: string };
@@ -61,7 +52,7 @@ export default function ManualAllocation(props: IAllocationProps) {
 			revalidateOnMount: false,
 			revalidateOnReconnect: false,
 			revalidateIfStale: false,
-			refreshInterval: 0
+			refreshInterval: 0,
 		},
 	);
 
