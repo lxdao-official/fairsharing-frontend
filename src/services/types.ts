@@ -21,6 +21,7 @@ export interface IContribution {
 	id: string;
 	detail: string;
 	proof: string;
+	imageList?: string[];
 	credit: number;
 	toIds: string[];
 	status: Status;

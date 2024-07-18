@@ -71,7 +71,7 @@ import { useProjectStore } from '@/store/project';
 
 import 'react-quill/dist/quill.snow.css';
 
-import { IUploadResponseItem } from '@/components/uploadImage/customUploadImage';
+import CustomUploadImage from '@/components/uploadImage/customUploadImage';
 
 import ReactQuill from 'react-quill';
 
@@ -96,6 +96,7 @@ export interface PostData {
 	contributors: string[];
 	credit: string;
 	type: string;
+	imageList: string[];
 }
 
 export interface AutoCompleteValue {
@@ -121,6 +122,8 @@ const PostContribution = ({
 }: IPostContributionProps) => {
 	const [detail, setDetail] = useState(contribution?.detail || '');
 	const [proof, setProof] = useState(contribution?.proof || '');
+	const [imageList, setImageList] = useState<string[]>(contribution?.imageList || []);
+	const [cacheImageList, setCacheImageList] = useState<string[]>([]);
 	const proofQuillRef = useRef<ReactQuill | null>(null);
 	const [contributors, setContributors] = useState<string[]>([]);
 	const [credit, setCredit] = useState(String(contribution?.credit || ''));
@@ -218,6 +221,8 @@ const PostContribution = ({
 			setDetail(cache.detail);
 			setTypeValue(cache.typeValue);
 			setProof(cache.proof);
+			setImageList(cache.imageList);
+			setCacheImageList(cache.imageList || []);
 			setStartDate(new Date(cache.startDate));
 			setEndDate(new Date(cache.endDate));
 			setToValue(cache.toValue);
@@ -302,9 +307,10 @@ const PostContribution = ({
 			endDate,
 			toValue: toValue!,
 			credit,
+			imageList,
 		};
 		setCache(cacheData);
-	}, [detail, typeValue, proof, startDate, endDate, toValue, credit]);
+	}, [detail, typeValue, proof, startDate, endDate, toValue, credit, imageList]);
 
 	const operatorId = useMemo(() => {
 		if (contributorList.length === 0 || !myInfo) {
@@ -331,6 +337,7 @@ const PostContribution = ({
 	const onClear = () => {
 		setDetail('');
 		setProof('');
+		setCacheImageList([]);
 		setToValue({
 			label: '',
 			id: '',
@@ -453,7 +460,14 @@ const PostContribution = ({
 			(pre, cur) => `${pre}${pre ? ', ' : ''}${cur.label}`,
 			'',
 		);
-		const params: PostData = { detail, proof, contributors, credit, type: typeString };
+		const params: PostData = {
+			detail,
+			proof,
+			contributors,
+			credit,
+			type: typeString,
+			imageList,
+		};
 		if (contribution) {
 			onEditContribution(params);
 		} else {
@@ -486,6 +500,7 @@ const PostContribution = ({
 				type: typeValue.map((item) => item.label),
 				startDate: new Date(startDate).getTime(),
 				endDate: new Date(endDate).getTime(),
+				imageList: imageList,
 				// contributionDate: JSON.stringify({ startDate, endDate }),
 			});
 			// UNREADY 状态
@@ -497,6 +512,10 @@ const PostContribution = ({
 			const startDay = startOfDay(startDate).getTime().toString();
 			const endDay = endOfDay(endDate).getTime().toString();
 
+			const proofWithImageList = `${postData.proof} <<imageList>> ${JSON.stringify(
+				postData.imageList,
+			)}`;
+
 			const data: EasSchemaData<EasSchemaContributionKey>[] = [
 				{ name: 'ProjectAddress', value: projectId, type: 'address' },
 				{
@@ -506,7 +525,7 @@ const PostContribution = ({
 				},
 				{ name: 'Detail', value: postData.detail, type: 'string' },
 				{ name: 'Type', value: postData.type, type: 'string' },
-				{ name: 'Proof', value: postData.proof, type: 'string' },
+				{ name: 'Proof', value: proofWithImageList, type: 'string' },
 				{ name: 'StartDate', value: ethers.parseUnits(startDay), type: 'uint256' },
 				{ name: 'EndDate', value: ethers.parseUnits(endDay), type: 'uint256' },
 				{
@@ -732,14 +751,17 @@ const PostContribution = ({
 		);
 	};
 
-	const onUploadSuccess = (list: IUploadResponseItem[]) => {
-		console.log('onUploadSuccess', list);
+	const onImageChange = (list: string[]) => {
+		setImageList(list);
+	};
+
+	const onInsertImageToEditor = (list: string[]) => {
 		if (!proofQuillRef.current) return;
 		const quill = proofQuillRef.current.getEditor();
 		let cursorIndex = quill.getSelection()?.index ?? 0;
-		list.forEach((item, index) => {
+		list.forEach((url, index) => {
 			// 将光标移动到编辑器的末尾，或者到数组中间
-			quill.insertEmbed(cursorIndex, 'image', item.url);
+			quill.insertEmbed(cursorIndex, 'image', url);
 			cursorIndex += 1;
 		});
 		quill.setSelection(quill.getLength(), 0);
@@ -907,9 +929,8 @@ const PostContribution = ({
 							modules={{ toolbar: false }}
 						/>
 					</StyledFlexBox>
-					{/*<div style={{paddingLeft: '70px'}}>*/}
-					{/*	<CustomUploadImage onUploadSuccess={onUploadSuccess} />*/}
-					{/*</div>*/}
+
+					<CustomUploadImage initData={cacheImageList} onChange={onImageChange} />
 
 					{/*date*/}
 					<StyledFlexBox sx={{ margin: '-4px 0 -16px' }}>
