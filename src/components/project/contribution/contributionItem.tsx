@@ -613,16 +613,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper>
 										<List>
-											{isEnd ? null : (
-												<ListItem disablePadding>
-													<ListItemButton
-														onClick={onEdit}
-														disabled={!isOwner}
-													>
-														Edit
-													</ListItemButton>
-												</ListItem>
-											)}
+											{/* hide edit entry 2024.07.24 */}
+											{/*{isEnd ? null : (*/}
+											{/*	<ListItem disablePadding>*/}
+											{/*		<ListItemButton*/}
+											{/*			onClick={onEdit}*/}
+											{/*			disabled={!isOwner}*/}
+											{/*		>*/}
+											{/*			Edit*/}
+											{/*		</ListItemButton>*/}
+											{/*	</ListItem>*/}
+											{/*)}*/}
 
 											<ListItem disablePadding>
 												<ListItemButton
