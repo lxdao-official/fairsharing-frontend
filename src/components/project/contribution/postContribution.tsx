@@ -353,6 +353,7 @@ const PostContribution = ({
 		setStartDate(new Date());
 		setEndDate(new Date());
 		setIsEditing?.(false);
+		clearCache();
 	};
 
 	useEffect(() => {
