@@ -10,6 +10,7 @@ export interface IPostContributionCacheItem {
 	endDate: Date;
 	toValue: AutoCompleteValue;
 	credit: string;
+	imageList: string[];
 }
 
 /**

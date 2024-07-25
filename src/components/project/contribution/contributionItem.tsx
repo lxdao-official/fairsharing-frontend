@@ -58,18 +58,19 @@ import {
 } from '@/constant/contract';
 import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import MiniContributorList from '@/components/project/contribution/miniContributorList';
-import { EasLogoIcon, FileIcon, LinkIcon, MoreIcon } from '@/icons';
+import { EasLogoIcon, MoreIcon } from '@/icons';
 import { useUserStore } from '@/store/user';
 import useEas from '@/hooks/useEas';
 import { useEthersProvider, useEthersSigner } from '@/common/ether';
 
-import { prepareClaim, syncUnClaimed, updateContributionStatus } from '@/services';
+import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
 import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
 import useProof from '@/components/project/contribution/useProof';
 import { useProjectStore } from '@/store/project';
+import PreviewImageModal from '@/components/previewImageModal';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -121,6 +122,9 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openMore, setOpenMore] = useState(false);
 	const [openProof, setOpenProof] = useState(false);
 	const [openContributor, setOpenContributor] = useState(false);
+
+	const [openPreviewImage, setOpenPreviewImage] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState('');
 
 	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
 	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
@@ -609,16 +613,17 @@ const ContributionItem = (props: IContributionItemProps) => {
 								>
 									<Paper>
 										<List>
-											{isEnd ? null : (
-												<ListItem disablePadding>
-													<ListItemButton
-														onClick={onEdit}
-														disabled={!isOwner}
-													>
-														Edit
-													</ListItemButton>
-												</ListItem>
-											)}
+											{/* hide edit entry 2024.07.24 */}
+											{/*{isEnd ? null : (*/}
+											{/*	<ListItem disablePadding>*/}
+											{/*		<ListItemButton*/}
+											{/*			onClick={onEdit}*/}
+											{/*			disabled={!isOwner}*/}
+											{/*		>*/}
+											{/*			Edit*/}
+											{/*		</ListItemButton>*/}
+											{/*	</ListItem>*/}
+											{/*)}*/}
 
 											<ListItem disablePadding>
 												<ListItemButton
@@ -695,34 +700,46 @@ const ContributionItem = (props: IContributionItemProps) => {
 									disableRestoreFocus
 								>
 									<Paper sx={{ padding: '12px' }}>
-										{/*<Typography variant={'body1'}>*/}
-										{/*	{proofList.map((item, idx) => (*/}
-										{/*		<span key={idx}>*/}
-										{/*			{item.type === 'href' ? (*/}
-										{/*				<Link*/}
-										{/*					href={item.value}*/}
-										{/*					target={'_blank'}*/}
-										{/*					style={{*/}
-										{/*						color: '#437EF7',*/}
-										{/*						textDecoration: 'underline',*/}
-										{/*					}}*/}
-										{/*				>*/}
-										{/*					{item.value}*/}
-										{/*				</Link>*/}
-										{/*			) : (*/}
-										{/*				item.value*/}
-										{/*			)}*/}
-										{/*		</span>*/}
-										{/*	))}*/}
-										{/*</Typography>*/}
 										<ReactQuill
 											style={{ margin: '2px 0 12px' }}
 											value={contribution.proof}
 											readOnly={true}
 											modules={{ toolbar: false }}
 										/>
+
+										<Divider />
+
+										{contribution.imageList && contribution.imageList.length > 0
+											? contribution.imageList.map((url) => {
+													return (
+														<ImageItem
+															key={url}
+															onClick={() => {
+																setOpenPreviewImage(true);
+																setPreviewUrl(url);
+															}}
+														>
+															<img
+																src={url}
+																width={48}
+																height={48}
+																style={{ objectFit: 'cover' }}
+																alt="image"
+															/>
+														</ImageItem>
+													);
+											  })
+											: null}
 									</Paper>
 								</Popover>
+
+								{contribution.imageList && contribution.imageList.length > 0 ? (
+									<PreviewImageModal
+										open={openPreviewImage}
+										url={previewUrl}
+										onClose={() => setOpenPreviewImage(false)}
+									/>
+								) : null}
 							</>
 
 							{/*contributors*/}
@@ -832,4 +849,12 @@ export const CustomHoverButton = styled(StyledFlexBox)({
 	'&:hover': {
 		backgroundColor: 'rgba(203, 213, 225, .3)',
 	},
+});
+const ImageItem = styled('div')({
+	width: '48px',
+	height: '48px',
+	borderRadius: '4px',
+	overflow: 'hidden',
+	position: 'relative',
+	cursor: 'pointer',
 });

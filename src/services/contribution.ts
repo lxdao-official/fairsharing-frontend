@@ -11,6 +11,7 @@ export interface ICreateContributionParams extends IAuthBody {
 	operatorId: string;
 	detail: string;
 	proof: string;
+	imageList?: string[];
 	projectId: string;
 	credit: number;
 	toIds: string[];
