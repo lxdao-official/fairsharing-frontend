@@ -709,27 +709,36 @@ const ContributionItem = (props: IContributionItemProps) => {
 
 										<Divider />
 
-										{contribution.imageList && contribution.imageList.length > 0
-											? contribution.imageList.map((url) => {
-													return (
-														<ImageItem
-															key={url}
-															onClick={() => {
-																setOpenPreviewImage(true);
-																setPreviewUrl(url);
-															}}
-														>
-															<img
-																src={url}
-																width={48}
-																height={48}
-																style={{ objectFit: 'cover' }}
-																alt="image"
-															/>
-														</ImageItem>
-													);
-											  })
-											: null}
+										<StyledFlexBox
+											sx={{
+												marginTop: '16px',
+												gap: '8px',
+												flexWrap: 'wrap',
+											}}
+										>
+											{contribution.imageList &&
+											contribution.imageList.length > 0
+												? contribution.imageList.map((url) => {
+														return (
+															<ImageItem
+																key={url}
+																onClick={() => {
+																	setOpenPreviewImage(true);
+																	setPreviewUrl(url);
+																}}
+															>
+																<img
+																	src={url}
+																	width={48}
+																	height={48}
+																	style={{ objectFit: 'cover' }}
+																	alt="image"
+																/>
+															</ImageItem>
+														);
+												  })
+												: null}
+										</StyledFlexBox>
 									</Paper>
 								</Popover>
 
@@ -737,7 +746,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 									<PreviewImageModal
 										open={openPreviewImage}
 										url={previewUrl}
-										onClose={() => setOpenPreviewImage(false)}
+										onClose={() => {
+											setOpenPreviewImage(false);
+											setPreviewUrl('');
+										}}
 									/>
 								) : null}
 							</>

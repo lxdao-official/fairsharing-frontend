@@ -148,6 +148,7 @@ const UploadContainer = styled(StyledFlexBox)({
 	paddingLeft: '70px',
 	marginTop: '8px',
 	gap: '8px',
+	flexWrap: 'wrap',
 });
 
 const UploadArea = styled(StyledFlexBox)({

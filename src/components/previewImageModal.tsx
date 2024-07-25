@@ -5,7 +5,6 @@ import { FC } from 'react';
 import { CloseIcon } from '@/icons';
 import { StyledFlexBox } from '@/components/styledComponents';
 
-
 interface IProps {
 	url: string;
 	open: boolean;
@@ -18,7 +17,7 @@ const PreviewImageModal: FC<IProps> = (props) => {
 	};
 
 	return (
-		<Modal open={props.open} keepMounted>
+		<Modal open={props.open} keepMounted style={{ zIndex: 1500 }}>
 			<PreviewContainer>
 				<img
 					src={props.url}
