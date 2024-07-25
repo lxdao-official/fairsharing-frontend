@@ -918,13 +918,13 @@ const PostContribution = ({
 								'bullet',
 								'indent',
 								'link',
-								'image',
 							]}
 							placeholder={'Markdown format supported'}
 							style={{
 								flex: '1',
 								border: 'none',
 								paddingLeft: '14px',
+								minHeight: '24px',
 							}}
 							modules={{ toolbar: false }}
 						/>
