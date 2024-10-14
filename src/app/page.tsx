@@ -18,7 +18,7 @@ export default function Home() {
 		() =>
 			getProjectList({
 				currentPage: 1,
-				pageSize: 50,
+				pageSize: 100,
 			}),
 		{
 			fallbackData: { list: [], total: 0, totalPage: 0, currentPage: 1, pageSize: 50 },
