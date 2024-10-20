@@ -47,7 +47,6 @@ export interface IProps {
 	contributorList: IContributor[];
 	projectDetail?: IProject;
 	easVoteNumberBySigner: Record<string, Record<string, IVoteValueEnum>>;
-	canClaimedMap: Record<string, IContribution>;
 }
 
 const useContributionListFilter = ({
@@ -55,7 +54,6 @@ const useContributionListFilter = ({
 	contributorList,
 	projectDetail,
 	easVoteNumberBySigner,
-	canClaimedMap,
 }: IProps) => {
 	const { address: myAddress } = useAccount();
 	const [filterPeriod, setFilterPeriod] = useState(PeriodEnum.All);
@@ -82,17 +80,6 @@ const useContributionListFilter = ({
 			return [addYears(new Date(), -5).getTime(), addYears(new Date(), 10).getTime()];
 		}
 	}, [filterPeriod]);
-
-	const filterByPeriod = (list: IContribution[]) => {
-		if (!projectDetail) return list;
-		const [filterStart, filterEnd] = timestamp;
-		return list.filter(({ endDate, contributionDate }) => {
-			const endTime = endDate;
-			const oldEndTime = contributionDate ? JSON.parse(contributionDate).endDate : null;
-			const end = new Date(endTime || oldEndTime).getTime();
-			return end >= filterStart && end <= filterEnd;
-		});
-	};
 
 	const filterByVoteStatus = (list: IContribution[]) => {
 		if (filterVoteStatus === VoteStatusEnum.All) {
@@ -145,16 +132,6 @@ const useContributionListFilter = ({
 		easVoteNumberBySigner,
 	]);
 
-	const canClaimedContributionList = useMemo(() => {
-		return filterContributionList.filter((item) => {
-			return item.status === Status.READY && !!canClaimedMap[item.id];
-		});
-	}, [filterContributionList, canClaimedMap]);
-
-	const handlePeriodChange = (event: SelectChangeEvent) => {
-		const value = event.target.value;
-		setFilterPeriod(value as PeriodEnum);
-	};
 	const handleVoteStatusChange = (event: SelectChangeEvent) => {
 		const value = event.target.value;
 		setFilterVoteStatus(value as VoteStatusEnum);
@@ -220,20 +197,6 @@ const useContributionListFilter = ({
 					/>
 				</LocalizationProvider>
 			</DateContainer>
-			{/*<Select*/}
-			{/*	id="period-select"*/}
-			{/*	value={filterPeriod}*/}
-			{/*	onChange={handlePeriodChange}*/}
-			{/*	placeholder={'Period'}*/}
-			{/*	sx={{ width: '160px' }}*/}
-			{/*	size={'small'}*/}
-			{/*>*/}
-			{/*	<MenuItem value={PeriodEnum.All}>All time</MenuItem>*/}
-			{/*	<MenuItem value={PeriodEnum.Week}>This week</MenuItem>*/}
-			{/*	<MenuItem value={PeriodEnum.Month}>This month</MenuItem>*/}
-			{/*	<MenuItem value={PeriodEnum.Season}>This season</MenuItem>*/}
-			{/*	<MenuItem value={PeriodEnum.Year}>This year</MenuItem>*/}
-			{/*</Select>*/}
 			<Select
 				id="vote-status"
 				value={filterVoteStatus}
@@ -244,8 +207,8 @@ const useContributionListFilter = ({
 			>
 				<MenuItem value={VoteStatusEnum.All}>All status</MenuItem>
 				<MenuItem value={VoteStatusEnum.VoteByMe}>Voted by me</MenuItem>
-				<MenuItem value={VoteStatusEnum.UnVotedByMe}>Unvoted by me</MenuItem>
-				<MenuItem value={VoteStatusEnum.VoteEnded}>voted ended</MenuItem>
+				<MenuItem value={VoteStatusEnum.UnVotedByMe}>UnVoted by me</MenuItem>
+				<MenuItem value={VoteStatusEnum.VoteEnded}>Voted ended</MenuItem>
 			</Select>
 			<Select
 				id="contributor"
@@ -271,7 +234,6 @@ const useContributionListFilter = ({
 	return {
 		filterContributionList,
 		renderFilter,
-		canClaimedContributionList,
 		endDateFrom,
 		endDateTo,
 	};

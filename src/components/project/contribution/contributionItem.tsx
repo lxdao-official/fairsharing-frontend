@@ -39,7 +39,7 @@ import {
 	IContribution,
 	IContributor,
 	IProject,
-	VoteSystemEnum,
+	Status,
 } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
@@ -66,9 +66,7 @@ import { useEthersProvider, useEthersSigner } from '@/common/ether';
 import { prepareClaim, updateContributionStatus } from '@/services';
 import { LogoImage } from '@/constant/img3';
 import useCountDownTime from '@/hooks/useCountdownTime';
-import { getVoteStrategyABI, getVoteStrategyContract } from '@/utils/contract';
 import Types from '@/components/project/contribution/types';
-import useProof from '@/components/project/contribution/useProof';
 import { useProjectStore } from '@/store/project';
 import PreviewImageModal from '@/components/previewImageModal';
 
@@ -89,8 +87,10 @@ export interface IContributionItemProps {
 	contributorList: IContributor[];
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
-	setClaimed: (contribution: IContribution) => void;
 	contributionTypeList: ContributionType[];
+	unClaimedVoteResultMap: Record<string, boolean>
+	isVoteResultFetched: boolean
+	mutateGetAllUnClaimedList: () => void
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -104,8 +104,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributorList,
 		contributionList,
 		voteData,
-		setClaimed,
 		contributionTypeList,
+		unClaimedVoteResultMap,
+		isVoteResultFetched,
+		mutateGetAllUnClaimedList
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -116,7 +118,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const { address: myAddress } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	const { mutate } = useSWRConfig();
-	const { splitProof } = useProof();
 
 	const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 	const [openMore, setOpenMore] = useState(false);
@@ -126,9 +127,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 	const [openPreviewImage, setOpenPreviewImage] = useState(false);
 	const [previewUrl, setPreviewUrl] = useState('');
 
-	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
-	const [voteResultFromContract, setVoteResultFromContract] = useState(false);
-
 	const { contributionListParam } = useProjectStore();
 
 	const [showEdit, setShowEdit] = useState(false);
@@ -137,6 +135,10 @@ const ContributionItem = (props: IContributionItemProps) => {
 		projectDetail.votePeriod,
 		10000,
 	);
+
+	const isVotePass = useMemo(() => {
+		return contribution.status === Status.READY && !!unClaimedVoteResultMap[contribution.id]
+	}, [unClaimedVoteResultMap, contribution.id, contribution.status])
 
 	const voteNumbers = useMemo(() => {
 		let For = 0,
@@ -225,59 +227,6 @@ const ContributionItem = (props: IContributionItemProps) => {
 		const endDate = format(new Date(end), 'MMM dd, yyyy');
 		return isSame ? `📆 ${startDate}` : `📆 ${startDate} - ${endDate}`;
 	}, [contribution]);
-
-	const proofList = useMemo(() => {
-		try {
-			return splitProof(contribution.proof);
-		} catch (err) {
-			return [{ type: 'plain', value: contribution.proof }];
-		}
-	}, [contribution.proof]);
-
-	useEffect(() => {
-		if (projectDetail && isEnd && voteData && contributorList.length > 0) {
-			getVoteResultFromContract();
-		}
-	}, [projectDetail, voteData, isEnd]);
-
-	const getVoteResultFromContract = async () => {
-		const voteStrategyAddress = getVoteStrategyContract(projectDetail.voteApprove);
-		const ABI = getVoteStrategyABI(projectDetail.voteApprove);
-		const contract = new ethers.Contract(voteStrategyAddress, ABI, signer || provider);
-
-		// 当前project所有的contributor
-		const voters: string[] = contributorList.map((item) => item.wallet);
-		const voteValues: IVoteValueEnum[] = contributorList.map((contributor) => {
-			if (voteData![contributor.wallet]) {
-				return Number(voteData![contributor.wallet]);
-			} else {
-				return IVoteValueEnum.ABSTAIN;
-			}
-		});
-		const weights: number[] = contributorList.map((item) => {
-			return projectDetail.voteSystem === VoteSystemEnum.EQUAL ? 1 : item.voteWeight * 100;
-		});
-		const threshold = Number(projectDetail.voteThreshold) * 100;
-		const votingStrategyData = ethers.toUtf8Bytes('');
-		try {
-			const result = await contract.getResult(
-				voters,
-				voteValues,
-				weights,
-				threshold,
-				votingStrategyData,
-			);
-			// console.log(`【${contribution.detail}】[vote result]`, result);
-			setVoteResultFromContract(result);
-			if (result) {
-				setClaimed(contribution);
-			}
-		} catch (err) {
-			console.error(`[${contribution.detail}]: getResult error`, err);
-		} finally {
-			setIsVoteResultFetched(true);
-		}
-	};
 
 	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const checked = event.target.checked;
@@ -474,7 +423,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 				operatorId: operatorId,
 			});
 			showToast('Tokens claimed', 'success');
-			await mutate(contributionListParam);
+			mutate(contributionListParam);
+			mutateGetAllUnClaimedList()
 		} catch (err: any) {
 			console.error('onClaim error', err);
 			if (err.code && err.code === 'ACTION_REJECTED') {
@@ -585,7 +535,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 								onClaim={handleClaim}
 								hasVoted={voteResult.hasVoted}
 								isEnd={isEnd}
-								votePass={voteResultFromContract}
+								votePass={isVotePass}
 								isVoteResultFetched={isVoteResultFetched}
 								timeLeft={timeLeft}
 							/>
@@ -653,7 +603,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 							<Pizza
 								credit={contribution.credit}
 								status={contribution.status}
-								votePass={voteResultFromContract}
+								votePass={isVotePass}
 								isEnd={isEnd}
 							/>
 

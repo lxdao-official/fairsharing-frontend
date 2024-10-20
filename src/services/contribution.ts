@@ -88,3 +88,13 @@ export const getAllocationDetails = (query: IAllocationQuery) => {
 export const syncUnClaimed = (chainId: number) => {
 	return request<IContribution[]>('contribution/syncUnClaimed', 1, { chainId });
 };
+
+export interface IGetAllClaimedListParams {
+	projectId: string
+	endDateFrom?: number;
+	endDateTo?: number;
+}
+
+export const getUnClaimedList = (params: IGetAllClaimedListParams) => {
+	return request<IContribution[]>('contribution/allUnClaimedList', 1, params);
+}
