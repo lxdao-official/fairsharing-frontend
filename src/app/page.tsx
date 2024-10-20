@@ -6,11 +6,25 @@ import useSWR from 'swr';
 
 import { Img3Provider } from '@lxdao/img3';
 
+import { useEffect } from 'react';
+
+import { useAccount } from 'wagmi';
+
 import ProjectItem from '@/components/project/projectItem';
 import { getProjectList } from '@/services/project';
 import { defaultGateways } from '@/constant/img3';
+import { syncUnClaimed } from '@/services';
+
 
 export default function Home() {
+	const { chainId } = useAccount();
+
+	useEffect(() => {
+		if (chainId) {
+			syncUnClaimed(chainId).then(() => {})
+		}
+	}, [chainId]);
+
 	const {
 		data: { list: projectList, total },
 	} = useSWR(
