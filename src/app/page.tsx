@@ -15,13 +15,12 @@ import { getProjectList } from '@/services/project';
 import { defaultGateways } from '@/constant/img3';
 import { syncUnClaimed } from '@/services';
 
-
 export default function Home() {
 	const { chainId } = useAccount();
 
 	useEffect(() => {
 		if (chainId) {
-			syncUnClaimed(chainId).then(() => {})
+			syncUnClaimed(chainId).then(() => {});
 		}
 	}, [chainId]);
 

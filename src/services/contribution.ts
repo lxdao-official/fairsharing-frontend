@@ -90,11 +90,11 @@ export const syncUnClaimed = (chainId: number) => {
 };
 
 export interface IGetAllClaimedListParams {
-	projectId: string
+	projectId: string;
 	endDateFrom?: number;
 	endDateTo?: number;
 }
 
 export const getUnClaimedList = (params: IGetAllClaimedListParams) => {
 	return request<IContribution[]>('contribution/allUnClaimedList', 1, params);
-}
+};

@@ -60,7 +60,8 @@ import {
 	IContribution,
 	prepareClaim,
 	Status,
-	updateContributionStatus, VoteSystemEnum,
+	updateContributionStatus,
+	VoteSystemEnum,
 } from '@/services';
 
 import { FilterIcon } from '@/icons';
@@ -139,13 +140,15 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	const [dateFrom, setDateFrom] = useState<Date>();
 	const [dateTo, setDateTo] = useState<Date>();
 
-	const [canClaimedList, setCanClaimedList] = useState<IContribution[]>([])
-	const [unClaimedVoteResultMap, setUnClaimedVoteResultMap] = useState<Record<string, boolean>>({})
+	const [canClaimedList, setCanClaimedList] = useState<IContribution[]>([]);
+	const [unClaimedVoteResultMap, setUnClaimedVoteResultMap] = useState<Record<string, boolean>>(
+		{},
+	);
 	const [isVoteResultFetched, setIsVoteResultFetched] = useState(false);
 
 	const { data: projectDetail, mutate: mutateProjectDetail } = useSWR(
 		['project/detail', projectId],
-		() => getProjectDetail(projectId)
+		() => getProjectDetail(projectId),
 	);
 
 	const {
@@ -153,7 +156,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		mutate: mutateContributorList,
 		isLoading,
 	} = useSWR(['contributor/list', projectId], () => getContributorList(projectId), {
-		fallbackData: []
+		fallbackData: [],
 	});
 
 	const { data: contributionTypeList } = useSWR(
@@ -190,21 +193,24 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		},
 	);
 
-	const { data: unClaimedContributionList, mutate: mutateGetAllUnClaimedList} = useSWR(
-		projectDetail && myAddress && contributorList.length > 0 ? ['contributor/allUnClaimedList', projectId, dateFrom, dateTo] : null,
-		() => getUnClaimedList({
-			projectId,
-			endDateFrom: dateFrom?.getTime(),
-			endDateTo: dateTo?.getTime(),
-		}),
+	const { data: unClaimedContributionList, mutate: mutateGetAllUnClaimedList } = useSWR(
+		projectDetail && myAddress && contributorList.length > 0
+			? ['contributor/allUnClaimedList', projectId, dateFrom, dateTo]
+			: null,
+		() =>
+			getUnClaimedList({
+				projectId,
+				endDateFrom: dateFrom?.getTime(),
+				endDateTo: dateTo?.getTime(),
+			}),
 		{
 			fallbackData: [],
 			onSuccess: (list) => {
-				console.log('----start setCanClaimedListAndVoteResult ---')
-				setCanClaimedListAndVoteResult(list)
-			}
-		}
-	)
+				console.log('----start setCanClaimedListAndVoteResult ---');
+				setCanClaimedListAndVoteResult(list);
+			},
+		},
+	);
 
 	const contributionUIds = useMemo(() => {
 		return contributionList
@@ -262,19 +268,15 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const isMember = useMemo(() => {
 		return contributorList.find((contributor) => contributor.wallet === myAddress);
-	}, [contributorList, myAddress])
+	}, [contributorList, myAddress]);
 
-	const {
-		renderFilter,
-		filterContributionList,
-		endDateFrom,
-		endDateTo,
-	} = useContributionListFilter({
-		contributionList,
-		contributorList,
-		projectDetail,
-		easVoteNumberBySigner,
-	});
+	const { renderFilter, filterContributionList, endDateFrom, endDateTo } =
+		useContributionListFilter({
+			contributionList,
+			contributorList,
+			projectDetail,
+			easVoteNumberBySigner,
+		});
 
 	const canClaimTotalCredit = useMemo(() => {
 		return canClaimedList.reduce((pre, cur) => pre + cur.credit, 0);
@@ -427,31 +429,34 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 
 	const setCanClaimedListAndVoteResult = async (unClaimedList: IContribution[]) => {
 		try {
-		const canClaimedMap = unClaimedList.reduce((pre, cur) => {
-			return { ...pre, [cur.id]: false }
-		}, {} as Record<string, boolean>)
+			const canClaimedMap = unClaimedList.reduce(
+				(pre, cur) => {
+					return { ...pre, [cur.id]: false };
+				},
+				{} as Record<string, boolean>,
+			);
 
-		// 过滤条件： status is ready、 isEnd、votePass
-		const len = unClaimedList.length;
-		for (let i = 0; i < len; i++) {
-			const contribution = unClaimedList[i];
+			// 过滤条件： status is ready、 isEnd、votePass
+			const len = unClaimedList.length;
+			for (let i = 0; i < len; i++) {
+				const contribution = unClaimedList[i];
 
-			const result = await getContributionVoteResult(contribution);
-			canClaimedMap[contribution.id] = !!result
-			setUnClaimedVoteResultMap((pre) => {
-				return {
-					...pre,
-					[contribution.id]: !!result
-				}
-			})
-		}
-		const list =  unClaimedList.filter(contribution => canClaimedMap[contribution.id])
-		console.log('setCanClaimedListAndVoteResult', list)
-		setCanClaimedList(list)
+				const result = await getContributionVoteResult(contribution);
+				canClaimedMap[contribution.id] = !!result;
+				setUnClaimedVoteResultMap((pre) => {
+					return {
+						...pre,
+						[contribution.id]: !!result,
+					};
+				});
+			}
+			const list = unClaimedList.filter((contribution) => canClaimedMap[contribution.id]);
+			console.log('setCanClaimedListAndVoteResult', list);
+			setCanClaimedList(list);
 		} finally {
-			setIsVoteResultFetched(true)
+			setIsVoteResultFetched(true);
 		}
-	}
+	};
 
 	const getContributionVoteResult = async (contribution: IContribution) => {
 		const voteStrategyAddress = getVoteStrategyContract(projectDetail!.voteApprove);
@@ -465,16 +470,18 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		const threshold = Number(projectDetail!.voteThreshold) * 100;
 		const votingStrategyData = ethers.toUtf8Bytes('');
 
-		const baseTime = contribution.createAt
-		const period = projectDetail!.votePeriod
+		const baseTime = contribution.createAt;
+		const period = projectDetail!.votePeriod;
 		const targetTime = new Date(baseTime).getTime() + Number(period) * 24 * 60 * 60 * 1000;
 		const isEnd = Date.now() > targetTime;
 
 		if (!isEnd) return;
 
-		const voteData = easVoteNumberBySigner[contribution.uId!]
+		const voteData = easVoteNumberBySigner[contribution.uId!];
 		const voteValues: IVoteValueEnum[] = contributorList.map((contributor) => {
-			return voteData?.[contributor.wallet] ? Number(voteData![contributor.wallet]) : IVoteValueEnum.ABSTAIN
+			return voteData?.[contributor.wallet]
+				? Number(voteData![contributor.wallet])
+				: IVoteValueEnum.ABSTAIN;
 		});
 
 		try {
@@ -485,23 +492,21 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				threshold,
 				votingStrategyData,
 			);
-			return !!result
+			return !!result;
 		} catch (err) {
 			console.error(`[${contribution.detail}]: contract.getResult error`, err);
 			return false;
 		}
-	}
+	};
 
 	const claimHandler = async () => {
 		try {
 			openGlobalLoading();
 			const claimSchemaUid = EasSchemaMap.claim;
 
-			const sortCanClaimedContributionList = canClaimedList.sort(
-				(c1: any, c2: any) => {
-					return c1.id - c2.id;
-				},
-			);
+			const sortCanClaimedContributionList = canClaimedList.sort((c1: any, c2: any) => {
+				return c1.id - c2.id;
+			});
 			const toWallets: string[] = [];
 			let contributionIds: string = '';
 			for (let i = 0; i < sortCanClaimedContributionList.length; i++) {
@@ -516,7 +521,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 				}
 			}
 
-			let signatures: string[]  = []
+			let signatures: string[] = [];
 
 			try {
 				signatures = await prepareClaim({
@@ -531,7 +536,7 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 			}
 
 			if (signatures.length === 0) {
-				return
+				return;
 			}
 
 			const dataList: any[] = [];

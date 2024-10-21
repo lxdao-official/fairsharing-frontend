@@ -34,13 +34,7 @@ import dynamic from 'next/dynamic';
 import StatusText from '@/components/project/contribution/statusText';
 import Pizza from '@/components/project/contribution/pizza';
 import { StyledFlexBox } from '@/components/styledComponents';
-import {
-	ContributionType,
-	IContribution,
-	IContributor,
-	IProject,
-	Status,
-} from '@/services/types';
+import { ContributionType, IContribution, IContributor, IProject, Status } from '@/services/types';
 import VoteAction, { VoteTypeEnum } from '@/components/project/contribution/voteAction';
 import PostContribution from '@/components/project/contribution/postContribution';
 import {
@@ -88,9 +82,9 @@ export interface IContributionItemProps {
 	contributionList: IContribution[];
 	voteData: IVoteData | null;
 	contributionTypeList: ContributionType[];
-	unClaimedVoteResultMap: Record<string, boolean>
-	isVoteResultFetched: boolean
-	mutateGetAllUnClaimedList: () => void
+	unClaimedVoteResultMap: Record<string, boolean>;
+	isVoteResultFetched: boolean;
+	mutateGetAllUnClaimedList: () => void;
 }
 
 const ContributionItem = (props: IContributionItemProps) => {
@@ -107,7 +101,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 		contributionTypeList,
 		unClaimedVoteResultMap,
 		isVoteResultFetched,
-		mutateGetAllUnClaimedList
+		mutateGetAllUnClaimedList,
 	} = props;
 
 	const { myInfo } = useUserStore();
@@ -137,8 +131,8 @@ const ContributionItem = (props: IContributionItemProps) => {
 	);
 
 	const isVotePass = useMemo(() => {
-		return contribution.status === Status.READY && !!unClaimedVoteResultMap[contribution.id]
-	}, [unClaimedVoteResultMap, contribution.id, contribution.status])
+		return contribution.status === Status.READY && !!unClaimedVoteResultMap[contribution.id];
+	}, [unClaimedVoteResultMap, contribution.id, contribution.status]);
 
 	const voteNumbers = useMemo(() => {
 		let For = 0,
@@ -424,7 +418,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			});
 			showToast('Tokens claimed', 'success');
 			mutate(contributionListParam);
-			mutateGetAllUnClaimedList()
+			mutateGetAllUnClaimedList();
 		} catch (err: any) {
 			console.error('onClaim error', err);
 			if (err.code && err.code === 'ACTION_REJECTED') {
