@@ -283,10 +283,12 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 	}, [canClaimedList]);
 
 	useEffect(() => {
-		mutateProjectDetail();
-		mutateContributorList();
-		mutateContributionList();
-		mutateGetAllUnClaimedList();
+		if (projectId) {
+			mutateProjectDetail();
+			mutateContributorList();
+			mutateContributionList();
+			mutateGetAllUnClaimedList();
+		}
 	}, [projectId]);
 
 	useEffect(() => {
