@@ -307,6 +307,12 @@ const ContributionList = ({ projectId, showHeader = true, wallet }: IContributio
 		setDateTo(endDateTo || undefined);
 	}, [endDateTo]);
 
+	useEffect(() => {
+		localStorage.setItem('__FS_allUnClaimedList_cache__', JSON.stringify({
+			projectId, dateFrom, dateTo
+		}))
+	}, [projectId, dateFrom, dateTo]);
+
 	const onPageChange = (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => {
 		setCurPage(page);
 	};
