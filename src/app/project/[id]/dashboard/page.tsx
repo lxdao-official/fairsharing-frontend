@@ -41,7 +41,7 @@ import {
 	getMintRecord,
 	getContributorList,
 	getAllocationDetails,
-	getContributionTypeList,
+	getContributionTypeList, IContributor,
 } from '@/services';
 import { nickNameCell, walletCell } from '@/components/table/cell';
 import { defaultGateways, LogoImage } from '@/constant/img3';
@@ -59,33 +59,10 @@ export default function Page({ params }: { params: { id: string } }) {
 	});
 	const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
 	const [openEndDatePicker, setOpenEndDatePicker] = useState(false);
-	const [filterContributor, setFilterContributor] = useState('All');
 	const [selectedType, setSelectedType] = React.useState<string[]>([]);
-	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
-		const {
-			target: { value },
-		} = event;
-		console.log('handleChange value', value);
-		setSelectedType(value as string[]);
-	};
+	const [searchText, setSearchText] = useState('')
 
-	const [recordList, setRecordList] = useState<IMintRecord[]>([]);
-	const { isLoading, data } = useSWR(
-		['getMintRecord', params.id],
-		() => getMintRecord(params.id),
-		{
-			fallbackData: [],
-			onSuccess: (data) => setRecordList(data),
-		},
-	);
-
-	const { data: contributionTypeList } = useSWR(
-		['project/contributionType', params.id],
-		() => getContributionTypeList(params.id),
-		{ fallbackData: [] },
-	);
-
-	const { data: allocationDetails } = useSWR(
+	const { isLoading, data: allocationDetails } = useSWR(
 		['getAllocationDetails', params.id, startDate, endDate, selectedType],
 		() =>
 			getAllocationDetails({
@@ -110,11 +87,25 @@ export default function Page({ params }: { params: { id: string } }) {
 		},
 	);
 
-	// const claimedAmount = useMemo(() => {
-	// 	return recordList.reduce((acc, cur) => {
-	// 		return acc + cur.credit;
-	// 	}, 0);
-	// }, [recordList]);
+	const { data: contributionTypeList } = useSWR(
+		['project/contributionType', params.id],
+		() => getContributionTypeList(params.id),
+		{ fallbackData: [] },
+	);
+
+	const allocationDetailList = useMemo(() => {
+		return contributorList.filter(contributor => {
+			return !!allocationDetails[contributor.id]
+		})
+	}, [allocationDetails, contributorList])
+
+	const displayList = useMemo(() => {
+		return allocationDetailList.filter((contributor) => {
+			if (!searchText) return true;
+			const regex = new RegExp(searchText, 'i');
+			return regex.test(contributor.nickName);
+		})
+	}, [allocationDetailList, searchText])
 
 	const claimedAmount = useMemo(() => {
 		return Object.keys(allocationDetails).reduce((acc, cur) => {
@@ -130,13 +121,11 @@ export default function Page({ params }: { params: { id: string } }) {
 				sortable: false,
 				flex: 1,
 				minWidth: 150,
-				valueGetter: (params) => {
-					return params.row.contributor.nickName;
-				},
+				// valueGetter: (params) => {
+				// 	return params.row.nickName;
+				// },
 				renderCell: (item) => {
-					const contributor = contributorList.find(
-						(contributor) => contributor.id === item.row.contributorId,
-					);
+					const contributor = item.row
 					return (
 						<Link href={`/profile/${contributor?.wallet}`}>
 							<Img3Provider defaultGateways={defaultGateways}>
@@ -152,9 +141,9 @@ export default function Page({ params }: { params: { id: string } }) {
 										}}
 									/>
 									<Typography variant="subtitle2" fontSize={16} fontWeight={500}>
-										{item.value}
+										{contributor.nickName}
 									</Typography>
-									{item.row.user}
+									{/*{item.row.user}*/}
 								</StyledFlexBox>
 							</Img3Provider>
 						</Link>
@@ -164,7 +153,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			{
 				...walletCell,
 				valueGetter: (params) => {
-					return params.row.contributor.wallet;
+					return params.row.wallet;
 				},
 			},
 			{
@@ -174,7 +163,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				minWidth: 150,
 				valueGetter: (params) => {
 					if (claimedAmount === 0) return 0;
-					const credit = allocationDetails[params.row.contributorId] || 0;
+					const credit = allocationDetails[params.row.id] || 0;
 					if (credit === 0) return 0;
 					const percentage = (credit / claimedAmount) * 100;
 					return percentage.toFixed(2);
@@ -196,7 +185,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				renderCell: (item) => {
-					const credit = allocationDetails[item.row.contributorId] || 0;
+					const credit = allocationDetails[item.row.id] || 0;
 					return (
 						<StyledFlexBox sx={{ gap: '4px' }}>
 							<Image src="/images/pizza1.png" width={24} height={24} alt="pizza" />
@@ -209,18 +198,11 @@ export default function Page({ params }: { params: { id: string } }) {
 			},
 		];
 		return columns;
-	}, [claimedAmount, contributorList]);
+	}, [claimedAmount, allocationDetails]);
 
-	const handleSearch = useCallback(
-		(e: any) => {
-			const list = data.filter((item) => {
-				const regex = new RegExp(e.target.value, 'i');
-				return regex.test(item.contributor.nickName);
-			});
-			setRecordList(list);
-		},
-		[data],
-	);
+	const handleSearch = (e: any) => {
+		setSearchText(e.target.value)
+	}
 
 	useEffect(() => {
 		const inSafeApp = window.parent.location !== window.location;
@@ -240,18 +222,18 @@ export default function Page({ params }: { params: { id: string } }) {
 			useKeysAsHeaders: true,
 			filename: `fairsharing-${format(Date.now(), 'yyyy-MM-dd')}`,
 		});
-		const data = recordList
-			.filter((item) => !!item.contributor)
+		const data = allocationDetailList
 			.map((item) => {
+				const credit = Number(allocationDetails[item.id])
 				const percentage =
-					claimedAmount === 0 || item.credit === 0
+					claimedAmount === 0 || credit === 0
 						? '0'
-						: ((item.credit / claimedAmount) * 100).toFixed(2);
+						: ((credit / claimedAmount) * 100).toFixed(2);
 				return {
-					name: item.contributor?.nickName,
-					wallet: item.contributor.wallet,
+					name: item.nickName,
+					wallet: item.wallet,
 					percentage: `${percentage}%`,
-					token: item.credit,
+					token: credit,
 				};
 			});
 		const csv = generateCsv(csvConfig)(data);
@@ -260,6 +242,14 @@ export default function Page({ params }: { params: { id: string } }) {
 		} catch (err) {
 			console.error('download error', err);
 		}
+	};
+
+	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
+		const {
+			target: { value },
+		} = event;
+		console.log('handleChange value', value);
+		setSelectedType(value as string[]);
 	};
 
 	return (
@@ -340,6 +330,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					<TextField
 						label="Search"
 						size="small"
+						value={searchText}
 						onChange={handleSearch}
 						sx={{ marginLeft: '20px' }}
 					/>
@@ -359,7 +350,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			<div style={{ width: '100%' }}>
 				<DataGrid
 					loading={isLoading}
-					rows={recordList.filter((item) => !!item.contributor) || []}
+					rows={displayList}
 					columns={columns}
 					rowHeight={72}
 					autoHeight

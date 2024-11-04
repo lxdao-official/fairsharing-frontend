@@ -585,6 +585,7 @@ const PostContribution = ({
 			showToast('Contribution posted', 'success');
 			onClear();
 			await mutate(contributionListParam);
+			await onUpdateUnClaimedList();
 		} catch (err: any) {
 			console.error(err);
 			setIsPostSuccess(false);
@@ -598,6 +599,12 @@ const PostContribution = ({
 			setIsPosting(false);
 		}
 	};
+
+	const onUpdateUnClaimedList= async () => {
+		const string = localStorage.getItem('__FS_allUnClaimedList_cache__') || '{}'
+		const cache = string ? JSON.parse(string) : {}
+		await mutate(['contributor/allUnClaimedList', projectId, cache?.dateFrom, cache?.dateTo])
+	}
 
 	const onVoteFor = async () => {
 		console.log('onVoteFor');
