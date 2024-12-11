@@ -12,8 +12,7 @@
     height: 100%;
     margin: 0 auto;
     padding: 16px 24px;
-    max-width: 1110px;
-    min-width: 1000px;
-    overflow-y: scroll;
+
+    overflow: auto;
     width: calc(100vw - 320px);
 }

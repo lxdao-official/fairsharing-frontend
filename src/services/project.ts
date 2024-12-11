@@ -47,6 +47,35 @@ export interface Contributor {
 	voteWeight: number;
 }
 
+export interface createAllocationBody {
+	operatorId: string;
+	wallet: string;
+	title: string;
+	projectId: string;
+	contributors: string[];
+	ratios: number[];
+	credits: number[];
+}
+
+export interface createPoolBody {
+	operatorId: string,
+	wallet: string,
+	allocationId: string,
+	projectId: string,
+	address: string,
+	creator: string,
+	lockDuration: number,
+	depositor: string,
+	tokens: PoolTokenBody[]
+}
+
+export interface PoolTokenBody {
+	token: string;
+	wallets: string[];
+	amounts: string[];
+	ratios: number[];
+}
+
 export enum PermissionEnum {
 	Owner = 1,
 	Admin,
@@ -104,3 +133,29 @@ export function editContributionType(params: CreateContributionTypeBody & { id: 
 export function deleteContributionType(id: string) {
 	return request.delete('project/deleteContributionType', 1, { id });
 }
+
+
+export function createAllocation(params: createAllocationBody) {
+	return request.post('allocation/create', 1, params);
+}
+
+export function updateAllocationState(allocationId: string, params: any) {
+	return request.put(`allocation/${allocationId}/updateState`, 1, params);
+}
+
+export function createPool(params: createPoolBody) {
+	return request.post('pool/create', 1, params);
+}
+
+export function getPoolList(params: any) {
+	return request('pool/list', 1, params);
+}
+
+export function getClaimStatusList(params: any) {
+	return request('pool/claimStatus', 1, params);
+}
+
+export function poolClaim(params: any) {
+	return request.post('pool/claim', 1, params);
+}
+

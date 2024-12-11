@@ -22,7 +22,9 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
 	return (
 		<div className={styles.projectContainer}>
 			{showNav ? <ProjectNav /> : null}
-			<div className={styles.content}>{children}</div>
+			<div className={styles.content}>
+				<div style={{minWidth: '1110px', height: '100%'}}>{children}</div>
+			</div>
 		</div>
 	);
 }

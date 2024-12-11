@@ -3,28 +3,17 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
 import NextTopLoader from 'nextjs-toploader';
-
 import { AppBar, Toolbar, Typography } from '@mui/material';
-
 import { Analytics } from '@vercel/analytics/react';
-
-import Image from 'next/image';
-
 import Link from 'next/link';
 
 import ThemeRegistry from '@/components/themeRegistry/themeRegistry';
 import { RainbowProvider } from '@/components/rainbow/provider';
-
 import SimpleGlobalLoading from '@/components/loading';
-
 import SimpleSnackbar from '@/components/simpleSnackbar/snackbar';
-
 import User from '@/components/header/user';
-
 import NavLogo from '@/components/navLogo';
-
 import NavLayout from '@/components/navLayout';
-
 import { ZIndexMap } from '@/constant/style';
 
 import styles from '../styles/layout.module.css';
@@ -62,7 +51,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 									<NavLogo />
 									<Typography
 										variant="h4"
-										sx={{ flexGrow: 1, fontWeight: '500', marginLeft: '8px' }}
+										sx={{
+											flexGrow: 1,
+											fontWeight: '500',
+											marginLeft: '8px',
+										}}
 									>
 										FairSharing
 									</Typography>
