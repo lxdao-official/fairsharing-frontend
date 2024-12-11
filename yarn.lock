@@ -3022,7 +3022,7 @@
     prop-types "^15.8.1"
     react-is "^18.2.0"
 
-"@mui/x-data-grid@6":
+"@mui/x-data-grid@^6.13.0":
   version "6.20.4"
   resolved "https://registry.npmjs.org/@mui/x-data-grid/-/x-data-grid-6.20.4.tgz#51120757078764dc8cccef50bc1257c2407e103d"
   integrity sha512-I0JhinVV4e25hD2dB+R6biPBtpGeFrXf8RwlMPQbr9gUggPmPmNtWKo8Kk2PtBBMlGtdMAgHWe7PqhmucUxU1w==

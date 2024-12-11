@@ -136,7 +136,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	useEffect(() => {
 		if (!contributorList.length) return;
 		console.log('allocationDetails', claimedAmount);
-		let cl:any = []
+		const cl:any = []
 		contributorList.forEach((contributor: any) => {
 			if (allocationDetails[contributor.id]) {
 				contributor.credit = allocationDetails[contributor.id];

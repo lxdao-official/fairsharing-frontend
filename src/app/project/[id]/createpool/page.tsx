@@ -79,7 +79,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [allocationId])
 
 	useEffect(() => {
-		let list = []
+		const list = []
 		console.log('contributorList', contributorList, ratio);
 		if (contributorList.length && ratio.length) {
 			for (let i = 0; i < contributorList.length; i++) {
