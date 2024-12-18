@@ -280,6 +280,12 @@ export default function Page({ params }: { params: { id: string } }) {
 		return columns;
 	}, [claimedAmount, allocationDetails]);
 
+	const formatDiffTime = (diff: number) => {
+		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+		return `${hours}:${minutes}`
+	}
+
 	const poolColumns = useMemo(() => {
 		const columns: GridColDef[] = [
 			{
@@ -290,8 +296,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				minWidth: 150,
 				valueGetter: (params) => {
 					const timeToClaim = new Date(params.row.timeToClaim * 1000)
+					const diff = timeToClaim.getTime() - new Date().getTime()
 					const nowDate = new Date()
-					return timeToClaim > nowDate ? 'Time Locked' : 'Salary'
+					return timeToClaim > nowDate ? `Time Locked: ${formatDiffTime(diff)}` : 'Salary'
 				},
 				renderCell: (item) => {
 					return (
@@ -325,7 +332,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item.value} USDT
+							{item.value.toFixed(2)} USDT
 						</Typography>
 					);
 				},

@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import useEas from '@/hooks/useEas';
 import axios from 'axios';
 import {
@@ -178,6 +179,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const titleChange = (e: any) => {
 		setTitle(e.target.value);
+		setPurposeError(false);
 	}
 
 	const handleSearch = (e: any) => {
@@ -210,7 +212,16 @@ export default function Page({ params }: { params: { id: string } }) {
 			setPurposeError(true);
 			return;
 		}
+		//ratios total must be 100
+		const total = list.reduce((acc: number, cur: any) => {
+			return acc + parseFloat(cur.percentage);
+		}, 0);
+		if (total != 100) {
+			showToast('The sum of the ratios must be 100', 'error');
+			return;
+		}
 		setIsRequestLoading(true);
+		openGlobalLoading();
 		try {
 			// const operatorId = "891b3337-a722-4c2a-afc2-e4503c031a92"
 			const allocation = await createAllocation({
@@ -284,12 +295,14 @@ export default function Page({ params }: { params: { id: string } }) {
 				allocationId: allocation.id,
 				ratios
 			}
+			closeGlobalLoading();
 			
 			localStorage.setItem('allocationDetail', JSON.stringify(localData));
 			router.push(`/project/${params.id}/createpool?allocationId=${allocation.id}`);
 			console.log('updateStatus', updateStatus);
-		} catch (error) {
+		} catch (error: any) {
 			console.error('createAllocation error', error);
+			error.message && showToast(error.message, 'error');
 		}
 		setIsRequestLoading(false);
 	}
@@ -398,8 +411,8 @@ export default function Page({ params }: { params: { id: string } }) {
 
 				<Box sx={{ padding: '16px', background: '#F8FAFC', marginTop: '24px' }}>
 					<Typography variant="h3">Allocation Details</Typography>
-					<StyledFlexBox sx={{ justifyContent: 'space-between' }}>
-						<StyledFlexBox>
+					<StyledFlexBox sx={{ justifyContent: 'space-between', width: '100%' }}>
+						<StyledFlexBox sx={{ width: '100%' }}>
 							<DateContainer>
 								<LocalizationProvider dateAdapter={AdapterDateFns}>
 									<DatePicker

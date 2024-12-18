@@ -10,6 +10,7 @@ import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { StyledFlexBox } from '@/components/styledComponents';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ethers } from 'ethers';
@@ -25,6 +26,7 @@ import {
 import { useAccount } from 'wagmi';
 import { useEthersSigner } from '@/common/ether';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { el } from 'date-fns/locale';
 
 const getParams = () => {
 	const url = window.location.href;
@@ -49,7 +51,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	const [displayList, setDisplayList] = useState<any>([]);
 	const [amount, setAmount] = useState(0);
 	const [isRequesting, setIsRequesting] = useState(false);
-
+	const [paramesError, setParamesError] = useState<any>({});
 	const { address } = useAccount();
 	const signer = useEthersSigner();
 	const router = useRouter();
@@ -117,7 +119,30 @@ export default function Page({ params }: { params: { id: string } }) {
 			openConnectModal?.();
 			return;
 		}
+		if (!sendData.address) {
+			setParamesError({ ...paramesError, address: true });
+			return;
+		} else if (!sendData.walletType) {
+			setParamesError({ ...paramesError, walletType: true });
+			return;
+		} else if (!amount) {
+			setParamesError({ ...paramesError, amount: true });
+			return;
+		} else if (!sendData.token) {
+			setParamesError({ ...paramesError, token: true });
+			return;
+		} else if (!sendData.network) {
+			setParamesError({ ...paramesError, network: true });
+			return;
+		} else if (!sendData.allocate) {
+			setParamesError({ ...paramesError, allocate: true });
+			return;
+		} else if (!sendData.locked) {
+			setParamesError({ ...paramesError, locked: true });
+			return;
+		}
 		setIsRequesting(true);
+		openGlobalLoading();
 		try {
 			const contract = new ethers.Contract(
 				'0x9FB8EF362996aa39A44c7f462E45341FD2dcd47D',
@@ -164,10 +189,12 @@ export default function Page({ params }: { params: { id: string } }) {
 			if (pool.id) {
 				router.push(`/project/${params.id}/dashboard`);
 			}
-		} catch (error) {
+		} catch (error: any) {
 			console.log('error', error);
+			error.message && showToast(error.message, 'error');
 		}
 		setIsRequesting(false);
+		closeGlobalLoading();
 	}
 
 	const handleLockedInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,6 +203,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} = event;
 		sendData.locked = value;
 		setSendData(sendData);
+		setParamesError({ ...paramesError, locked: false });
 	}
 
 	const handleAllocateChange = (event: SelectChangeEvent) => {
@@ -184,6 +212,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} = event;
 		sendData.allocate = value;
 		setSendData(sendData);
+		setParamesError({ ...paramesError, allocate: false });
 	}
 
 	const handleNetworkChange = (event: SelectChangeEvent) => {
@@ -192,6 +221,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} = event;
 		sendData.network = value;
 		setSendData(sendData);
+		setParamesError({ ...paramesError, network: false });
 	}
 
 	const handleWalletTypeChange = (event: SelectChangeEvent) => {
@@ -200,6 +230,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} = event;
 		sendData.walletType = value;
 		setSendData(sendData);
+		setParamesError({ ...paramesError, walletType: false });
 	}
 
 	const handleTokenChange = (event: SelectChangeEvent) => {
@@ -208,6 +239,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} = event;
 		sendData.token = value;
 		setSendData(sendData);
+		setParamesError({ ...paramesError, token: false });
 	}
 
 	const columns = useMemo(() => {
@@ -307,7 +339,10 @@ export default function Page({ params }: { params: { id: string } }) {
 			<Box>
 				<Typography sx={{ fontSize: '16px', fontWeight: 500, marginBottom: '8px' }}>Treasury for payment*</Typography>
 				<StyledFlexBox>
-					<TextField label="Address*" variant="outlined" sx={{ width: '440px', height: '56px' }} value={sendData?.address} onChange={(e) => setSendData({ ...sendData, address: e.target.value })} />
+					<TextField label="Address*" variant="outlined" error={paramesError.address} sx={{ width: '440px', height: '56px' }} value={sendData?.address} onChange={(e) => {
+						setSendData({ ...sendData, address: e.target.value })
+						setParamesError({ ...paramesError, address: false });
+					}} />
 					<FormControl sx={{ m: 1, width: 200, marginLeft: '20px', height: '56px' }}>
 						<InputLabel id="demo-multiple-chip-label" sx={{ fontSize: '16px' }}>Wallet type*</InputLabel>
 						<Select
@@ -317,6 +352,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							onChange={handleWalletTypeChange}
 							input={<OutlinedInput label="Wallet type*" />}
 							sx={{ width: '200px', height: '56px' }}
+							error={paramesError.walletType}
 						>
 							<MenuItem value={'multi'}>Multi-sig</MenuItem>
 							<MenuItem value={'eoa'}>EOA</MenuItem>
@@ -327,7 +363,10 @@ export default function Page({ params }: { params: { id: string } }) {
 			<Box sx={{ marginTop: '24px' }}>
 				<Typography sx={{ fontSize: '16px', fontWeight: 500, marginBottom: '8px' }}>Total amount*</Typography>
 				<StyledFlexBox>
-					<TextField label="Amount *" type='number' variant="outlined" sx={{ width: '135px', height: '56px' }} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+					<TextField label="Amount *" type='number' error={paramesError.amount} variant="outlined" sx={{ width: '135px', height: '56px' }} value={amount} onChange={(e) => {
+						setAmount(Number(e.target.value))
+						setParamesError({ ...paramesError, amount: false });
+					}} />
 					<FormControl sx={{ m: 1, width: 135, marginLeft: '20px', height: '56px' }}>
 						<InputLabel id="demo-multiple-chip-label" sx={{ fontSize: '16px' }}>Currency*</InputLabel>
 						<Select
@@ -337,6 +376,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							onChange={handleTokenChange}
 							input={<OutlinedInput label="Currency*" />}
 							sx={{ width: '135px', height: '56px' }}
+							error={paramesError.token}
 						>
 							<MenuItem value={'0xebca682b6c15d539284432edc5b960771f0009e8'}>USDT</MenuItem>
 						</Select>
@@ -350,6 +390,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							onChange={handleNetworkChange}
 							input={<OutlinedInput label="Network*" />}
 							sx={{ width: '288px', height: '56px' }}
+							error={paramesError.network}
 						>
 							<MenuItem value={'optimism'}>Optimism</MenuItem>
 						</Select>
@@ -363,6 +404,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							onChange={handleAllocateChange}
 							input={<OutlinedInput label="Allocate by*" />}
 							sx={{ width: '288px', height: '56px' }}
+							error={paramesError.allocate}
 						>
 							<MenuItem value={'proportion'}>Proportion-based</MenuItem>
 							<MenuItem value={'manual'}>Manual</MenuItem>
@@ -382,6 +424,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							placeholder={'Time locked*'}
 							onChange={handleLockedInputChange}
 							sx={{ display: 'block', minWidth: '', width: '200px' }}
+							error={paramesError.locked}
 						/>
 						<span style={{ marginLeft: '12px' }}>Day</span>
 					</div>
