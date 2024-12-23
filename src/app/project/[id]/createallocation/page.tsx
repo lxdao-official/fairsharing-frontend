@@ -215,7 +215,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		//ratios total must be 100
 		const total = list.reduce((acc: number, cur: any) => {
 			return acc + parseFloat(cur.percentage);
-		}, 0);
+		}, 0).toFixed(2);
 		if (total != 100) {
 			// 必须是100，当前是${total}
 			showToast('The sum of the ratios must be 100, current is ' + total, 'error');
@@ -392,7 +392,7 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [claimedAmount, allocationDetails]);
 	return (
 		<div style={{ position: 'relative', height: '100%' }}>
-			<div style={{ height: 'calc(100% - 90px)' }}>
+			<div style={{ height: 'calc(100% - 90px)', overflow: 'auto' }}>
 				<StyledFlexBox sx={{ justifyContent: 'space-between', marginBottom: '30px' }}>
 					<Typography variant="h3">Create Pool</Typography>
 				</StyledFlexBox>
