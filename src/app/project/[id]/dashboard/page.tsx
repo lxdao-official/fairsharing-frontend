@@ -316,7 +316,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item.value[0].amount / (10 ** 6)} USDT ({item.value[0].ratio / 100}%)
+							{item?.value?.[0]?.amount / (10 ** 6)} USDT ({item.value[0].ratio / 100}%)
 						</Typography>
 					);
 				},
@@ -327,7 +327,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					return (params.row.wallets[0].amount / (10 ** 6)) / (params.row.wallets[0].ratio / 10000)
+					return (params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params.row.wallets[0].ratio / 10000)
 				},
 				renderCell: (item) => {
 					return (

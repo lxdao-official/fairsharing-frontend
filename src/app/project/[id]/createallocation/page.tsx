@@ -217,7 +217,8 @@ export default function Page({ params }: { params: { id: string } }) {
 			return acc + parseFloat(cur.percentage);
 		}, 0);
 		if (total != 100) {
-			showToast('The sum of the ratios must be 100', 'error');
+			// 必须是100，当前是${total}
+			showToast('The sum of the ratios must be 100, current is ' + total, 'error');
 			return;
 		}
 		setIsRequestLoading(true);
@@ -526,7 +527,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					/>
 				</Box>
 			</div>
-			<div className="ft" style={{ position: 'absolute', bottom: '0', left: '0', right: '0', height: '80px', borderTop: '1px solid #0F172A29', display: 'flex', alignItems: 'center' }}>
+			<div className="ft" style={{ height: '80px', borderTop: '1px solid #0F172A29', display: 'flex', alignItems: 'center' }}>
 				<LoadingButton
 					loading={isRequestLoading}
 					variant="contained"
