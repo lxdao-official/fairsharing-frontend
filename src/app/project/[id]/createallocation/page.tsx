@@ -313,6 +313,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		} catch (error: any) {
 			console.error('createAllocation error', error);
 			error.message && showToast(error.message, 'error');
+			closeGlobalLoading();
 		}
 		setIsRequestLoading(false);
 	}

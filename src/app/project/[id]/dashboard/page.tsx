@@ -148,6 +148,10 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [allocationDetails]);
 
 	const handleTabChange = useCallback((_: any, value: string) => {
+		if (value === 'pool' && !address) {
+			openConnectModal?.();
+			return;
+		}
 		setActiveTab(value);
 	}, []);
 
