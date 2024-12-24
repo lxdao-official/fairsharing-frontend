@@ -76,7 +76,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		return endOfYear(new Date());
 	});
 
-	const { address } = useAccount();
+	const { address, chainId } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	console.log('address', address);
 	const provider = useEthersProvider();
@@ -280,7 +280,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			const res = await submitSignedAttestation({
 				signer: address as string,
 				sig: offchainAttestation,
-			});
+			}, chainId || 10);
 			if (res.data.error) {
 				console.error('submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);

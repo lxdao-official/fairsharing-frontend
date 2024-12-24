@@ -305,7 +305,7 @@ const ContributionItem = (props: IContributionItemProps) => {
 			const res = await submitSignedAttestation({
 				signer: myAddress as string,
 				sig: offchainAttestation,
-			});
+			}, chainId || 10);
 			if (res.data.error) {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);

@@ -364,7 +364,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				<Typography sx={{ fontSize: '16px', fontWeight: 500, marginBottom: '8px' }}>Total amount*</Typography>
 				<StyledFlexBox>
 					<TextField label="Amount *" type='number' error={paramesError.amount} variant="outlined" sx={{ width: '135px', height: '56px' }} value={amount} onChange={(e) => {
-						let str = e.target.value
+						const str = e.target.value
 						setAmount(str)
 						setParamesError({ ...paramesError, amount: false });
 					}} />
