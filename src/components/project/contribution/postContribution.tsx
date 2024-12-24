@@ -75,6 +75,8 @@ import CustomUploadImage from '@/components/uploadImage/customUploadImage';
 
 import ReactQuill from 'react-quill';
 
+import { request } from '@/common/request';
+
 // const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export interface IPostContributionProps {
@@ -187,7 +189,7 @@ const PostContribution = ({
 	const { myInfo } = useUserStore();
 	const signer = useEthersSigner();
 	const provider = useEthersProvider();
-	const { address: myAddress } = useAccount();
+	const { address: myAddress, chainId } = useAccount();
 	const { openConnectModal } = useConnectModal();
 	const { cache, setCache, clearCache } = usePostContributionCache({ projectId });
 
@@ -559,10 +561,13 @@ const PostContribution = ({
 				},
 				signer,
 			);
-			const res = await submitSignedAttestation({
-				signer: myAddress as string,
-				sig: offchainAttestation,
-			});
+			const res = await submitSignedAttestation(
+				{
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				},
+				chainId || 10,
+			);
 			if (res.data.error) {
 				console.error('submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -600,11 +605,11 @@ const PostContribution = ({
 		}
 	};
 
-	const onUpdateUnClaimedList= async () => {
-		const string = localStorage.getItem('__FS_allUnClaimedList_cache__') || '{}'
-		const cache = string ? JSON.parse(string) : {}
-		await mutate(['contributor/allUnClaimedList', projectId, cache?.dateFrom, cache?.dateTo])
-	}
+	const onUpdateUnClaimedList = async () => {
+		const string = localStorage.getItem('__FS_allUnClaimedList_cache__') || '{}';
+		const cache = string ? JSON.parse(string) : {};
+		await mutate(['contributor/allUnClaimedList', projectId, cache?.dateFrom, cache?.dateTo]);
+	};
 
 	const onVoteFor = async () => {
 		console.log('onVoteFor');
@@ -650,10 +655,13 @@ const PostContribution = ({
 				},
 				signer,
 			);
-			const res = await submitSignedAttestation({
-				signer: myAddress as string,
-				sig: offchainAttestation,
-			});
+			const res = await submitSignedAttestation(
+				{
+					signer: myAddress as string,
+					sig: offchainAttestation,
+				},
+				chainId || 10,
+			);
 			if (res.data.error) {
 				console.error('vote submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
