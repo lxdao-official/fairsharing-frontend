@@ -138,10 +138,19 @@ export default function Page({ params }: { params: { id: string } }) {
 		if (!contributorList.length) return;
 		console.log('allocationDetails', claimedAmount);
 		const cl:any = []
-		contributorList.forEach((contributor: any) => {
+		contributorList.forEach((contributor: any, index: any) => {
 			if (allocationDetails[contributor.id]) {
 				contributor.credit = allocationDetails[contributor.id];
-				contributor.percentage = Number(((allocationDetails[contributor.id] / claimedAmount) * 100)).toFixed(2)
+				// contributor.percentage = Number(((allocationDetails[contributor.id] / claimedAmount) * 100)).toFixed(2)
+				// 如果是最后一个就用100 - 前面的
+				if (index === contributorList.length - 1) {
+					contributor.percentage = (100 - cl.reduce((acc: number, cur: any) => {
+						return acc + parseFloat(cur.percentage);
+					}, 0)).toFixed(2);
+				} else {
+					contributor.percentage = Number(((allocationDetails[contributor.id] / claimedAmount) * 100)).toFixed(2);
+				}
+				
 				cl.push(contributor);	
 			} else {
 				contributor.credit = 0;
