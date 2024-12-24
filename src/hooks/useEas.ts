@@ -12,6 +12,7 @@ import axios from 'axios';
 
 import { DefaultEasChainConfig, EAS_CHAIN_CONFIGS } from '@/constant/contract';
 import { useEthersSigner } from '@/common/ether';
+import { request } from '@/common/request';
 
 export type StoreAttestationRequest = { filename: string; textJson: string };
 
@@ -42,15 +43,24 @@ const useEas = () => {
 		return easConfig.etherscanURL;
 	};
 
-	const submitSignedAttestation = async (pkg: AttestationShareablePackageObject) => {
-		const baseURL = getEasScanURL();
-		console.log('baseURL', baseURL, pkg);
-		const data: StoreAttestationRequest = {
+	const submitSignedAttestation = async (
+		pkg: AttestationShareablePackageObject,
+		chainId: number,
+	) => {
+		// const baseURL = getEasScanURL();
+		// console.log('baseURL', baseURL, pkg);
+		// const data: StoreAttestationRequest = {
+		// 	filename: `${new Date().getTime()}_eas.txt`,
+		// 	textJson: JSON.stringify(pkg),
+		// };
+		// return await axios.post<StoreIPFSActionReturn>(`${baseURL}/offchain/store`, data);
+
+		// backend act to post
+		return await request.post('contribution/submitSignedAttestation', 1, {
+			chainId: chainId,
 			filename: `${new Date().getTime()}_eas.txt`,
 			textJson: JSON.stringify(pkg),
-		};
-
-		return await axios.post<StoreIPFSActionReturn>(`${baseURL}/offchain/store`, data);
+		});
 	};
 
 	const getOffchain = () => {
