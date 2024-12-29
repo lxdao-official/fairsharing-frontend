@@ -158,14 +158,23 @@ export default function Page({ params }: { params: { id: string } }) {
 	useEffect(() => {
 		console.log('claimStatus', claimStatus, poolList);
 		if (claimStatus && poolList && poolList.list) {
-			const list = poolList.list.map((pool: any) => {
-				const wallets = claimStatus[pool.id] || [];
-				return {
-					...pool,
-					wallets,
-				};
-			});
-			setClaimStatusList(list);
+			const list: any = []
+			console.log('poolList', poolList);
+			if (poolList && poolList?.list && poolList?.list?.length) {
+				for (let i = 0; i < poolList.list.length; i++) {
+					const pool = poolList.list[i]
+					const wallets = claimStatus[pool.id] || [];
+					if (wallets.length === 0) continue;
+					list.push({
+						...pool,
+						wallets,
+					})
+				}
+				setClaimStatusList(list)
+			} else {
+				setClaimStatusList([])
+			}
+
 		}
 	}, [claimStatus, poolList])
 
@@ -191,6 +200,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			const tx = await contract.claim();
 			await tx.wait();
 			const res = await poolClaim({ projectId: params.id, operatorId: operatorId, wallet: address, poolId: id });
+			console.log('claim res', res);
 		} catch (error) {
 			console.log('claim error', error);
 		}
@@ -290,7 +300,12 @@ export default function Page({ params }: { params: { id: string } }) {
 		return `${hours}:${minutes}`
 	}
 
+	const formatAddress = (address: string) => {
+		return address.substring(0, 6) + '...' + address.substring(address.length - 4, address.length)
+	}
+
 	const poolColumns = useMemo(() => {
+		const etherscanUrl = isProd ? 'https://optimistic.etherscan.io/' : 'https://sepolia-optimism.etherscan.io/';
 		const columns: GridColDef[] = [
 			{
 				field: 'purpose',
@@ -349,6 +364,19 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>Optimism</Typography>
+					);
+				},
+			},
+			{
+				field: 'address',
+				headerName: 'Address',
+				flex: 1,
+				minWidth: 150,
+				renderCell: (item) => {
+					return (
+						<Typography fontSize={16}>
+							<a href={etherscanUrl + 'address/' + item.value} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>{formatAddress(item.value)}</a>
+						</Typography>
 					);
 				},
 			},

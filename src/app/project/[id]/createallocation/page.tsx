@@ -253,6 +253,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				{ name: 'WalletAddresses', value: list.map((item: any) => item.wallet), type: 'address[]' },
 				{ name: 'AllocationRatios', value: list.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())), type: 'uint32[]' },
 				{ name: 'TokenAmounts', value: list.map((item: any) => ethers.parseUnits((item.credit).toString(), 18).toString()), type: 'uint256[]' },
+				{ name: 'Extended', value: '', type: 'string' },
 			];
 			// console.log('[EAS postContribution data]', data);
 			const encodedData = schemaEncoder.encodeData(data);
@@ -270,7 +271,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					revocable: true,
 					version: 1,
 					nonce: BigInt(0),
-					schema: '0xaf37a2043e159e7c7bbbdf57cfd685ff370619a6f978ca348de958952361956d',
+					schema: '0xa576d3b11f52a5f093f33bda484903ed0871bd9c629c6e3ed3cbd0242d0ec753',
 					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
 					data: encodedData,
 				},

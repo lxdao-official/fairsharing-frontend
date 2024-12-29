@@ -139,7 +139,7 @@ export const EasSchemaTemplateMap = {
 		'address ProjectAddress, bytes32 ContributionID, string Detail, string Type, string Proof, uint256 StartDate, uint256 EndDate, uint256 TokenAmount, string Extended',
 	vote: 'address ProjectAddress, bytes32 ContributionID, uint8 VoteChoice, string Comment',
 	claim: 'address ProjectAddress, bytes32 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 TokenAmount, bytes Signatures',
-	allocation: 'address ProjectAddress,string Title,address[] WalletAddresses,uint32[] AllocationRatios,uint256[] TokenAmounts'
+	allocation: 'address ProjectAddress,string Title,address[] WalletAddresses,uint32[] AllocationRatios,uint256[] TokenAmounts,string Extended'
 };
 
 export type EasSchemaContributionKey =
@@ -162,7 +162,7 @@ export type EasSchemaClaimKey =
 	| 'TokenAmount'
 	| 'Signatures';
 
-export type EasSchemaAllocationKey = 'ProjectAddress' | 'Title' | 'WalletAddresses' | 'AllocationRatios' | 'TokenAmounts';
+export type EasSchemaAllocationKey = 'ProjectAddress' | 'Title' | 'WalletAddresses' | 'AllocationRatios' | 'TokenAmounts' | 'Extended';
 
 export type EasSchemaData<T> = {
 	name: T;
