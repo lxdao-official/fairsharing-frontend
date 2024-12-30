@@ -317,7 +317,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					const timeToClaim = new Date(params.row.timeToClaim * 1000)
 					const diff = timeToClaim.getTime() - new Date().getTime()
 					const nowDate = new Date()
-					return timeToClaim > nowDate ? `Time Locked: ${formatDiffTime(diff)}` : 'Salary'
+					return timeToClaim > nowDate ? `Time Locked: ${formatDiffTime(diff)}` : params?.row?.allocation?.title
 				},
 				renderCell: (item) => {
 					return (
