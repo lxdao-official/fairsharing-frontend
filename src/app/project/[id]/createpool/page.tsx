@@ -145,7 +145,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		openGlobalLoading();
 		try {
 			const contract = new ethers.Contract(
-				'0x9FB8EF362996aa39A44c7f462E45341FD2dcd47D',
+				'0xc732cd05648b246ddae63453577c35d2f3d8210a',
 				abi,
 				signer,
 			);
