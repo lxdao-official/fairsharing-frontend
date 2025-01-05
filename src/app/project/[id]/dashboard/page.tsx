@@ -41,6 +41,9 @@ import FormControl from '@mui/material/FormControl';
 import { SelectChangeEvent } from '@mui/material/Select';
 
 import { StyledFlexBox } from '@/components/styledComponents';
+
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
+
 import {
 	IMintRecord,
 	getMintRecord,
@@ -57,6 +60,7 @@ import { isProd } from '@/constant/env';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { get } from 'http';
+import { gl } from 'date-fns/locale';
 
 const claimAbi = [{ "inputs": [], "name": "ClaimFailed", "type": "error" }, { "inputs": [], "name": "RefundFailed", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Claimed", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Deposited", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Refunded", "type": "event" }, { "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "name": "allocations", "outputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "unClaimedAmount", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "claim", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "claimStatus", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "creator", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "tokens", "type": "address[]" }, { "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "name": "deposit", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [], "name": "depositor", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_projectAddress", "type": "address" }, { "internalType": "address", "name": "_creator", "type": "address" }, { "internalType": "address", "name": "_depositor", "type": "address" }, { "internalType": "uint256", "name": "_timeToClaim", "type": "uint256" }, { "components": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "unClaimedAmount", "type": "uint256" }, { "internalType": "address[]", "name": "addresses", "type": "address[]" }, { "internalType": "uint256[]", "name": "tokenAmounts", "type": "uint256[]" }, { "internalType": "uint32[]", "name": "ratios", "type": "uint32[]" }], "internalType": "struct Allocation[]", "name": "_allocations", "type": "tuple[]" }], "name": "initialize", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "isClaimed", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "projectAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "refund", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }], "name": "refundUnspecifiedToken", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "timeToClaim", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "stateMutability": "payable", "type": "receive" }]
 
@@ -196,6 +200,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		console.log('cAddress', cAddress);
 		const operatorId = contributorList.find((item: any) => item.wallet === address)?.id
 		setRequesting(id);
+		openGlobalLoading();
 		try {
 			const contract = new ethers.Contract(cAddress, claimAbi, signer);
 			const tx = await contract.claim();
@@ -205,9 +210,11 @@ export default function Page({ params }: { params: { id: string } }) {
 			getClaimStatusList({ projectId: params.id, wallet: address }).then((data) => {
 				setClaimStatus(data);
 			})
-		} catch (error) {
-			console.log('claim error', error);
+		} catch (error: any) {
+			console.log('claim error', error.reason);
+			showToast(error.reason || error.message, 'error');
 		}
+		closeGlobalLoading();
 		setRequesting(null);
 	}
 

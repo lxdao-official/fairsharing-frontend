@@ -157,16 +157,17 @@ export default function Page({ params }: { params: { id: string } }) {
 				ratios: displayList.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())),
 			}
 			console.log('contract', contract);
+			const salt = new Date().getTime()
 			const param = {
 				projectAddress: params.id,
 				depositor: address,
 				timeToClaim: parseInt(sendData.locked) * 86400,
-				salt: new Date().getTime(),
+				salt: salt,
 			}
 			const tx = await contract.create([allocation], param);
 			const receipt = await tx.wait();
-			const event = receipt.logs?.find((item: any) => item.eventName == 'PoolCreated');
-			const poolAddress = event.args.implementation;
+			const poolAddress = await contract.predictPoolAddress(address, salt)
+			console.log(poolAddress)
 			const pool = await createPool({
 				operatorId: operatorId,
 				wallet: address || '',
