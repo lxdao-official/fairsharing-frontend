@@ -161,7 +161,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			const param = {
 				projectAddress: params.id,
 				depositor: address,
-				timeToClaim: parseInt(sendData.locked) * 86400,
+				timeToClaim: Number(sendData.locked) * 86400,
 				salt: salt,
 			}
 			const tx = await contract.create([allocation], param);
@@ -175,7 +175,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				projectId: params.id,
 				address: poolAddress,
 				creator: address || '',
-				lockDuration: parseInt(sendData.locked) * 86400,
+				lockDuration: Number(sendData.locked) * 86400,
 				depositor: sendData.address,
 				tokens: [
 					{
