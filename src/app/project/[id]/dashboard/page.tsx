@@ -373,11 +373,11 @@ export default function Page({ params }: { params: { id: string } }) {
 				field: 'wallets',
 				headerName: 'You Can Claim',
 				flex: 1,
-				minWidth: 150,
+				minWidth: 180,
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item?.value?.[0]?.amount / (10 ** 6)} USDT ({item?.value?.[0]?.ratio / 100}%)
+							{item?.value?.[0]?.amount / (10 ** 6)} {item.value[0]?.token == "0xd368d0420dd938e8e567307f4038df602e2e0430" ? 'USDT' : 'USDC'} ({item?.value?.[0]?.ratio / 100}%)
 						</Typography>
 					);
 				},
