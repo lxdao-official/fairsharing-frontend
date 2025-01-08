@@ -381,6 +381,7 @@ export default function Page({ params }: { params: { id: string } }) {
 							error={paramesError.token}
 						>
 							<MenuItem value={'0xd368d0420dd938e8e567307f4038df602e2e0430'}>USDT</MenuItem>
+							<MenuItem value={'0x55af86972839732f89eefc4c2adb7bf088078ee0'}>USDC</MenuItem>
 						</Select>
 					</FormControl>
 					<FormControl sx={{ m: 1, width: 288, marginLeft: '20px', height: '56px' }}>

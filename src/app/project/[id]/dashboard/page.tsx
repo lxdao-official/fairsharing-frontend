@@ -388,12 +388,12 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					return (params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)
+					return `${((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2)} ${params?.row?.wallets?.[0]?.token == "0xd368d0420dd938e8e567307f4038df602e2e0430" ? 'USDT' : 'USDC'}`
 				},
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item.value.toFixed(2)} USDT
+							{item.value}
 						</Typography>
 					);
 				},
