@@ -14,12 +14,13 @@ import {
 	Box,
 	Chip,
 	Tab,
-	Tabs
+	Tabs,
+	Popover
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { ethers } from 'ethers';
+import { ethers, id } from 'ethers';
 import { useEthersSigner } from '@/common/ether';
 
 import { Img3, Img3Provider } from '@lxdao/img3';
@@ -59,14 +60,13 @@ import { defaultGateways, LogoImage } from '@/constant/img3';
 import { isProd } from '@/constant/env';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { get } from 'http';
-import { gl } from 'date-fns/locale';
 
 const claimAbi = [{ "inputs": [], "name": "ClaimFailed", "type": "error" }, { "inputs": [], "name": "RefundFailed", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Claimed", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Deposited", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "token", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "Refunded", "type": "event" }, { "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "name": "allocations", "outputs": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "unClaimedAmount", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "claim", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "", "type": "address" }], "name": "claimStatus", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "creator", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address[]", "name": "tokens", "type": "address[]" }, { "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "name": "deposit", "outputs": [], "stateMutability": "payable", "type": "function" }, { "inputs": [], "name": "depositor", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_projectAddress", "type": "address" }, { "internalType": "address", "name": "_creator", "type": "address" }, { "internalType": "address", "name": "_depositor", "type": "address" }, { "internalType": "uint256", "name": "_timeToClaim", "type": "uint256" }, { "components": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "unClaimedAmount", "type": "uint256" }, { "internalType": "address[]", "name": "addresses", "type": "address[]" }, { "internalType": "uint256[]", "name": "tokenAmounts", "type": "uint256[]" }, { "internalType": "uint32[]", "name": "ratios", "type": "uint32[]" }], "internalType": "struct Allocation[]", "name": "_allocations", "type": "tuple[]" }], "name": "initialize", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "isClaimed", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "projectAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "refund", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "token", "type": "address" }], "name": "refundUnspecifiedToken", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "timeToClaim", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "stateMutability": "payable", "type": "receive" }]
 
 export default function Page({ params }: { params: { id: string } }) {
 	const [safeUrl, setSafeUrl] = useState('');
-
+	const [hoveredValue, setHoveredValue] = useState<string | null>(null);
+	const [anchorEl, setAnchorEl] = useState(null);
 	const [startDate, setStartDate] = useState<Date>(() => {
 		return startOfYear(new Date());
 	});
@@ -306,14 +306,35 @@ export default function Page({ params }: { params: { id: string } }) {
 	}, [claimedAmount, allocationDetails]);
 
 	const formatDiffTime = (diff: number) => {
+		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
 		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-		return `${hours}:${minutes}`
+		// 补0
+		const formatNumber = (num: number) => {
+			return num < 10 ? '0' + num : num
+		}
+		return `${formatNumber(days)}:${formatNumber(hours)}:${formatNumber(minutes)}`
 	}
 
 	const formatAddress = (address: string) => {
 		return address.substring(0, 6) + '...' + address.substring(address.length - 4, address.length)
 	}
+
+	// 显示 Popover
+	const handlePopoverOpen = (event: any, value: any) => {
+		if (!value.locked) return;
+		setAnchorEl(event.currentTarget);
+		setHoveredValue(value.locked);
+		console.log('value', value);
+	};
+
+	// 隐藏 Popover
+	const handlePopoverClose = () => {
+		setAnchorEl(null);
+		setHoveredValue(null);
+	};
+
+	const open = Boolean(anchorEl);
 
 	const poolColumns = useMemo(() => {
 		const etherscanUrl = isProd ? 'https://optimistic.etherscan.io/' : 'https://sepolia-optimism.etherscan.io/';
@@ -328,13 +349,23 @@ export default function Page({ params }: { params: { id: string } }) {
 					const timeToClaim = new Date(params.row.timeToClaim * 1000)
 					const diff = timeToClaim.getTime() - new Date().getTime()
 					const nowDate = new Date()
-					return timeToClaim > nowDate ? `Time Locked: ${formatDiffTime(diff)}` : params?.row?.allocation?.title
+					const data: any = {
+						title: params?.row?.allocation?.title,
+						id: params?.id,
+					}
+					if (timeToClaim > nowDate) {
+						data.locked = formatDiffTime(diff)
+					}
+					return data
 				},
 				renderCell: (item) => {
 					return (
-						<Typography fontSize={16}>
-							{item.value}
-						</Typography>
+						<Box sx={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} >
+							<Typography fontSize={16} aria-owns={open ? 'mouse-over-popover' : undefined}
+								aria-haspopup="true" onMouseEnter={(e) => handlePopoverOpen(e, item.value)} onMouseLeave={handlePopoverClose}>
+								{item.value.title}
+							</Typography>
+						</Box>
 					);
 				},
 			},
@@ -660,6 +691,25 @@ export default function Page({ params }: { params: { id: string } }) {
 								}}
 								isRowSelectable={() => false}
 							/>
+							<Popover
+								open={open}
+								anchorEl={anchorEl}
+								disableRestoreFocus
+								anchorOrigin={{
+									vertical: 'bottom',
+									horizontal: 'left',
+								}}
+								transformOrigin={{
+									vertical: 'top',
+									horizontal: 'left',
+								}}
+								onClose={handlePopoverClose}
+								id="mouse-over-popover"
+								sx={{ pointerEvents: 'none' }}>
+								<Box sx={{ height: '36px', fontSize:'14px', display: 'flex', alignItems: 'center', padding: '0 16px', background: '#334155E5', borderRadius: '4px', color: '#fff' }}>
+									Time Locked: {hoveredValue}
+								</Box>
+							</Popover>
 						</div>
 					)
 				}
