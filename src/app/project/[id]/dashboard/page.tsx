@@ -325,7 +325,6 @@ export default function Page({ params }: { params: { id: string } }) {
 		if (!value.locked) return;
 		setAnchorEl(event.currentTarget);
 		setHoveredValue(value.locked);
-		console.log('value', value);
 	};
 
 	// 隐藏 Popover
@@ -360,9 +359,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				},
 				renderCell: (item) => {
 					return (
-						<Box sx={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} >
-							<Typography fontSize={16} aria-owns={open ? 'mouse-over-popover' : undefined}
-								aria-haspopup="true" onMouseEnter={(e) => handlePopoverOpen(e, item.value)} onMouseLeave={handlePopoverClose}>
+						<Box sx={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} aria-owns={open ? 'mouse-over-popover' : undefined}
+							aria-haspopup="true" onMouseEnter={(e) => handlePopoverOpen(e, item.value)} onMouseLeave={handlePopoverClose}>
+							<Typography fontSize={16}>
 								{item.value.title}
 							</Typography>
 						</Box>
@@ -706,7 +705,7 @@ export default function Page({ params }: { params: { id: string } }) {
 								onClose={handlePopoverClose}
 								id="mouse-over-popover"
 								sx={{ pointerEvents: 'none' }}>
-								<Box sx={{ height: '36px', fontSize:'14px', display: 'flex', alignItems: 'center', padding: '0 16px', background: '#334155E5', borderRadius: '4px', color: '#fff' }}>
+								<Box sx={{ height: '36px', fontSize: '14px', display: 'flex', alignItems: 'center', padding: '0 16px', background: '#334155E5', borderRadius: '4px', color: '#fff' }}>
 									Time Locked: {hoveredValue}
 								</Box>
 							</Popover>
