@@ -22,7 +22,6 @@ import React, { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { ethers, id } from 'ethers';
 import { useEthersSigner } from '@/common/ether';
-
 import { Img3, Img3Provider } from '@lxdao/img3';
 
 import Link from 'next/link';
@@ -218,6 +217,15 @@ export default function Page({ params }: { params: { id: string } }) {
 		setRequesting(null);
 	}
 
+	const getTokenName = (token: string) => {
+		if (!token) return '';
+		if (isProd) {
+			return token == "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58" ? 'USDT' : 'USDC'
+		} else {
+			return token == "0xd368d0420dd938e8e567307f4038df602e2e0430" ? 'USDT' : 'USDC'
+		}
+	}
+
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
 			{
@@ -376,7 +384,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item?.value?.[0]?.amount / (10 ** 6)} {item.value[0]?.token == "0xd368d0420dd938e8e567307f4038df602e2e0430" ? 'USDT' : 'USDC'} ({item?.value?.[0]?.ratio / 100}%)
+							{item?.value?.[0]?.amount / (10 ** 6)} {getTokenName(item.value[0]?.token)} ({item?.value?.[0]?.ratio / 100}%)
 						</Typography>
 					);
 				},
@@ -387,7 +395,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					return `${((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2)} ${params?.row?.wallets?.[0]?.token == "0xd368d0420dd938e8e567307f4038df602e2e0430" ? 'USDT' : 'USDC'}`
+					return `${((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2)} ${getTokenName(params?.row?.wallets?.[0]?.token)}`
 				},
 				renderCell: (item) => {
 					return (

@@ -39,6 +39,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			contribution: process.env.NEXT_PUBLIC_EAS_SCHEMA_CONTRIBUTION as string,
 			vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
 			claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
+			allocation: '0x70a30aa5dece019a9dac569c117ac277bcac866333b1baaecf7214be003e86f4'
 		},
 		projectRegisterUpgradeableProxy: process.env
 			.NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER as string,

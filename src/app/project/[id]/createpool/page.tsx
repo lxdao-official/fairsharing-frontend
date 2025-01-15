@@ -14,6 +14,7 @@ import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils'
 import Link from 'next/link';
 import Image from 'next/image';
 import { ethers } from 'ethers';
+import { isProd } from '@/constant/env';
 import { Img3, Img3Provider } from '@lxdao/img3';
 import { defaultGateways, LogoImage } from '@/constant/img3';
 import { walletCell } from '@/components/table/cell';
@@ -26,7 +27,6 @@ import {
 import { useAccount } from 'wagmi';
 import { useEthersSigner } from '@/common/ether';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { el } from 'date-fns/locale';
 
 const getParams = () => {
 	const url = window.location.href;
@@ -40,7 +40,7 @@ const getParams = () => {
 	return obj;
 }
 
-const abi = [{"inputs":[{"internalType":"address","name":"_allocationTemplate","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"projectAddress","type":"address"},{"indexed":true,"internalType":"address","name":"implementation","type":"address"},{"indexed":false,"internalType":"uint256","name":"salt","type":"uint256"},{"indexed":true,"internalType":"address","name":"creator","type":"address"}],"name":"PoolCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"}],"name":"PoolTemplateChanged","type":"event"},{"inputs":[],"name":"allocationPoolTemplate","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"unClaimedAmount","type":"uint256"},{"internalType":"address[]","name":"addresses","type":"address[]"},{"internalType":"uint256[]","name":"tokenAmounts","type":"uint256[]"},{"internalType":"uint32[]","name":"ratios","type":"uint32[]"}],"internalType":"struct Allocation[]","name":"allocations","type":"tuple[]"},{"components":[{"internalType":"address","name":"projectAddress","type":"address"},{"internalType":"address","name":"depositor","type":"address"},{"internalType":"uint256","name":"timeToClaim","type":"uint256"},{"internalType":"uint256","name":"salt","type":"uint256"}],"internalType":"struct ExtraParams","name":"params","type":"tuple"}],"name":"create","outputs":[{"internalType":"address","name":"poolAddress","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"creator","type":"address"},{"internalType":"uint256","name":"salt","type":"uint256"}],"name":"predictPoolAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_allocationPoolTemplate","type":"address"}],"name":"updateTemplate","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+const abi = [{ "inputs": [{ "internalType": "address", "name": "_allocationTemplate", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "projectAddress", "type": "address" }, { "indexed": true, "internalType": "address", "name": "implementation", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "salt", "type": "uint256" }, { "indexed": true, "internalType": "address", "name": "creator", "type": "address" }], "name": "PoolCreated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "operator", "type": "address" }, { "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "to", "type": "address" }], "name": "PoolTemplateChanged", "type": "event" }, { "inputs": [], "name": "allocationPoolTemplate", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "components": [{ "internalType": "address", "name": "token", "type": "address" }, { "internalType": "uint256", "name": "unClaimedAmount", "type": "uint256" }, { "internalType": "address[]", "name": "addresses", "type": "address[]" }, { "internalType": "uint256[]", "name": "tokenAmounts", "type": "uint256[]" }, { "internalType": "uint32[]", "name": "ratios", "type": "uint32[]" }], "internalType": "struct Allocation[]", "name": "allocations", "type": "tuple[]" }, { "components": [{ "internalType": "address", "name": "projectAddress", "type": "address" }, { "internalType": "address", "name": "depositor", "type": "address" }, { "internalType": "uint256", "name": "timeToClaim", "type": "uint256" }, { "internalType": "uint256", "name": "salt", "type": "uint256" }], "internalType": "struct ExtraParams", "name": "params", "type": "tuple" }], "name": "create", "outputs": [{ "internalType": "address", "name": "poolAddress", "type": "address" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "creator", "type": "address" }, { "internalType": "uint256", "name": "salt", "type": "uint256" }], "name": "predictPoolAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_allocationPoolTemplate", "type": "address" }], "name": "updateTemplate", "outputs": [], "stateMutability": "nonpayable", "type": "function" }]
 
 export default function Page({ params }: { params: { id: string } }) {
 	console.log('params', params);
@@ -87,7 +87,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			for (let i = 0; i < contributorList.length; i++) {
 				for (let j = 0; j < ratio.length; j++) {
 					if (contributorList[i].id == ratio[j].id) {
-						const item = {...contributorList[i], percentage: ratio[j].ratio};
+						const item = { ...contributorList[i], percentage: ratio[j].ratio };
 						list.push(item);
 					}
 				}
@@ -144,8 +144,9 @@ export default function Page({ params }: { params: { id: string } }) {
 		setIsRequesting(true);
 		openGlobalLoading();
 		try {
+			const contractAddress = isProd ? '0xf35451137ad2DD3465b4c2890fade5C51a52713F' : '0xc732cd05648b246ddae63453577c35d2f3d8210a';
 			const contract = new ethers.Contract(
-				'0xc732cd05648b246ddae63453577c35d2f3d8210a',
+				contractAddress,
 				abi,
 				signer,
 			);
@@ -238,6 +239,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		const {
 			target: { value },
 		} = event;
+		console.log('value', value);
 		sendData.token = value;
 		setSendData(sendData);
 		setParamesError({ ...paramesError, token: false });
@@ -371,18 +373,35 @@ export default function Page({ params }: { params: { id: string } }) {
 					}} />
 					<FormControl sx={{ m: 1, width: 135, marginLeft: '20px', height: '56px' }}>
 						<InputLabel id="demo-multiple-chip-label" sx={{ fontSize: '16px' }}>Currency*</InputLabel>
-						<Select
-							labelId="demo-multiple-chip-label"
-							id="demo-multiple-chip"
-							value={sendData?.token}
-							onChange={handleTokenChange}
-							input={<OutlinedInput label="Currency*" />}
-							sx={{ width: '135px', height: '56px' }}
-							error={paramesError.token}
-						>
-							<MenuItem value={'0xd368d0420dd938e8e567307f4038df602e2e0430'}>USDT</MenuItem>
-							<MenuItem value={'0x55af86972839732f89eefc4c2adb7bf088078ee0'}>USDC</MenuItem>
-						</Select>
+						{
+							isProd ? (
+								<Select
+									labelId="demo-multiple-chip-label"
+									id="demo-multiple-chip"
+									value={sendData?.token}
+									onChange={handleTokenChange}
+									input={<OutlinedInput label="Currency*" />}
+									sx={{ width: '135px', height: '56px' }}
+									error={paramesError.token}
+								>
+									<MenuItem value={'0x94b008aa00579c1307b0ef2c499ad98a8ce58e58'}>USDT</MenuItem>
+									<MenuItem value={'0x0b2c639c533813f4aa9d7837caf62653d097ff85'}>USDC</MenuItem>
+								</Select>
+							) : (
+								<Select
+									labelId="demo-multiple-chip-label"
+									id="demo-multiple-chip"
+									value={sendData?.token}
+									onChange={handleTokenChange}
+									input={<OutlinedInput label="Currency*" />}
+									sx={{ width: '135px', height: '56px' }}
+									error={paramesError.token}
+								>
+									<MenuItem value={'0xd368d0420dd938e8e567307f4038df602e2e0430'}>USDT</MenuItem>
+									<MenuItem value={'0x55af86972839732f89eefc4c2adb7bf088078ee0'}>USDC</MenuItem>
+								</Select>
+							)
+						}
 					</FormControl>
 					<FormControl sx={{ m: 1, width: 288, marginLeft: '20px', height: '56px' }}>
 						<InputLabel id="demo-multiple-chip-label" sx={{ fontSize: '16px' }}>Network*</InputLabel>
