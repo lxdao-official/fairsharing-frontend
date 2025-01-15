@@ -44,6 +44,7 @@ import {
 	EasSchemaTemplateMap,
 	EasSchemaVoteKey,
 } from '@/constant/contract';
+import { isProd } from '@/constant/env';
 
 const DateContainer = styled(StyledFlexBox)(({ theme }) => ({
 	width: '300px',
@@ -263,6 +264,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				return;
 			}
 			const defaultRecipient = '0x0000000000000000000000000000000000000000';
+			const schema = isProd ? '0x70a30aa5dece019a9dac569c117ac277bcac866333b1baaecf7214be003e86f4' : '0xa576d3b11f52a5f093f33bda484903ed0871bd9c629c6e3ed3cbd0242d0ec753'
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
 					recipient: defaultRecipient,
@@ -271,7 +273,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					revocable: true,
 					version: 1,
 					nonce: BigInt(0),
-					schema: '0xa576d3b11f52a5f093f33bda484903ed0871bd9c629c6e3ed3cbd0242d0ec753',
+					schema: schema,
 					refUID: '0x0000000000000000000000000000000000000000000000000000000000000000',
 					data: encodedData,
 				},
