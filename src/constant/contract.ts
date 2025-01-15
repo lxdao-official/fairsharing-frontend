@@ -18,6 +18,8 @@ export interface IContractConfig {
 		contribution: string;
 		vote: string;
 		claim: string;
+		/** Allocation schema */
+		allocation?: string;
 	};
 	projectRegisterUpgradeableProxy: string;
 	voteStrategyMap: {
@@ -37,6 +39,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			contribution: process.env.NEXT_PUBLIC_EAS_SCHEMA_CONTRIBUTION as string,
 			vote: process.env.NEXT_PUBLIC_EAS_SCHEMA_VOTE as string,
 			claim: process.env.NEXT_PUBLIC_EAS_SCHEMA_CLAIM as string,
+			allocation: '0x70a30aa5dece019a9dac569c117ac277bcac866333b1baaecf7214be003e86f4'
 		},
 		projectRegisterUpgradeableProxy: process.env
 			.NEXT_PUBLIC_CONTRACT_PROJECT_REGISTER as string,
@@ -63,6 +66,7 @@ export const ContractConfigMap: Record<IChainType, IContractConfig> = {
 			contribution: '0xa429ad803ae12a0fcb9c0c130673a4c7357da08e1407b62bce5cfe358d673526',
 			vote: '0x6e4068d80a37bc2fb9223e2f07b909b98b370d76b1d94cd83c1a64bb6006a9e5',
 			claim: '0x957c1ce9579ea03fcd9e08f0ef9d0ef4ba3ca67f7b459655bcf87a060fd772ca',
+			allocation: '0xa5ab8a2e87bc7c7b70fe5bd354cb904b52bdfa8fe3c235c564143e26d8b3d092'
 		},
 		projectRegisterUpgradeableProxy: '0x9B2A807084B7a6ECD646a1dFc217dfAaDBEFEF10',
 		voteStrategyMap: {
@@ -128,6 +132,7 @@ export const EasSchemaMap = {
 	contribution: DefaultContractConfig.schema.contribution,
 	vote: DefaultContractConfig.schema.vote,
 	claim: DefaultContractConfig.schema.claim,
+	allocation: DefaultContractConfig.schema.allocation,
 };
 
 export const EasSchemaTemplateMap = {
@@ -135,6 +140,7 @@ export const EasSchemaTemplateMap = {
 		'address ProjectAddress, bytes32 ContributionID, string Detail, string Type, string Proof, uint256 StartDate, uint256 EndDate, uint256 TokenAmount, string Extended',
 	vote: 'address ProjectAddress, bytes32 ContributionID, uint8 VoteChoice, string Comment',
 	claim: 'address ProjectAddress, bytes32 ContributionID, address[] Voters, uint8[] VoteChoices, address Recipient, uint256 TokenAmount, bytes Signatures',
+	allocation: 'address ProjectAddress,string Title,address[] WalletAddresses,uint32[] AllocationRatios,uint256[] TokenAmounts,string Extended'
 };
 
 export type EasSchemaContributionKey =
@@ -156,6 +162,8 @@ export type EasSchemaClaimKey =
 	| 'Recipient'
 	| 'TokenAmount'
 	| 'Signatures';
+
+export type EasSchemaAllocationKey = 'ProjectAddress' | 'Title' | 'WalletAddresses' | 'AllocationRatios' | 'TokenAmounts' | 'Extended';
 
 export type EasSchemaData<T> = {
 	name: T;
