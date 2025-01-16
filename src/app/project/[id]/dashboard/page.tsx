@@ -168,11 +168,16 @@ export default function Page({ params }: { params: { id: string } }) {
 				for (let i = 0; i < poolList.list.length; i++) {
 					const pool = poolList.list[i]
 					const wallets = claimStatus[pool.id] || [];
-					if (wallets.length === 0) continue;
-					list.push({
-						...pool,
-						wallets,
-					})
+					if (wallets.length === 0) {
+						list.push({
+							...pool
+						})
+					} else {
+						list.push({
+							...pool,
+							wallets,
+						})
+					}
 				}
 				setClaimStatusList(list)
 			} else {
@@ -384,7 +389,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item?.value?.[0]?.amount / (10 ** 6)} {getTokenName(item.value[0]?.token)} ({item?.value?.[0]?.ratio / 100}%)
+							{item?.value?.length ? item?.value?.[0]?.amount / (10 ** 6) : '0'} {getTokenName(item.value[0]?.token)} ({item?.value?.length ? item?.value?.[0]?.ratio / 100 : '0'}%)
 						</Typography>
 					);
 				},
@@ -395,7 +400,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					return `${((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2)} ${getTokenName(params?.row?.wallets?.[0]?.token)}`
+					return `${params?.row?.wallets?.length ? ((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2) : '0'} ${getTokenName(params?.row?.wallets?.[0]?.token)}`
 				},
 				renderCell: (item) => {
 					return (
