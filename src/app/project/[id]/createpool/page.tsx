@@ -183,7 +183,7 @@ export default function Page({ params }: { params: { id: string } }) {
 						token: sendData.token,
 						wallets: displayList.map((item: any) => item.wallet),
 						amounts: displayList.map((item: any) => ethers.parseUnits(((amount * item.percentage / 100).toFixed(2)), 6).toString()),
-						ratios: displayList.map((item: any) => parseInt((item.percentage * 100).toString())),
+						ratios: displayList.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())),
 					}
 				]
 			});
