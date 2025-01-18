@@ -154,7 +154,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				token: sendData.token,
 				unClaimedAmount: ethers.parseUnits((amount).toString(), 6).toString(),
 				addresses: displayList.map((item: any) => item.wallet),
-				tokenAmounts: displayList.map((item: any) => ethers.parseUnits(((amount * item.percentage / 100).toFixed(2)), 6).toString()),
+				tokenAmounts: displayList.map((item: any) => ethers.parseUnits(((amount * item.percentage / 100).toFixed(6)), 6).toString()),
 				ratios: displayList.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())),
 			}
 			console.log('contract', contract);
@@ -182,7 +182,7 @@ export default function Page({ params }: { params: { id: string } }) {
 					{
 						token: sendData.token,
 						wallets: displayList.map((item: any) => item.wallet),
-						amounts: displayList.map((item: any) => ethers.parseUnits(((amount * item.percentage / 100).toFixed(2)), 6).toString()),
+						amounts: displayList.map((item: any) => ethers.parseUnits(((amount * item.percentage / 100).toFixed(6)), 6).toString()),
 						ratios: displayList.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())),
 					}
 				]
