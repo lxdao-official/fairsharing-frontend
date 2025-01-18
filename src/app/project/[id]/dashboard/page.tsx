@@ -389,7 +389,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				renderCell: (item) => {
 					return (
 						<Typography fontSize={16}>
-							{item?.value?.length ? item?.value?.[0]?.amount / (10 ** 6) : '0'} {getTokenName(item.value[0]?.token)} ({item?.value?.length ? item?.value?.[0]?.ratio / 100 : '0'}%)
+							{item?.value?.length ? (item?.value?.[0]?.amount / (10 ** 6)).toFixed(2) : '0'} {getTokenName(item.value[0]?.token)} ({item?.value?.length ? item?.value?.[0]?.ratio / (10 ** 6) : '0'}%)
 						</Typography>
 					);
 				},
@@ -400,7 +400,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				flex: 1,
 				minWidth: 150,
 				valueGetter: (params) => {
-					return `${params?.row?.wallets?.length ? ((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / 10000)).toFixed(2) : '0'} ${getTokenName(params?.row?.wallets?.[0]?.token)}`
+					return `${params?.row?.wallets?.length ? ((params?.row?.wallets?.[0]?.amount / (10 ** 6)) / (params?.row?.wallets?.[0]?.ratio / (10 ** 8))).toFixed(2) : '0'} ${getTokenName(params?.row?.wallets?.[0]?.token)}`
 				},
 				renderCell: (item) => {
 					return (
