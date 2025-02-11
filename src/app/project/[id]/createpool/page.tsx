@@ -162,7 +162,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			const param = {
 				projectAddress: params.id,
 				depositor: address,
-				timeToClaim: Number(sendData.locked) * 86400,
+				timeToClaim: Math.floor(Number(sendData.locked) * 86400),
 				salt: salt,
 			}
 			const tx = await contract.create([allocation], param);
