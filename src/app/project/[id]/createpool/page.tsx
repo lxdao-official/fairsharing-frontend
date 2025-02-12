@@ -272,7 +272,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		try {
 			const contractAddress = isProd
 				? '0xAD1B017Aa86BE3378d28b4b4445293068E3A7aCf'
-				: '0xc732cd05648b246ddae63453577c35d2f3d8210a';
+				: '0xf35451137ad2DD3465b4c2890fade5C51a52713F';
 			const contract = new ethers.Contract(contractAddress, abi, signer);
 			const allocation = {
 				token: sendData.token,
@@ -290,7 +290,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			const param = {
 				projectAddress: params.id,
 				depositor: address,
-				timeToClaim: Number(sendData.locked) * 86400,
+				timeToClaim: Math.floor(Number(sendData.locked) * 86400),
 				salt: salt,
 			};
 			const tx = await contract.create([allocation], param);
