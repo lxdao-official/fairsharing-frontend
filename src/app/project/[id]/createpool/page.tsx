@@ -272,7 +272,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		try {
 			const contractAddress = isProd
 				? '0xAD1B017Aa86BE3378d28b4b4445293068E3A7aCf'
-				: '0xf35451137ad2DD3465b4c2890fade5C51a52713F';
+				: '0x13A5DfeB3E823378e379Bb59A46c5c9E19a3Fc37';
 			const contract = new ethers.Contract(contractAddress, abi, signer);
 			const allocation = {
 				token: sendData.token,
