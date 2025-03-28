@@ -285,17 +285,20 @@ export default function Page({ params }: { params: { id: string } }) {
 					parseInt((item.percentage * 10 ** 6).toString()),
 				),
 			};
-			console.log('contract', contract);
-			const salt = new Date().getTime();
+			const now = new Date().getTime();
+			const timeToClaim =
+				Math.floor(now / 1000) + Math.floor(Number(sendData.locked) * 86400);
 			const param = {
 				projectAddress: params.id,
 				depositor: address,
-				timeToClaim: Math.floor(Number(sendData.locked) * 86400),
-				salt: salt,
+				timeToClaim: timeToClaim,
+				salt: now,
 			};
+			console.log('param', param);
+
 			const tx = await contract.create([allocation], param);
 			const receipt = await tx.wait();
-			const poolAddress = await contract.predictPoolAddress(address, salt);
+			const poolAddress = await contract.predictPoolAddress(address, now);
 			console.log(poolAddress);
 			const pool = await createPool({
 				operatorId: operatorId,
