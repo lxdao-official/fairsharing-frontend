@@ -1,41 +1,55 @@
 'use client';
 
 import useSWR from 'swr';
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 import {
-	Typography, styled, TextField, Box, Button,
-	FormControl, InputLabel, Select, MenuItem, OutlinedInput
+	Typography,
+	styled,
+	TextField,
+	Box,
+	Button,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
+	OutlinedInput,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { StyledFlexBox } from '@/components/styledComponents';
+
 import { SelectChangeEvent } from '@mui/material/Select';
-import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
-import useEas from '@/hooks/useEas';
+
 import axios from 'axios';
-import {
-	getAllocationDetails,
-	getContributorList,
-	getContributionTypeList,
-	createAllocation,
-	getUserInfo,
-	updateAllocationState
-} from '@/services';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Img3, Img3Provider } from '@lxdao/img3';
 import { add, endOfYear, format, set, startOfYear } from 'date-fns';
-import { defaultGateways, LogoImage } from '@/constant/img3';
-import { walletCell } from '@/components/table/cell';
+
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useRouter } from 'next/navigation';
-import { useEthersProvider, useEthersSigner } from '@/common/ether';
+
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+
+import { useEthersProvider, useEthersSigner } from '@/common/ether';
+import { walletCell } from '@/components/table/cell';
+import { defaultGateways, LogoImage } from '@/constant/img3';
+import {
+	getAllocationDetails,
+	getContributorList,
+	getContributionTypeList,
+	createAllocation,
+	getUserInfo,
+	updateAllocationState,
+} from '@/services';
+import useEas from '@/hooks/useEas';
+import { closeGlobalLoading, openGlobalLoading, showToast } from '@/store/utils';
+import { StyledFlexBox } from '@/components/styledComponents';
 
 import {
 	EasSchemaAllocationKey,
@@ -56,6 +70,10 @@ const DateContainer = styled(StyledFlexBox)(({ theme }) => ({
 	},
 }));
 
+// @ts-ignore
+BigInt.prototype.toJSON = function () {
+	return this.toString();
+};
 
 export default function Page({ params }: { params: { id: string } }) {
 	const router = useRouter();
@@ -125,7 +143,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				if (contributor.userId == userInfoData.id) {
 					setOperatorId(contributor.id);
 				}
-			})
+			});
 		}
 	}, [userInfoData, contributorList]);
 
@@ -138,36 +156,40 @@ export default function Page({ params }: { params: { id: string } }) {
 	useEffect(() => {
 		if (!contributorList.length) return;
 		console.log('allocationDetails', claimedAmount);
-		const cl:any = []
+		const cl: any = [];
 		contributorList.forEach((contributor: any, index: any) => {
 			if (allocationDetails[contributor.id]) {
 				contributor.credit = allocationDetails[contributor.id];
 				// contributor.percentage = Number(((allocationDetails[contributor.id] / claimedAmount) * 100)).toFixed(2)
 				// 如果是最后一个就用100 - 前面的
 				if (index === contributorList.length - 1) {
-					contributor.percentage = (100 - cl.reduce((acc: number, cur: any) => {
-						return acc + parseFloat(cur.percentage);
-					}, 0)).toFixed(2);
+					contributor.percentage = (
+						100 -
+						cl.reduce((acc: number, cur: any) => {
+							return acc + parseFloat(cur.percentage);
+						}, 0)
+					).toFixed(2);
 				} else {
-					contributor.percentage = Number(((allocationDetails[contributor.id] / claimedAmount) * 100)).toFixed(2);
+					contributor.percentage = Number(
+						(allocationDetails[contributor.id] / claimedAmount) * 100,
+					).toFixed(2);
 				}
-				
-				cl.push(contributor);	
+
+				cl.push(contributor);
 			} else {
 				contributor.credit = 0;
 				contributor.percentage = 0;
 			}
-		})
+		});
 		console.log('cl', cl);
 		setList(cl);
-
 	}, [contributorList, claimedAmount, allocationDetails]);
 
 	const allocationDetailList = useMemo(() => {
-		return contributorList.filter(contributor => {
-			return !!allocationDetails[contributor.id]
-		})
-	}, [allocationDetails, contributorList])
+		return contributorList.filter((contributor) => {
+			return !!allocationDetails[contributor.id];
+		});
+	}, [allocationDetails, contributorList]);
 
 	const displayList = useMemo(() => {
 		console.log('displayList', list);
@@ -176,7 +198,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			if (!searchText) return true;
 			const regex = new RegExp(searchText, 'i');
 			return regex.test(contributor.nickName);
-		})
+		});
 	}, [searchText, list, allocationDetails]);
 
 	const handleChange = (event: SelectChangeEvent<typeof selectedType>) => {
@@ -190,11 +212,11 @@ export default function Page({ params }: { params: { id: string } }) {
 	const titleChange = (e: any) => {
 		setTitle(e.target.value);
 		setPurposeError(false);
-	}
+	};
 
 	const handleSearch = (e: any) => {
-		setSearchText(e.target.value)
-	}
+		setSearchText(e.target.value);
+	};
 
 	const handleCellEditCommit = (params: any) => {
 		setList(list.map((row: any) => (row.id === params.id ? params : row)));
@@ -202,14 +224,14 @@ export default function Page({ params }: { params: { id: string } }) {
 
 	const handleProcessRowUpdateError = (params: any) => {
 		console.error('Failed to update row:', params);
-	}
+	};
 
 	const onCreateAllocation = () => {
 		if (!address) {
 			openConnectModal?.();
 			return;
 		}
-	}
+	};
 
 	const save = async () => {
 		console.log('save', list, address, userInfoData?.id);
@@ -223,9 +245,11 @@ export default function Page({ params }: { params: { id: string } }) {
 			return;
 		}
 		//ratios total must be 100
-		const total = list.reduce((acc: number, cur: any) => {
-			return acc + parseFloat(cur.percentage);
-		}, 0).toFixed(2);
+		const total = list
+			.reduce((acc: number, cur: any) => {
+				return acc + parseFloat(cur.percentage);
+			}, 0)
+			.toFixed(2);
 		if (total != 100) {
 			// 必须是100，当前是${total}
 			showToast('The sum of the ratios must be 100, current is ' + total, 'error');
@@ -242,8 +266,10 @@ export default function Page({ params }: { params: { id: string } }) {
 				title: title,
 				contributors: list.map((item: any) => item.wallet),
 				ratios: list.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())),
-				credits: list.map((item: any) => ethers.parseUnits((item.credit).toString(), 18).toString()),
-			})
+				credits: list.map((item: any) =>
+					ethers.parseUnits(item.credit.toString(), 18).toString(),
+				),
+			});
 			const offchain = getOffchain();
 			const contributionSchemaUid = EasSchemaMap.allocation;
 			const schemaEncoder = new SchemaEncoder(EasSchemaTemplateMap.allocation);
@@ -251,9 +277,25 @@ export default function Page({ params }: { params: { id: string } }) {
 			const data: EasSchemaData<EasSchemaAllocationKey>[] = [
 				{ name: 'ProjectAddress', value: params.id, type: 'address' },
 				{ name: 'Title', value: title, type: 'string' },
-				{ name: 'WalletAddresses', value: list.map((item: any) => item.wallet), type: 'address[]' },
-				{ name: 'AllocationRatios', value: list.map((item: any) => parseInt((item.percentage * 10 ** 6).toString())), type: 'uint32[]' },
-				{ name: 'TokenAmounts', value: list.map((item: any) => ethers.parseUnits((item.credit).toString(), 18).toString()), type: 'uint256[]' },
+				{
+					name: 'WalletAddresses',
+					value: list.map((item: any) => item.wallet),
+					type: 'address[]',
+				},
+				{
+					name: 'AllocationRatios',
+					value: list.map((item: any) =>
+						parseInt((item.percentage * 10 ** 6).toString()),
+					),
+					type: 'uint32[]',
+				},
+				{
+					name: 'TokenAmounts',
+					value: list.map((item: any) =>
+						ethers.parseUnits(item.credit.toString(), 18).toString(),
+					),
+					type: 'uint256[]',
+				},
 				{ name: 'Extended', value: '', type: 'string' },
 			];
 			// console.log('[EAS postContribution data]', data);
@@ -264,7 +306,9 @@ export default function Page({ params }: { params: { id: string } }) {
 				return;
 			}
 			const defaultRecipient = '0x0000000000000000000000000000000000000000';
-			const schema = isProd ? '0x70a30aa5dece019a9dac569c117ac277bcac866333b1baaecf7214be003e86f4' : '0xa576d3b11f52a5f093f33bda484903ed0871bd9c629c6e3ed3cbd0242d0ec753'
+			const schema = isProd
+				? '0x70a30aa5dece019a9dac569c117ac277bcac866333b1baaecf7214be003e86f4'
+				: '0xa576d3b11f52a5f093f33bda484903ed0871bd9c629c6e3ed3cbd0242d0ec753';
 			const offchainAttestation = await offchain.signOffchainAttestation(
 				{
 					recipient: defaultRecipient,
@@ -280,10 +324,13 @@ export default function Page({ params }: { params: { id: string } }) {
 				signer,
 			);
 			console.log('offchainAttestation', offchainAttestation);
-			const res = await submitSignedAttestation({
-				signer: address as string,
-				sig: offchainAttestation,
-			}, chainId || 10);
+			const res = await submitSignedAttestation(
+				{
+					signer: address as string,
+					sig: offchainAttestation,
+				},
+				chainId || 10,
+			);
 			if (res.data.error) {
 				console.error('submitSignedAttestation fail', res.data);
 				throw new Error(res.data.error);
@@ -301,15 +348,15 @@ export default function Page({ params }: { params: { id: string } }) {
 			const ratios = list.map((item: any) => {
 				return {
 					id: item.id,
-					ratio: item.percentage
-				}
-			})
+					ratio: item.percentage,
+				};
+			});
 			const localData = {
 				allocationId: allocation.id,
-				ratios
-			}
+				ratios,
+			};
 			closeGlobalLoading();
-			
+
 			localStorage.setItem('allocationDetail', JSON.stringify(localData));
 			router.push(`/project/${params.id}/createpool?allocationId=${allocation.id}`);
 			console.log('updateStatus', updateStatus);
@@ -319,7 +366,7 @@ export default function Page({ params }: { params: { id: string } }) {
 			closeGlobalLoading();
 		}
 		setIsRequestLoading(false);
-	}
+	};
 
 	const columns = useMemo(() => {
 		const columns: GridColDef[] = [
@@ -333,7 +380,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				// 	return params.row.nickName;
 				// },
 				renderCell: (item) => {
-					const contributor = item.row
+					const contributor = item.row;
 					return (
 						<Link href={`/profile/${contributor?.wallet}`}>
 							<Img3Provider defaultGateways={defaultGateways}>
@@ -410,7 +457,16 @@ export default function Page({ params }: { params: { id: string } }) {
 					<Typography variant="h3">Create Pool</Typography>
 				</StyledFlexBox>
 				<Box>
-					<Typography sx={{ fontSize: '20px 24px', fontWeight: 500, marginBottom: '8px', borderRadius: '4px' }}>Type your purpose*</Typography>
+					<Typography
+						sx={{
+							fontSize: '20px 24px',
+							fontWeight: 500,
+							marginBottom: '8px',
+							borderRadius: '4px',
+						}}
+					>
+						Type your purpose*
+					</Typography>
 					<StyledFlexBox>
 						<TextField
 							label="purpose*"
@@ -438,13 +494,16 @@ export default function Page({ params }: { params: { id: string } }) {
 										onClose={() => setOpenStartDatePicker(false)}
 										sx={{
 											width: '120px',
-											'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-												border: 'none',
-											},
+											'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline':
+												{
+													border: 'none',
+												},
 										}}
 										slotProps={{
 											openPickerButton: { sx: { display: 'none' } },
-											textField: { onClick: () => setOpenStartDatePicker(true) },
+											textField: {
+												onClick: () => setOpenStartDatePicker(true),
+											},
 										}}
 									/>
 									<Typography variant={'body2'} sx={{ margin: '0 4px 0 0' }}>
@@ -464,19 +523,25 @@ export default function Page({ params }: { params: { id: string } }) {
 										onClose={() => setOpenEndDatePicker(false)}
 										sx={{
 											width: '160px',
-											'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-												border: 'none',
-											},
+											'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline':
+												{
+													border: 'none',
+												},
 										}}
 										slotProps={{
 											openPickerIcon: { sx: { opacity: 0.2 } },
-											textField: { onClick: () => setOpenEndDatePicker(true) },
+											textField: {
+												onClick: () => setOpenEndDatePicker(true),
+											},
 										}}
 									/>
 								</LocalizationProvider>
 							</DateContainer>
 							{contributionTypeList.length > 0 ? (
-								<FormControl sx={{ m: 1, width: 200, marginLeft: '20px' }} size="small">
+								<FormControl
+									sx={{ m: 1, width: 200, marginLeft: '20px' }}
+									size="small"
+								>
 									<InputLabel id="demo-multiple-chip-label">Type</InputLabel>
 									<Select
 										labelId="demo-multiple-chip-label"
@@ -516,7 +581,9 @@ export default function Page({ params }: { params: { id: string } }) {
 								reset
 							</Button>
 
-							<Typography sx={{ flex: 1, textAlign: 'right', fontSize: '14px' }}>Total: {claimedAmount}</Typography>
+							<Typography sx={{ flex: 1, textAlign: 'right', fontSize: '14px' }}>
+								Total: {claimedAmount}
+							</Typography>
 						</StyledFlexBox>
 					</StyledFlexBox>
 					<DataGrid
@@ -540,7 +607,15 @@ export default function Page({ params }: { params: { id: string } }) {
 					/>
 				</Box>
 			</div>
-			<div className="ft" style={{ height: '80px', borderTop: '1px solid #0F172A29', display: 'flex', alignItems: 'center' }}>
+			<div
+				className="ft"
+				style={{
+					height: '80px',
+					borderTop: '1px solid #0F172A29',
+					display: 'flex',
+					alignItems: 'center',
+				}}
+			>
 				<LoadingButton
 					loading={isRequestLoading}
 					variant="contained"
@@ -560,6 +635,5 @@ export default function Page({ params }: { params: { id: string } }) {
 				</Button>
 			</div>
 		</div>
-
 	);
 }

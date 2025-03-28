@@ -290,7 +290,7 @@ export default function Page({ params }: { params: { id: string } }) {
 				Math.floor(now / 1000) + Math.floor(Number(sendData.locked) * 86400);
 			const param = {
 				projectAddress: params.id,
-				depositor: address,
+				depositor: sendData.address,
 				timeToClaim: timeToClaim,
 				salt: now,
 			};
