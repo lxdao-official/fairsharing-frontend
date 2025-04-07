@@ -271,8 +271,8 @@ export default function Page({ params }: { params: { id: string } }) {
 		openGlobalLoading();
 		try {
 			const contractAddress = isProd
-				? '0xAD1B017Aa86BE3378d28b4b4445293068E3A7aCf'
-				: '0xf35451137ad2DD3465b4c2890fade5C51a52713F';
+				? '0xa15F0E78021ca3A52D361ae91C93Bb44056B3D0f'
+				: '0x13A5DfeB3E823378e379Bb59A46c5c9E19a3Fc37';
 			const contract = new ethers.Contract(contractAddress, abi, signer);
 			const allocation = {
 				token: sendData.token,
@@ -285,17 +285,20 @@ export default function Page({ params }: { params: { id: string } }) {
 					parseInt((item.percentage * 10 ** 6).toString()),
 				),
 			};
-			console.log('contract', contract);
-			const salt = new Date().getTime();
+			const now = new Date().getTime();
+			const timeToClaim =
+				Math.floor(now / 1000) + Math.floor(Number(sendData.locked) * 86400);
 			const param = {
 				projectAddress: params.id,
-				depositor: address,
-				timeToClaim: Math.floor(Number(sendData.locked) * 86400),
-				salt: salt,
+				depositor: sendData.address,
+				timeToClaim: timeToClaim,
+				salt: now,
 			};
+			console.log('param', param);
+
 			const tx = await contract.create([allocation], param);
 			const receipt = await tx.wait();
-			const poolAddress = await contract.predictPoolAddress(address, salt);
+			const poolAddress = await contract.predictPoolAddress(address, now);
 			console.log(poolAddress);
 			const pool = await createPool({
 				operatorId: operatorId,

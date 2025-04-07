@@ -66,6 +66,7 @@ import { isProd } from '@/constant/env';
 import { useEthersSigner } from '@/common/ether';
 
 const claimAbi = [
+	{ inputs: [], name: 'AlreadyInitialized', type: 'error' },
 	{ inputs: [], name: 'ClaimFailed', type: 'error' },
 	{ inputs: [], name: 'RefundFailed', type: 'error' },
 	{
@@ -86,6 +87,16 @@ const claimAbi = [
 			{ indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
 		],
 		name: 'Deposited',
+		type: 'event',
+	},
+	{
+		anonymous: false,
+		inputs: [
+			{ indexed: true, internalType: 'address', name: 'creator', type: 'address' },
+			{ indexed: true, internalType: 'address', name: 'projectAddress', type: 'address' },
+			{ indexed: false, internalType: 'uint256', name: 'timeToClaim', type: 'uint256' },
+		],
+		name: 'Initialized',
 		type: 'event',
 	},
 	{
