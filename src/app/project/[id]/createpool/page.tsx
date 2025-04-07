@@ -271,7 +271,7 @@ export default function Page({ params }: { params: { id: string } }) {
 		openGlobalLoading();
 		try {
 			const contractAddress = isProd
-				? '0xAD1B017Aa86BE3378d28b4b4445293068E3A7aCf'
+				? '0xa15F0E78021ca3A52D361ae91C93Bb44056B3D0f'
 				: '0x13A5DfeB3E823378e379Bb59A46c5c9E19a3Fc37';
 			const contract = new ethers.Contract(contractAddress, abi, signer);
 			const allocation = {
