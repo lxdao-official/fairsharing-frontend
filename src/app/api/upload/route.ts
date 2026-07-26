@@ -5,9 +5,12 @@ import { v4 as uuidv4 } from 'uuid';
 const S3Prefix = 'images/';
 const S3Bucket = process.env.AWS_S3_BUCKET || 'fs-imgs';
 const S3Region = process.env.AWS_S3_REGION || 'us-east-1';
+const S3PublicUrl = (process.env.AWS_S3_PUBLIC_URL || 'https://cdn.fairsharing.xyz')
+	.replace(/\/$/, '');
 
 const s3 = new S3Client({
 	region: S3Region,
+	endpoint: process.env.AWS_S3_ENDPOINT,
 	credentials: {
 		accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
 		secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
@@ -34,7 +37,7 @@ export async function POST(req: NextRequest) {
 				// originalName: file.name,
 				name: filename,
 				// originUrl: `https://${S3Bucket}.s3.${S3Region}.amazonaws.com/${S3Prefix}${filename}`,
-				url: `https://cdn.fairsharing.xyz/${S3Prefix}${filename}`,
+				url: `${S3PublicUrl}/${S3Prefix}${filename}`,
 				// ContentType: file.type,
 			};
 		});
